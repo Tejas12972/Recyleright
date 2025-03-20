@@ -1,0 +1,214 @@
+{% extends "layout.html" %}
+
+{% block title %}Leaderboard - RecycleRight{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-3">Leaderboard</h1>
+            <p class="lead">See who's making the biggest impact in recycling!</p>
+        </div>
+    </div>
+    
+    <!-- Top 3 Users -->
+    <div class="row mb-5">
+        {% for user in top_users[:3] %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 shadow text-center">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            {% if loop.index == 1 %}
+                                <i class="fas fa-crown me-2"></i>
+                            {% endif %}
+                            Rank #{{ loop.index }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                                <span class="display-4">{{ user.username[:1] }}</span>
+                            </div>
+                        </div>
+                        <h4>{{ user.username }}</h4>
+                        <p class="text-muted mb-1">Level {{ user.level }}</p>
+                        <h5 class="text-primary">{{ user.points }} points</h5>
+                        
+                        <div class="mt-3">
+                            <small class="d-block mb-1">Recent achievements:</small>
+                            {% if user.recent_achievements %}
+                                <div class="d-flex justify-content-center gap-2">
+                                    {% for achievement in user.recent_achievements %}
+                                        <i class="fas {{ achievement.icon }} text-warning" data-bs-toggle="tooltip" title="{{ achievement.name }}"></i>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <small class="text-muted">No recent achievements</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        <small>{{ user.items_recycled }} items recycled</small>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Leaderboard Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Rankings</h5>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-primary active" id="btn-global">Global</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="btn-friends">Friends</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th width="10%">Rank</th>
+                                    <th width="40%">User</th>
+                                    <th width="15%">Level</th>
+                                    <th width="15%">Points</th>
+                                    <th width="20%">Items Recycled</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in leaderboard %}
+                                    <tr class="{{ 'bg-light' if user.is_current_user else '' }} {{ 'top-three' if loop.index <= 3 else '' }}">
+                                        <td>
+                                            <span class="user-rank">
+                                                {% if loop.index <= 3 %}
+                                                    <i class="fas fa-medal"></i>
+                                                {% endif %}
+                                                {{ loop.index }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="user-avatar">
+                                                    {{ user.username[:1] }}
+                                                </div>
+                                                <div>
+                                                    <span class="{{ 'fw-bold' if user.is_current_user else '' }}">{{ user.username }}</span>
+                                                    {% if user.is_current_user %}
+                                                        <span class="badge bg-primary ms-2">You</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ user.level }}</td>
+                                        <td>{{ user.points }}</td>
+                                        <td>{{ user.items_recycled }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if pagination.total_pages > 1 %}
+                        <nav aria-label="Leaderboard pagination">
+                            <ul class="pagination justify-content-center mt-4">
+                                <li class="page-item {{ 'disabled' if pagination.current_page == 1 else '' }}">
+                                    <a class="page-link" href="{{ url_for('leaderboard', page=pagination.current_page-1) if pagination.current_page > 1 else '#' }}">Previous</a>
+                                </li>
+                                
+                                {% for page_num in range(max(1, pagination.current_page - 2), min(pagination.total_pages + 1, pagination.current_page + 3)) %}
+                                    <li class="page-item {{ 'active' if page_num == pagination.current_page else '' }}">
+                                        <a class="page-link" href="{{ url_for('leaderboard', page=page_num) }}">{{ page_num }}</a>
+                                    </li>
+                                {% endfor %}
+                                
+                                <li class="page-item {{ 'disabled' if pagination.current_page == pagination.total_pages else '' }}">
+                                    <a class="page-link" href="{{ url_for('leaderboard', page=pagination.current_page+1) if pagination.current_page < pagination.total_pages else '#' }}">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Seasonal Competition (if active) -->
+    {% if seasonal_competition %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-leaf me-2"></i>{{ seasonal_competition.title }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <p>{{ seasonal_competition.description }}</p>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <span class="d-block">Your Points:</span>
+                                        <h4 class="mb-0">{{ seasonal_competition.user_points }}</h4>
+                                    </div>
+                                    <div class="me-3">
+                                        <span class="d-block">Your Rank:</span>
+                                        <h4 class="mb-0">#{{ seasonal_competition.user_rank }}</h4>
+                                    </div>
+                                    <div>
+                                        <span class="d-block">Time Left:</span>
+                                        <h4 class="mb-0">{{ seasonal_competition.days_left }} days</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <h5 class="mb-3">Prizes:</h5>
+                                <ul class="list-group">
+                                    {% for prize in seasonal_competition.prizes %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ prize.name }}
+                                            <span class="badge bg-success rounded-pill">{{ prize.points }} points</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('competition_details', id=seasonal_competition.id) }}" class="btn btn-outline-success">View Competition Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle between global and friends leaderboard
+        const btnGlobal = document.getElementById('btn-global');
+        const btnFriends = document.getElementById('btn-friends');
+        
+        btnGlobal.addEventListener('click', function() {
+            btnGlobal.classList.add('active');
+            btnFriends.classList.remove('active');
+            // In a real implementation, this would fetch the global leaderboard data
+            // For now, we'll just reload the current page
+            window.location.href = "{{ url_for('leaderboard', type='global') }}";
+        });
+        
+        btnFriends.addEventListener('click', function() {
+            btnFriends.classList.add('active');
+            btnGlobal.classList.remove('active');
+            // In a real implementation, this would fetch the friends leaderboard data
+            window.location.href = "{{ url_for('leaderboard', type='friends') }}";
+        });
+    });
+</script>
+{% endblock %} 

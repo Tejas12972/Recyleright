@@ -1,0 +1,128 @@
+{% extends "layout.html" %}
+
+{% block title %}Register - RecycleRight{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Create an Account</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('register') }}" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required minlength="4" maxlength="20">
+                            <div class="invalid-feedback">
+                                Username must be between 4 and 20 characters.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid email address.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required minlength="8">
+                            <div class="invalid-feedback">
+                                Password must be at least 8 characters long.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            <div class="invalid-feedback">
+                                Passwords do not match.
+                            </div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                            <label class="form-check-label" for="terms">I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a></label>
+                            <div class="invalid-feedback">
+                                You must agree to the terms and conditions.
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p class="mb-0">Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>1. Acceptance of Terms</h5>
+                <p>By accessing and using the RecycleRight application, you agree to be bound by these Terms and Conditions.</p>
+                
+                <h5>2. User Accounts</h5>
+                <p>To use certain features of RecycleRight, you must register for an account. You are responsible for maintaining the confidentiality of your account information.</p>
+                
+                <h5>3. Privacy Policy</h5>
+                <p>Your use of RecycleRight is also governed by our Privacy Policy, which governs how we collect, use, and share your personal information.</p>
+                
+                <h5>4. User Content</h5>
+                <p>Any content you submit to the RecycleRight application, including images of waste items, remains your property. However, you grant us a license to use, modify, display, and distribute this content on our platform.</p>
+                
+                <h5>5. Location Data</h5>
+                <p>The RecycleRight application uses location data to provide recycling center recommendations. You can disable location services at any time through your device settings.</p>
+                
+                <h5>6. Prohibited Activities</h5>
+                <p>You may not use the RecycleRight application for any illegal or unauthorized purpose. You may not attempt to gain unauthorized access to the system.</p>
+                
+                <h5>7. Disclaimer of Warranties</h5>
+                <p>The RecycleRight application is provided "as is" without any warranties, expressed or implied.</p>
+                
+                <h5>8. Limitation of Liability</h5>
+                <p>In no event shall RecycleRight be liable for any indirect, incidental, special, consequential or punitive damages.</p>
+                
+                <h5>9. Changes to Terms</h5>
+                <p>We reserve the right to modify these Terms and Conditions at any time. Continued use of the application after such modifications constitutes your acceptance of the revised terms.</p>
+                
+                <h5>10. Governing Law</h5>
+                <p>These Terms and Conditions shall be governed by and construed in accordance with the laws of the jurisdiction in which RecycleRight operates.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm_password');
+        
+        function validatePassword() {
+            if (password.value != confirmPassword.value) {
+                confirmPassword.setCustomValidity("Passwords don't match");
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        }
+        
+        password.addEventListener('change', validatePassword);
+        confirmPassword.addEventListener('keyup', validatePassword);
+    });
+</script>
+{% endblock %} 

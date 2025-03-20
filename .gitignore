@@ -1,0 +1,88 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.flaskenv
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite3
+mongodb/
+
+# Uploaded files and media
+uploads/
+ui/static/uploads/
+assets/uploads/
+
+# Model files (large binary files)
+models/*.tflite
+models/checkpoints/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# Temporary files
+*.tmp
+tmp/
+.pytest_cache/
+
+# Distribution / packaging
+*.manifest
+*.spec
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Project specific
+instance/
+*.pem 

@@ -1,0 +1,141 @@
+{% extends "layout.html" %}
+
+{% block title %}RecycleRight - AI-Powered Waste Sorting Assistant{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <section class="hero">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold">Recycle Smarter, Not Harder</h1>
+                <p class="lead">RecycleRight uses AI to help you identify and properly dispose of waste, making recycling easier and more effective.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    {% if session.get('user_id') %}
+                        <a href="{{ url_for('scan_page') }}" class="btn btn-primary btn-lg px-4 me-md-2">Start Scanning</a>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg px-4">My Dashboard</a>
+                    {% else %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary btn-lg px-4">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="{{ url_for('static', filename='images/hero-image.png') }}" class="img-fluid rounded hero-image" alt="Recycling Illustration">
+            </div>
+        </div>
+    </section>
+
+    <section class="features my-5 py-5">
+        <h2 class="text-center mb-5">Why Choose RecycleRight?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-camera fa-3x text-primary mb-3"></i>
+                        </div>
+                        <h3 class="card-title">Instant Recognition</h3>
+                        <p class="card-text">Simply take a photo of any waste item, and our AI will identify it instantly.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-map-marker-alt fa-3x text-primary mb-3"></i>
+                        </div>
+                        <h3 class="card-title">Local Guidelines</h3>
+                        <p class="card-text">Get recycling instructions based on your location's specific recycling rules.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-trophy fa-3x text-primary mb-3"></i>
+                        </div>
+                        <h3 class="card-title">Earn & Learn</h3>
+                        <p class="card-text">Make recycling fun by earning points, completing challenges, and tracking your impact.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works my-5 py-5 bg-light rounded p-4">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="step text-center">
+                    <div class="step-number">1</div>
+                    <h4>Scan</h4>
+                    <p>Take a photo of your waste item using our app</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step text-center">
+                    <div class="step-number">2</div>
+                    <h4>Identify</h4>
+                    <p>Our AI identifies the type of material</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step text-center">
+                    <div class="step-number">3</div>
+                    <h4>Learn</h4>
+                    <p>Get local disposal instructions</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step text-center">
+                    <div class="step-number">4</div>
+                    <h4>Recycle</h4>
+                    <p>Dispose properly and track your impact</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats my-5 py-4">
+        <h2 class="text-center mb-5">Make a Difference</h2>
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <h3 class="stat-number">75%</h3>
+                    <p class="stat-description">of waste is recyclable but only 30% gets recycled</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <h3 class="stat-number">8 million</h3>
+                    <p class="stat-description">tons of plastic enter our oceans every year</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-item">
+                    <h3 class="stat-number">1,000+</h3>
+                    <p class="stat-description">waste types our AI can identify accurately</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="cta my-5 py-5 text-center">
+        <h2>Ready to Start Recycling Right?</h2>
+        <p class="lead">Join our community and help make a difference today.</p>
+        {% if session.get('user_id') %}
+            <a href="{{ url_for('scan_page') }}" class="btn btn-primary btn-lg mt-3">Start Scanning</a>
+        {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg mt-3">Get Started Now</a>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Any home page specific JavaScript
+</script>
+{% endblock %} 

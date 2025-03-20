@@ -1,0 +1,705 @@
+{% extends "layout.html" %}
+
+{% block title %}Scan Waste - RecycleRight{% endblock %}
+
+{% block head %}
+<style>
+    .scan-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .tab-content {
+        padding: 20px;
+        border-left: 1px solid #dee2e6;
+        border-right: 1px solid #dee2e6;
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 0 0 5px 5px;
+    }
+    #camera-preview {
+        width: 100%;
+        max-height: 400px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    #drop-area {
+        border: 2px dashed #ccc;
+        border-radius: 5px;
+        padding: 40px;
+        text-align: center;
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+    #drop-area.highlight {
+        border-color: #6c757d;
+        background-color: #f8f9fa;
+    }
+    #fileElem {
+        display: none;
+    }
+    .preview-section {
+        display: none;
+    }
+    #result-section {
+        display: none;
+    }
+    .result-item {
+        margin-bottom: 20px;
+    }
+    .confidence-bar {
+        height: 10px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    .confidence-level {
+        height: 10px;
+        background-color: #28a745;
+        border-radius: 5px;
+    }
+    #preview-image {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 5px;
+    }
+    .guidelines-container {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 20px;
+    }
+    .center-info {
+        background-color: #e9ecef;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .disposal-tag {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+    }
+    .recyclable {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .non-recyclable {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .special {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    .loading-spinner {
+        display: none;
+        width: 3rem;
+        height: 3rem;
+        margin: 20px auto;
+    }
+    .camera-controls {
+        margin-top: 15px;
+    }
+    .achievement-item {
+        background-color: #e9ecef;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="scan-container">
+    <h1 class="text-center mb-4">Scan Waste</h1>
+    
+    <ul class="nav nav-tabs" id="scanTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="true">
+                <i class="fas fa-upload me-2"></i>Upload Image
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" type="button" role="tab" aria-controls="camera" aria-selected="false">
+                <i class="fas fa-camera me-2"></i>Use Camera
+            </button>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="scanTabsContent">
+        <!-- Upload Tab -->
+        <div class="tab-pane fade show active" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+            <div id="drop-area">
+                <form class="upload-form">
+                    <p><i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i></p>
+                    <p>Drag and drop an image here, or click to select</p>
+                    <input type="file" id="fileElem" accept="image/*">
+                    <button class="btn btn-primary" type="button" id="selectFile">Select Image</button>
+                </form>
+            </div>
+            
+            <div class="preview-section" id="upload-preview-section">
+                <h3>Preview</h3>
+                <img id="preview-image" src="" alt="Preview">
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                    <button class="btn btn-secondary" id="cancel-upload">Cancel</button>
+                    <button class="btn btn-primary" id="analyze-image">Analyze</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Camera Tab -->
+        <div class="tab-pane fade" id="camera" role="tabpanel" aria-labelledby="camera-tab">
+            <div class="camera-container">
+                <video id="camera-preview" autoplay></video>
+                <div class="camera-controls d-grid gap-2 d-md-flex justify-content-md-center">
+                    <button class="btn btn-primary" id="start-camera" disabled><i class="fas fa-video me-2"></i>Start Camera</button>
+                    <button class="btn btn-danger" id="capture-image" disabled><i class="fas fa-camera me-2"></i>Capture</button>
+                    <button class="btn btn-secondary" id="switch-camera" disabled><i class="fas fa-sync-alt me-2"></i>Switch Camera</button>
+                </div>
+            </div>
+            
+            <div class="preview-section" id="camera-preview-section">
+                <h3>Preview</h3>
+                <canvas id="capture-canvas" style="display:none;"></canvas>
+                <img id="capture-image-preview" src="" alt="Captured Image" style="max-width: 100%; max-height: 300px; border-radius: 5px;">
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                    <button class="btn btn-secondary" id="cancel-capture">Cancel</button>
+                    <button class="btn btn-primary" id="analyze-capture">Analyze</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Spinner -->
+    <div class="text-center">
+        <div class="spinner-border loading-spinner" id="loading-spinner" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    
+    <!-- Results Section -->
+    <div id="result-section" class="mt-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Results</h3>
+            </div>
+            <div class="card-body">
+                <div class="result-item">
+                    <h4 id="waste-type">Plastic Bottle</h4>
+                    <p>Confidence: <span id="confidence-value">95%</span></p>
+                    <div class="confidence-bar">
+                        <div class="confidence-level" id="confidence-bar" style="width: 95%;"></div>
+                    </div>
+                    <p>Points earned: <span id="points-earned">0</span></p>
+                </div>
+                
+                <div class="guidelines-container">
+                    <h4>Recycling Guidelines</h4>
+                    <div class="disposal-tag recyclable" id="disposal-method">Recyclable</div>
+                    <div id="guidelines-instructions">
+                        <!-- Content will be added dynamically -->
+                    </div>
+                </div>
+                
+                <div id="recycling-centers-section" class="mt-4">
+                    <h4>Nearby Recycling Centers</h4>
+                    <div id="centers-list">
+                        <!-- Content will be added dynamically -->
+                    </div>
+                </div>
+                
+                <div id="new-achievements-section" class="mt-4" style="display: none;">
+                    <h4>New Achievements!</h4>
+                    <div id="achievements-list">
+                        <!-- Content will be added dynamically -->
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <button class="btn btn-success" id="confirm-disposal">
+                        <i class="fas fa-check-circle me-2"></i>Confirm Correct Disposal
+                    </button>
+                    <button class="btn btn-primary" id="scan-new">
+                        <i class="fas fa-plus-circle me-2"></i>Scan Another
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Global variables
+    let currentScanId = null;
+    let currentWasteType = null;
+    let cameraStream = null;
+    let videoElement = null;
+    let canvasElement = null;
+    let captureImageElement = null;
+    let currentDeviceId = null;
+    let availableCameras = [];
+    let currentTabId = 'upload';
+    
+    // Elements
+    const dropArea = document.getElementById('drop-area');
+    const fileElem = document.getElementById('fileElem');
+    const selectFileBtn = document.getElementById('selectFile');
+    const previewImage = document.getElementById('preview-image');
+    const uploadPreviewSection = document.getElementById('upload-preview-section');
+    const cancelUploadBtn = document.getElementById('cancel-upload');
+    const analyzeImageBtn = document.getElementById('analyze-image');
+    
+    const startCameraBtn = document.getElementById('start-camera');
+    const captureCameraBtn = document.getElementById('capture-image');
+    const switchCameraBtn = document.getElementById('switch-camera');
+    const cameraPreview = document.getElementById('camera-preview');
+    const cameraPreviewSection = document.getElementById('camera-preview-section');
+    const cancelCaptureBtn = document.getElementById('cancel-capture');
+    const analyzeCaptureBtn = document.getElementById('analyze-capture');
+    const captureCanvas = document.getElementById('capture-canvas');
+    
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const resultSection = document.getElementById('result-section');
+    const wasteTypeElement = document.getElementById('waste-type');
+    const confidenceValueElement = document.getElementById('confidence-value');
+    const confidenceBarElement = document.getElementById('confidence-bar');
+    const pointsEarnedElement = document.getElementById('points-earned');
+    const disposalMethodElement = document.getElementById('disposal-method');
+    const guidelinesInstructionsElement = document.getElementById('guidelines-instructions');
+    const recyclingCentersSection = document.getElementById('recycling-centers-section');
+    const centersListElement = document.getElementById('centers-list');
+    const newAchievementsSection = document.getElementById('new-achievements-section');
+    const achievementsListElement = document.getElementById('achievements-list');
+    const confirmDisposalBtn = document.getElementById('confirm-disposal');
+    const scanNewBtn = document.getElementById('scan-new');
+    
+    // Check if browser supports camera
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        startCameraBtn.disabled = false;
+    }
+    
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab change event
+        const tabElements = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        tabElements.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(e) {
+                currentTabId = e.target.id.split('-')[0];
+                if (currentTabId === 'camera' && !cameraStream) {
+                    // Optional: auto-start camera when switching to camera tab
+                    // startCamera();
+                }
+            });
+        });
+        
+        // Upload image handling
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        selectFileBtn.addEventListener('click', () => fileElem.click());
+        fileElem.addEventListener('change', handleFiles);
+        
+        // Camera handling
+        startCameraBtn.addEventListener('click', startCamera);
+        captureCameraBtn.addEventListener('click', captureImage);
+        switchCameraBtn.addEventListener('click', switchCamera);
+        
+        // Preview section buttons
+        cancelUploadBtn.addEventListener('click', cancelUpload);
+        analyzeImageBtn.addEventListener('click', analyzeUploadedImage);
+        cancelCaptureBtn.addEventListener('click', cancelCapture);
+        analyzeCaptureBtn.addEventListener('click', analyzeCapture);
+        
+        // Result section buttons
+        confirmDisposalBtn.addEventListener('click', confirmDisposal);
+        scanNewBtn.addEventListener('click', scanNewItem);
+        
+        // Initialize canvas
+        canvasElement = document.getElementById('capture-canvas');
+        captureImageElement = document.getElementById('capture-image-preview');
+        videoElement = document.getElementById('camera-preview');
+    });
+    
+    // Event handlers
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    function highlight() {
+        dropArea.classList.add('highlight');
+    }
+    
+    function unhighlight() {
+        dropArea.classList.remove('highlight');
+    }
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+    
+    function handleFiles(e) {
+        const files = e.target?.files || e;
+        if (files && files[0]) {
+            const file = files[0];
+            if (file.type.match('image.*')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    uploadPreviewSection.style.display = 'block';
+                    dropArea.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please select an image file');
+            }
+        }
+    }
+    
+    async function startCamera() {
+        try {
+            // Get available cameras
+            if (!availableCameras.length) {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                availableCameras = devices.filter(device => device.kind === 'videoinput');
+            }
+            
+            // Use first camera by default
+            currentDeviceId = currentDeviceId || (availableCameras.length > 0 ? availableCameras[0].deviceId : null);
+            
+            // Set up constraints
+            const constraints = {
+                video: {
+                    deviceId: currentDeviceId ? { exact: currentDeviceId } : undefined,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: "environment"
+                }
+            };
+            
+            // Get user media
+            cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+            videoElement.srcObject = cameraStream;
+            
+            // Enable buttons
+            captureCameraBtn.disabled = false;
+            switchCameraBtn.disabled = availableCameras.length <= 1;
+            startCameraBtn.disabled = true;
+            
+        } catch (err) {
+            console.error("Error accessing camera: ", err);
+            alert(`Error accessing camera: ${err.message}`);
+        }
+    }
+    
+    function stopCamera() {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+            videoElement.srcObject = null;
+        }
+        captureCameraBtn.disabled = true;
+        switchCameraBtn.disabled = true;
+        startCameraBtn.disabled = false;
+    }
+    
+    async function switchCamera() {
+        if (availableCameras.length <= 1) {
+            return;
+        }
+        
+        // Stop current stream
+        stopCamera();
+        
+        // Find next camera
+        const currentIndex = availableCameras.findIndex(cam => cam.deviceId === currentDeviceId);
+        const nextIndex = (currentIndex + 1) % availableCameras.length;
+        currentDeviceId = availableCameras[nextIndex].deviceId;
+        
+        // Start with new camera
+        await startCamera();
+    }
+    
+    function captureImage() {
+        if (!cameraStream) {
+            return;
+        }
+        
+        // Set canvas dimensions to match video
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
+        
+        // Draw video frame to canvas
+        const context = canvasElement.getContext('2d');
+        context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+        
+        // Convert to image
+        const imageDataUrl = canvasElement.toDataURL('image/jpeg');
+        captureImageElement.src = imageDataUrl;
+        
+        // Show preview section
+        cameraPreviewSection.style.display = 'block';
+    }
+    
+    function cancelUpload() {
+        uploadPreviewSection.style.display = 'none';
+        dropArea.style.display = 'block';
+        previewImage.src = '';
+        fileElem.value = '';
+    }
+    
+    function cancelCapture() {
+        cameraPreviewSection.style.display = 'none';
+        captureImageElement.src = '';
+    }
+    
+    function analyzeUploadedImage() {
+        if (!previewImage.src) {
+            return;
+        }
+        
+        // Show loading spinner
+        loadingSpinner.style.display = 'block';
+        uploadPreviewSection.style.display = 'none';
+        
+        // Create a FormData object
+        const formData = new FormData();
+        formData.append('file', fileElem.files[0]);
+        
+        // Send file to server
+        fetch('/scan/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            handleAnalysisResult(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error analyzing image: ' + error);
+            loadingSpinner.style.display = 'none';
+            uploadPreviewSection.style.display = 'block';
+        });
+    }
+    
+    function analyzeCapture() {
+        if (!captureImageElement.src) {
+            return;
+        }
+        
+        // Show loading spinner
+        loadingSpinner.style.display = 'block';
+        cameraPreviewSection.style.display = 'none';
+        
+        // Send image data to server
+        fetch('/scan/camera', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                image: captureImageElement.src
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            handleAnalysisResult(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error analyzing image: ' + error);
+            loadingSpinner.style.display = 'none';
+            cameraPreviewSection.style.display = 'block';
+        });
+    }
+    
+    function handleAnalysisResult(data) {
+        // Hide loading spinner
+        loadingSpinner.style.display = 'none';
+        
+        if (data.error || !data.success) {
+            alert(data.error || data.message || 'Analysis failed');
+            return;
+        }
+        
+        // Store scan data
+        currentScanId = data.scan_id;
+        currentWasteType = data.waste_type;
+        
+        // Update result section
+        wasteTypeElement.textContent = formatWasteType(data.waste_type);
+        
+        const confidencePercent = Math.round(data.confidence * 100);
+        confidenceValueElement.textContent = `${confidencePercent}%`;
+        confidenceBarElement.style.width = `${confidencePercent}%`;
+        
+        // Adjust confidence bar color based on value
+        if (confidencePercent > 80) {
+            confidenceBarElement.style.backgroundColor = '#28a745'; // Green
+        } else if (confidencePercent > 60) {
+            confidenceBarElement.style.backgroundColor = '#ffc107'; // Yellow
+        } else {
+            confidenceBarElement.style.backgroundColor = '#dc3545'; // Red
+        }
+        
+        pointsEarnedElement.textContent = data.points_earned;
+        
+        // Update disposal method tag
+        if (data.guidelines.recyclable) {
+            disposalMethodElement.textContent = 'Recyclable';
+            disposalMethodElement.className = 'disposal-tag recyclable';
+        } else {
+            disposalMethodElement.textContent = 'Non-recyclable';
+            disposalMethodElement.className = 'disposal-tag non-recyclable';
+        }
+        
+        if (data.guidelines.special_handling) {
+            disposalMethodElement.textContent = 'Special Handling';
+            disposalMethodElement.className = 'disposal-tag special';
+        }
+        
+        // Update guidelines
+        guidelinesInstructionsElement.textContent = data.guidelines.instructions;
+        
+        // Update centers
+        if (data.centers && data.centers.length > 0) {
+            recyclingCentersSection.style.display = 'block';
+            centersListElement.innerHTML = '';
+            
+            data.centers.forEach(center => {
+                const centerElement = document.createElement('div');
+                centerElement.className = 'center-info';
+                centerElement.innerHTML = `
+                    <strong>${center.name}</strong>
+                    <p>${center.address}</p>
+                    <p><small>${center.distance.toFixed(1)} km away</small></p>
+                `;
+                centersListElement.appendChild(centerElement);
+            });
+        } else {
+            recyclingCentersSection.style.display = 'none';
+        }
+        
+        // Handle achievements
+        if (data.new_achievements && data.new_achievements.length > 0) {
+            newAchievementsSection.style.display = 'block';
+            achievementsListElement.innerHTML = '';
+            
+            data.new_achievements.forEach(achievement => {
+                const achievementElement = document.createElement('div');
+                achievementElement.className = 'achievement-item';
+                achievementElement.innerHTML = `
+                    <h5>${achievement.name}</h5>
+                    <p>${achievement.description}</p>
+                    <p><small>+${achievement.points_reward} points</small></p>
+                `;
+                achievementsListElement.appendChild(achievementElement);
+            });
+        } else {
+            newAchievementsSection.style.display = 'none';
+        }
+        
+        // Show result section
+        resultSection.style.display = 'block';
+    }
+    
+    function formatWasteType(wasteType) {
+        // Convert snake_case or camelCase to Title Case with spaces
+        return wasteType
+            .replace(/_/g, ' ')
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())
+            .trim();
+    }
+    
+    function confirmDisposal() {
+        if (!currentScanId || !currentWasteType) {
+            return;
+        }
+        
+        fetch('/confirm-disposal', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                scan_id: currentScanId,
+                waste_type: currentWasteType
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            // Update points
+            const currentPoints = parseInt(pointsEarnedElement.textContent) || 0;
+            pointsEarnedElement.textContent = currentPoints + data.points_earned;
+            
+            // Show any new achievements
+            if (data.new_achievements && data.new_achievements.length > 0) {
+                newAchievementsSection.style.display = 'block';
+                achievementsListElement.innerHTML = '';
+                
+                data.new_achievements.forEach(achievement => {
+                    const achievementElement = document.createElement('div');
+                    achievementElement.className = 'achievement-item';
+                    achievementElement.innerHTML = `
+                        <h5>${achievement.name}</h5>
+                        <p>${achievement.description}</p>
+                        <p><small>+${achievement.points_reward} points</small></p>
+                    `;
+                    achievementsListElement.appendChild(achievementElement);
+                });
+            }
+            
+            // Disable the button
+            confirmDisposalBtn.disabled = true;
+            confirmDisposalBtn.textContent = 'Disposal Confirmed ✓';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error confirming disposal: ' + error);
+        });
+    }
+    
+    function scanNewItem() {
+        // Reset everything
+        resultSection.style.display = 'none';
+        currentScanId = null;
+        currentWasteType = null;
+        confirmDisposalBtn.disabled = false;
+        confirmDisposalBtn.textContent = 'Confirm Correct Disposal';
+        
+        if (currentTabId === 'upload') {
+            // Reset upload section
+            uploadPreviewSection.style.display = 'none';
+            dropArea.style.display = 'block';
+            previewImage.src = '';
+            fileElem.value = '';
+        } else {
+            // Reset camera section
+            cameraPreviewSection.style.display = 'none';
+            captureImageElement.src = '';
+        }
+    }
+</script>
+{% endblock %} 
