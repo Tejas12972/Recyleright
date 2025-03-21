@@ -21,15 +21,24 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-body">
-                    <form id="filter-form" method="get" action="{{ url_for('recycling_centers') }}">
+                    <form id="filter-form" method="get" action="{{ url_for('centers') }}">
                         <div class="row">
                             <div class="col-md-4 mb-3 mb-md-0">
                                 <label for="waste-type" class="form-label">Waste Type</label>
                                 <select class="form-select" id="waste-type" name="waste_type">
                                     <option value="">All Types</option>
-                                    {% for type in waste_types %}
-                                        <option value="{{ type.id }}" {{ 'selected' if selected_waste_type == type.id else '' }}>{{ type.name }}</option>
-                                    {% endfor %}
+                                    {% if waste_types %}
+                                        {% for type in waste_types %}
+                                            <option value="{{ type.id }}" {{ 'selected' if selected_waste_type == type.id else '' }}>{{ type.name }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="plastic">Plastic</option>
+                                        <option value="paper">Paper</option>
+                                        <option value="glass">Glass</option>
+                                        <option value="metal">Metal</option>
+                                        <option value="electronic">Electronic</option>
+                                        <option value="hazardous">Hazardous</option>
+                                    {% endif %}
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3 mb-md-0">
@@ -74,7 +83,7 @@
                         <!-- Map View -->
                         <div class="tab-pane fade show active" id="map-view" role="tabpanel" aria-labelledby="map-tab">
                             {% if user_location %}
-                                <div id="recycling-map" style="height: 500px;" data-user-lat="{{ user_location.lat }}" data-user-lon="{{ user_location.lon }}"></div>
+                                <div id="recycling-map" style="height: 500px;"></div>
                             {% else %}
                                 <div class="text-center py-5">
                                     <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
@@ -89,28 +98,34 @@
                         
                         <!-- List View -->
                         <div class="tab-pane fade" id="list-view" role="tabpanel" aria-labelledby="list-tab">
-                            {% if recycling_centers %}
+                            {% if centers %}
                                 <div class="list-group">
-                                    {% for center in recycling_centers %}
+                                    {% for center in centers %}
                                         <div class="list-group-item list-group-item-action">
                                             <div class="d-flex w-100 justify-content-between">
                                                 <h5 class="mb-1">{{ center.name }}</h5>
-                                                <small>{{ center.distance|round(1) }} km away</small>
+                                                <small>{{ center.distance|default(0)|round(1) }} km away</small>
                                             </div>
                                             <p class="mb-1">{{ center.address }}</p>
                                             <div class="d-flex justify-content-between align-items-center mt-2">
                                                 <div>
                                                     <small class="text-muted">Accepts: 
-                                                        {% for waste_type in center.accepted_waste_types %}
-                                                            <span class="badge bg-success me-1">{{ waste_type }}</span>
-                                                        {% endfor %}
+                                                        {% if center.accepted_waste_types %}
+                                                            {% for waste_type in center.accepted_waste_types %}
+                                                                <span class="badge bg-success me-1">{{ waste_type }}</span>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <span class="badge bg-success me-1">General Recycling</span>
+                                                        {% endif %}
                                                     </small>
                                                 </div>
                                                 <div>
+                                                    {% if center.phone %}
                                                     <a href="tel:{{ center.phone }}" class="btn btn-sm btn-outline-secondary me-2">
                                                         <i class="fas fa-phone"></i>
                                                     </a>
-                                                    <a href="https://maps.google.com/?q={{ center.lat }},{{ center.lon }}" 
+                                                    {% endif %}
+                                                    <a href="https://maps.google.com/?q={{ center.lat|default(37.7749) }},{{ center.lon|default(-122.4194) }}" 
                                                        class="btn btn-sm btn-outline-primary" target="_blank">
                                                        <i class="fas fa-directions"></i> Directions
                                                     </a>
@@ -141,21 +156,21 @@
                                 </div>
                                 
                                 <!-- Pagination -->
-                                {% if pagination.total_pages > 1 %}
+                                {% if pagination and pagination.total_pages > 1 %}
                                     <nav aria-label="Recycling centers pagination" class="mt-4">
                                         <ul class="pagination justify-content-center">
                                             <li class="page-item {{ 'disabled' if pagination.current_page == 1 else '' }}">
-                                                <a class="page-link" href="{{ url_for('recycling_centers', page=pagination.current_page-1, waste_type=selected_waste_type, distance=selected_distance) if pagination.current_page > 1 else '#' }}">Previous</a>
+                                                <a class="page-link" href="{{ url_for('centers', page=pagination.current_page-1, waste_type=selected_waste_type|default(''), distance=selected_distance|default(10)) if pagination.current_page > 1 else '#' }}">Previous</a>
                                             </li>
                                             
                                             {% for page_num in range(max(1, pagination.current_page - 2), min(pagination.total_pages + 1, pagination.current_page + 3)) %}
                                                 <li class="page-item {{ 'active' if page_num == pagination.current_page else '' }}">
-                                                    <a class="page-link" href="{{ url_for('recycling_centers', page=page_num, waste_type=selected_waste_type, distance=selected_distance) }}">{{ page_num }}</a>
+                                                    <a class="page-link" href="{{ url_for('centers', page=page_num, waste_type=selected_waste_type|default(''), distance=selected_distance|default(10)) }}">{{ page_num }}</a>
                                                 </li>
                                             {% endfor %}
                                             
                                             <li class="page-item {{ 'disabled' if pagination.current_page == pagination.total_pages else '' }}">
-                                                <a class="page-link" href="{{ url_for('recycling_centers', page=pagination.current_page+1, waste_type=selected_waste_type, distance=selected_distance) if pagination.current_page < pagination.total_pages else '#' }}">Next</a>
+                                                <a class="page-link" href="{{ url_for('centers', page=pagination.current_page+1, waste_type=selected_waste_type|default(''), distance=selected_distance|default(10)) if pagination.current_page < pagination.total_pages else '#' }}">Next</a>
                                             </li>
                                         </ul>
                                     </nav>
@@ -219,25 +234,112 @@
             </div>
         </div>
     </div>
+    
+    <!-- Location Data (hidden) -->
+    {% if centers %}
+    <script id="centers-data" type="application/json">
+        {
+            "centers": [
+                {% for center in centers %}
+                    {% if center.lat and center.lon %}
+                    {
+                        "name": "{{ center.name|safe }}",
+                        "lat": {{ center.lat|float }},
+                        "lng": {{ center.lon|float }}
+                    }{% if not loop.last %},{% endif %}
+                    {% endif %}
+                {% endfor %}
+            ]
+        }
+    </script>
+    {% endif %}
+
+    {% if user_location %}
+    <script id="user-location-data" type="application/json">
+        {
+            "lat": {{ user_location.lat|default(37.7749)|float }},
+            "lng": {{ user_location.lon|default(-122.4194)|float }}
+        }
+    </script>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap" async defer></script>
+<!-- Only add Google Maps if user_location is available -->
+{% if user_location %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key|default('') }}&callback=initMap" async defer></script>
+{% endif %}
 <script>
+    // Location update handling
+    document.addEventListener('DOMContentLoaded', function() {
+        const getLocationBtn = document.getElementById('get-location');
+        if (getLocationBtn) {
+            getLocationBtn.addEventListener('click', function() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        // Send location to server
+                        fetch('/update-location', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                lat: position.coords.latitude,
+                                lon: position.coords.longitude
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Reload the page to show centers at new location
+                                window.location.reload();
+                            } else {
+                                alert('Failed to update location. Please try again.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error updating location:', error);
+                            alert('Error updating location. Please try again.');
+                        });
+                    }, function(error) {
+                        console.error('Geolocation error:', error);
+                        alert('Could not get your location. Please ensure location services are enabled.');
+                    });
+                } else {
+                    alert('Geolocation is not supported by your browser');
+                }
+            });
+        }
+
+        // Handle location button in the map view
+        const getLocationMapBtn = document.getElementById('get-location-map');
+        if (getLocationMapBtn) {
+            getLocationMapBtn.addEventListener('click', function() {
+                document.getElementById('get-location').click();
+            });
+        }
+    });
+
     // Map initialization function
     function initMap() {
         const mapDiv = document.getElementById('recycling-map');
-        
         if (!mapDiv) return;
         
-        const userLat = parseFloat(mapDiv.dataset.userLat);
-        const userLon = parseFloat(mapDiv.dataset.userLon);
+        // Get user location from the JSON script tag
+        let userLocation = { lat: 37.7749, lng: -122.4194 }; // Default to San Francisco
         
-        if (isNaN(userLat) || isNaN(userLon)) return;
+        const userLocationData = document.getElementById('user-location-data');
+        if (userLocationData) {
+            try {
+                const userData = JSON.parse(userLocationData.textContent);
+                userLocation = { lat: userData.lat, lng: userData.lng };
+            } catch (e) {
+                console.error("Error parsing user location data:", e);
+            }
+        }
         
-        const userLocation = { lat: userLat, lng: userLon };
-        
+        // Create map centered on user location
         const map = new google.maps.Map(mapDiv, {
             center: userLocation,
             zoom: 12,
@@ -265,38 +367,23 @@
         });
         
         // Add markers for recycling centers
-        {% for center in recycling_centers %}
-            new google.maps.Marker({
-                position: { lat: {{ center.lat }}, lng: {{ center.lon }} },
-                map: map,
-                title: "{{ center.name }}",
-                animation: google.maps.Animation.DROP
-            });
-        {% endfor %}
+        const centersData = document.getElementById('centers-data');
+        if (centersData) {
+            try {
+                const data = JSON.parse(centersData.textContent);
+                
+                data.centers.forEach(function(center) {
+                    new google.maps.Marker({
+                        position: { lat: center.lat, lng: center.lng },
+                        map: map,
+                        title: center.name,
+                        animation: google.maps.Animation.DROP
+                    });
+                });
+            } catch (e) {
+                console.error("Error parsing centers data:", e);
+            }
+        }
     }
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle location button in the map view
-        const getLocationMapBtn = document.getElementById('get-location-map');
-        if (getLocationMapBtn) {
-            getLocationMapBtn.addEventListener('click', function() {
-                document.getElementById('get-location').click();
-            });
-        }
-        
-        // Handle tab change to init map when map tab is shown
-        const mapTab = document.getElementById('map-tab');
-        if (mapTab) {
-            mapTab.addEventListener('shown.bs.tab', function(e) {
-                // Trigger map resize event to fix any display issues
-                if (typeof google !== 'undefined' && google.maps) {
-                    const mapDiv = document.getElementById('recycling-map');
-                    if (mapDiv) {
-                        google.maps.event.trigger(mapDiv, 'resize');
-                    }
-                }
-            });
-        }
-    });
 </script>
 {% endblock %} 
