@@ -3,387 +3,115 @@
 {% block title %}Recycling Centers - RecycleRight{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="mb-3">Recycling Centers Near You</h1>
-            <p class="lead">Find nearby centers to properly dispose of your waste items.</p>
-        </div>
-        <div class="col-md-4 text-md-end d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
-            <button id="get-location" class="btn btn-primary">
-                <i class="fas fa-map-marker-alt me-2"></i> Update Location
-            </button>
-        </div>
-    </div>
+<div class="container">
+    <h1 class="text-center mb-4">Nearby Recycling Centers</h1>
     
-    <!-- Search and Filter Options -->
     <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
                 <div class="card-body">
-                    <form id="filter-form" method="get" action="{{ url_for('centers') }}">
-                        <div class="row">
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <label for="waste-type" class="form-label">Waste Type</label>
-                                <select class="form-select" id="waste-type" name="waste_type">
-                                    <option value="">All Types</option>
-                                    {% if waste_types %}
-                                        {% for type in waste_types %}
-                                            <option value="{{ type.id }}" {{ 'selected' if selected_waste_type == type.id else '' }}>{{ type.name }}</option>
-                                        {% endfor %}
-                                    {% else %}
-                                        <option value="plastic">Plastic</option>
-                                        <option value="paper">Paper</option>
-                                        <option value="glass">Glass</option>
-                                        <option value="metal">Metal</option>
-                                        <option value="electronic">Electronic</option>
-                                        <option value="hazardous">Hazardous</option>
-                                    {% endif %}
-                                </select>
-                            </div>
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <label for="distance" class="form-label">Maximum Distance (km)</label>
-                                <select class="form-select" id="distance" name="distance">
-                                    <option value="5" {{ 'selected' if selected_distance == 5 else '' }}>5 km</option>
-                                    <option value="10" {{ 'selected' if selected_distance == 10 else '' }}>10 km</option>
-                                    <option value="20" {{ 'selected' if selected_distance == 20 else '' }}>20 km</option>
-                                    <option value="50" {{ 'selected' if selected_distance == 50 else '' }}>50 km</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-search me-2"></i> Search
-                                </button>
-                            </div>
+                    <h5 class="card-title">Find Recycling Centers</h5>
+                    <form id="locationForm">
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Enter your address</label>
+                            <input type="text" class="form-control" id="address" name="address" placeholder="Enter address, city, or zip code">
                         </div>
+                        <button type="submit" class="btn btn-primary">Find Centers</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Map and List View Tabs -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div id="map" style="width: 100%; height: 400px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+        </div>
+    </div>
+    
     <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header bg-light">
-                    <ul class="nav nav-tabs card-header-tabs" id="recyclingCentersTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="map-tab" data-bs-toggle="tab" data-bs-target="#map-view" type="button" 
-                                role="tab" aria-controls="map-view" aria-selected="true">Map View</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="list-tab" data-bs-toggle="tab" data-bs-target="#list-view" type="button" 
-                                role="tab" aria-controls="list-view" aria-selected="false">List View</button>
-                        </li>
-                    </ul>
-                </div>
-                <div class="card-body">
-                    <div class="tab-content" id="recyclingCentersTabsContent">
-                        <!-- Map View -->
-                        <div class="tab-pane fade show active" id="map-view" role="tabpanel" aria-labelledby="map-tab">
-                            {% if user_location %}
-                                <div id="recycling-map" style="height: 500px;"></div>
-                            {% else %}
-                                <div class="text-center py-5">
-                                    <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
-                                    <h5>Location Required</h5>
-                                    <p>We need your location to show recycling centers on the map.</p>
-                                    <button id="get-location-map" class="btn btn-primary mt-2">
-                                        <i class="fas fa-map-marker-alt me-2"></i> Share Your Location
-                                    </button>
+        <div class="col-md-12">
+            <h2 class="mb-3">Recycling Centers Near You</h2>
+            
+            {% if centers and centers|length > 0 %}
+                <div class="row">
+                    {% for center in centers %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ center.name }}</h5>
+                                    <p class="card-text">
+                                        <i class="fas fa-map-marker-alt text-danger"></i> {{ center.address }}<br>
+                                        <i class="fas fa-route text-info"></i> {{ center.distance }} away<br>
+                                    </p>
+                                    <h6>Accepts:</h6>
+                                    <div class="mb-2">
+                                        {% for item in center.accepts %}
+                                            <span class="badge bg-success me-1">{{ item }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    <a href="https://maps.google.com/?q={{ center.address|urlencode }}" target="_blank" class="btn btn-outline-primary mt-2">
+                                        <i class="fas fa-directions"></i> Get Directions
+                                    </a>
                                 </div>
-                            {% endif %}
+                            </div>
                         </div>
-                        
-                        <!-- List View -->
-                        <div class="tab-pane fade" id="list-view" role="tabpanel" aria-labelledby="list-tab">
-                            {% if centers %}
-                                <div class="list-group">
-                                    {% for center in centers %}
-                                        <div class="list-group-item list-group-item-action">
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <h5 class="mb-1">{{ center.name }}</h5>
-                                                <small>{{ center.distance|default(0)|round(1) }} km away</small>
-                                            </div>
-                                            <p class="mb-1">{{ center.address }}</p>
-                                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                                <div>
-                                                    <small class="text-muted">Accepts: 
-                                                        {% if center.accepted_waste_types %}
-                                                            {% for waste_type in center.accepted_waste_types %}
-                                                                <span class="badge bg-success me-1">{{ waste_type }}</span>
-                                                            {% endfor %}
-                                                        {% else %}
-                                                            <span class="badge bg-success me-1">General Recycling</span>
-                                                        {% endif %}
-                                                    </small>
-                                                </div>
-                                                <div>
-                                                    {% if center.phone %}
-                                                    <a href="tel:{{ center.phone }}" class="btn btn-sm btn-outline-secondary me-2">
-                                                        <i class="fas fa-phone"></i>
-                                                    </a>
-                                                    {% endif %}
-                                                    <a href="https://maps.google.com/?q={{ center.lat|default(37.7749) }},{{ center.lon|default(-122.4194) }}" 
-                                                       class="btn btn-sm btn-outline-primary" target="_blank">
-                                                       <i class="fas fa-directions"></i> Directions
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            {% if center.operating_hours %}
-                                                <div class="mt-2">
-                                                    <button class="btn btn-sm btn-link p-0" type="button" data-bs-toggle="collapse" 
-                                                            data-bs-target="#hours-{{ loop.index }}" aria-expanded="false" aria-controls="hours-{{ loop.index }}">
-                                                        <i class="fas fa-clock me-1"></i> Operating Hours
-                                                    </button>
-                                                    <div class="collapse mt-2" id="hours-{{ loop.index }}">
-                                                        <div class="card card-body py-2 bg-light">
-                                                            <small>
-                                                                {% for day, hours in center.operating_hours.items() %}
-                                                                    <div class="d-flex justify-content-between">
-                                                                        <span>{{ day }}</span>
-                                                                        <span>{{ hours }}</span>
-                                                                    </div>
-                                                                {% endfor %}
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                                
-                                <!-- Pagination -->
-                                {% if pagination and pagination.total_pages > 1 %}
-                                    <nav aria-label="Recycling centers pagination" class="mt-4">
-                                        <ul class="pagination justify-content-center">
-                                            <li class="page-item {{ 'disabled' if pagination.current_page == 1 else '' }}">
-                                                <a class="page-link" href="{{ url_for('centers', page=pagination.current_page-1, waste_type=selected_waste_type|default(''), distance=selected_distance|default(10)) if pagination.current_page > 1 else '#' }}">Previous</a>
-                                            </li>
-                                            
-                                            {% for page_num in range(max(1, pagination.current_page - 2), min(pagination.total_pages + 1, pagination.current_page + 3)) %}
-                                                <li class="page-item {{ 'active' if page_num == pagination.current_page else '' }}">
-                                                    <a class="page-link" href="{{ url_for('centers', page=page_num, waste_type=selected_waste_type|default(''), distance=selected_distance|default(10)) }}">{{ page_num }}</a>
-                                                </li>
-                                            {% endfor %}
-                                            
-                                            <li class="page-item {{ 'disabled' if pagination.current_page == pagination.total_pages else '' }}">
-                                                <a class="page-link" href="{{ url_for('centers', page=pagination.current_page+1, waste_type=selected_waste_type|default(''), distance=selected_distance|default(10)) if pagination.current_page < pagination.total_pages else '#' }}">Next</a>
-                                            </li>
-                                        </ul>
-                                    </nav>
-                                {% endif %}
-                            {% else %}
-                                <div class="text-center py-5">
-                                    <i class="fas fa-recycle fa-3x text-muted mb-3"></i>
-                                    <h5>No Recycling Centers Found</h5>
-                                    <p>Try adjusting your search filters or increasing the distance range.</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
-            </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No recycling centers found in your area. Try adjusting your search.
+                </div>
+            {% endif %}
         </div>
     </div>
-    
-    <!-- Tips Section -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card bg-light">
-                <div class="card-body">
-                    <h5><i class="fas fa-lightbulb text-warning me-2"></i>Recycling Tips</h5>
-                    <div class="row mt-3">
-                        <div class="col-md-4 mb-3 mb-md-0">
-                            <div class="d-flex">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-clock text-primary"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6>Check Operating Hours</h6>
-                                    <p class="small mb-0">Many recycling centers have specific hours of operation. Call ahead or check their website to confirm.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3 mb-md-0">
-                            <div class="d-flex">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-sort text-primary"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6>Sort Items Beforehand</h6>
-                                    <p class="small mb-0">Pre-sorting your recyclables by type can save time at the center and ensure proper disposal.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-box text-primary"></i>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6>Prepare Items Properly</h6>
-                                    <p class="small mb-0">Rinse containers, remove lids, and flatten cardboard boxes before bringing them to the center.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Location Data (hidden) -->
-    {% if centers %}
-    <script id="centers-data" type="application/json">
-        {
-            "centers": [
-                {% for center in centers %}
-                    {% if center.lat and center.lon %}
-                    {
-                        "name": "{{ center.name|safe }}",
-                        "lat": {{ center.lat|float }},
-                        "lng": {{ center.lon|float }}
-                    }{% if not loop.last %},{% endif %}
-                    {% endif %}
-                {% endfor %}
-            ]
-        }
-    </script>
-    {% endif %}
-
-    {% if user_location %}
-    <script id="user-location-data" type="application/json">
-        {
-            "lat": {{ user_location.lat|default(37.7749)|float }},
-            "lng": {{ user_location.lon|default(-122.4194)|float }}
-        }
-    </script>
-    {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
-<!-- Only add Google Maps if user_location is available -->
-{% if user_location %}
-<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key|default('') }}&callback=initMap" async defer></script>
-{% endif %}
 <script>
-    // Location update handling
-    document.addEventListener('DOMContentLoaded', function() {
-        const getLocationBtn = document.getElementById('get-location');
-        if (getLocationBtn) {
-            getLocationBtn.addEventListener('click', function() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(position) {
-                        // Send location to server
-                        fetch('/update-location', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                lat: position.coords.latitude,
-                                lon: position.coords.longitude
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Reload the page to show centers at new location
-                                window.location.reload();
-                            } else {
-                                alert('Failed to update location. Please try again.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error updating location:', error);
-                            alert('Error updating location. Please try again.');
-                        });
-                    }, function(error) {
-                        console.error('Geolocation error:', error);
-                        alert('Could not get your location. Please ensure location services are enabled.');
-                    });
-                } else {
-                    alert('Geolocation is not supported by your browser');
-                }
-            });
-        }
-
-        // Handle location button in the map view
-        const getLocationMapBtn = document.getElementById('get-location-map');
-        if (getLocationMapBtn) {
-            getLocationMapBtn.addEventListener('click', function() {
-                document.getElementById('get-location').click();
-            });
-        }
-    });
-
-    // Map initialization function
+    // Initialize the map with default or user location
     function initMap() {
-        const mapDiv = document.getElementById('recycling-map');
-        if (!mapDiv) return;
-        
-        // Get user location from the JSON script tag
-        let userLocation = { lat: 37.7749, lng: -122.4194 }; // Default to San Francisco
-        
-        const userLocationData = document.getElementById('user-location-data');
-        if (userLocationData) {
-            try {
-                const userData = JSON.parse(userLocationData.textContent);
-                userLocation = { lat: userData.lat, lng: userData.lng };
-            } catch (e) {
-                console.error("Error parsing user location data:", e);
-            }
-        }
-        
-        // Create map centered on user location
-        const map = new google.maps.Map(mapDiv, {
-            center: userLocation,
-            zoom: 12,
-            styles: [
-                {
-                    "featureType": "poi.business",
-                    "stylers": [{ "visibility": "off" }]
-                }
-            ]
-        });
-        
-        // Add marker for user location
-        new google.maps.Marker({
-            position: userLocation,
-            map: map,
-            icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 10,
-                fillColor: "#4285F4",
-                fillOpacity: 1,
-                strokeColor: "#FFFFFF",
-                strokeWeight: 2
-            },
-            title: "Your Location"
+        // Get location from server-provided data or default to San Francisco
+        const location = {{ location|default('{"lat": 37.7749, "lng": -122.4194}')|safe }};
+        const map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: location.lat, lng: location.lng },
+            zoom: 12
         });
         
         // Add markers for recycling centers
-        const centersData = document.getElementById('centers-data');
-        if (centersData) {
-            try {
-                const data = JSON.parse(centersData.textContent);
-                
-                data.centers.forEach(function(center) {
-                    new google.maps.Marker({
-                        position: { lat: center.lat, lng: center.lng },
-                        map: map,
-                        title: center.name,
-                        animation: google.maps.Animation.DROP
-                    });
+        {% if centers %}
+            {% for center in centers %}
+                {% if center.lat and center.lng %}
+                new google.maps.Marker({
+                    position: { lat: {{ center.lat|float }}, lng: {{ center.lng|float }} },
+                    map: map,
+                    title: "{{ center.name|safe }}"
                 });
-            } catch (e) {
-                console.error("Error parsing centers data:", e);
-            }
-        }
+                {% endif %}
+            {% endfor %}
+        {% endif %}
     }
+    
+    // Form handler for address search
+    document.getElementById('locationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const address = document.getElementById('address').value;
+        if (address) {
+            window.location.href = "{{ url_for('centers') }}?address=" + encodeURIComponent(address);
+        }
+    });
 </script>
+
+{% if google_maps_api_key %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap" async defer></script>
+{% else %}
+<script>
+    // Fallback if no API key is available
+    document.addEventListener('DOMContentLoaded', function() {
+        const mapElement = document.getElementById('map');
+        mapElement.innerHTML = '<div class="alert alert-warning text-center p-5"><i class="fas fa-map-marked-alt fa-3x mb-3"></i><br>Map unavailable. Please add a Google Maps API key to enable the map view.</div>';
+    });
+</script>
+{% endif %}
 {% endblock %} 

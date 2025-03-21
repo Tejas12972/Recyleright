@@ -2,229 +2,311 @@
 
 {% block title %}Scan Waste - RecycleRight{% endblock %}
 
-{% block head %}
+{% block styles %}
 <style>
     .scan-container {
-        max-width: 900px;
+        max-width: 1000px;
         margin: 0 auto;
+        padding: 20px;
     }
+    
+    .nav-tabs .nav-link {
+        border-radius: 0.5rem 0.5rem 0 0;
+        background-color: rgba(255, 255, 255, 0.1);
+        margin-right: 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-tabs .nav-link.active {
+        background-color: #4CAF50;
+        color: white;
+        font-weight: bold;
+    }
+    
     .tab-content {
         padding: 20px;
-        border-left: 1px solid #dee2e6;
-        border-right: 1px solid #dee2e6;
-        border-bottom: 1px solid #dee2e6;
-        border-radius: 0 0 5px 5px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 0 0.5rem 0.5rem 0.5rem;
+        min-height: 400px;
     }
-    #camera-preview {
-        width: 100%;
-        max-height: 400px;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
+    
     #drop-area {
-        border: 2px dashed #ccc;
-        border-radius: 5px;
+        border: 2px dashed #84c5ab;
+        border-radius: 10px;
         padding: 40px;
         text-align: center;
-        cursor: pointer;
+        transition: all 0.3s ease;
         margin-bottom: 20px;
+        background-color: rgba(132, 197, 171, 0.1);
     }
+    
     #drop-area.highlight {
-        border-color: #6c757d;
-        background-color: #f8f9fa;
+        border-color: #4CAF50;
+        background-color: rgba(76, 175, 80, 0.1);
     }
-    #fileElem {
+    
+    #file-input {
         display: none;
     }
-    .preview-section {
-        display: none;
+    
+    #preview {
+        margin-top: 20px;
+        text-align: center;
     }
-    #result-section {
-        display: none;
-    }
-    .result-item {
-        margin-bottom: 20px;
-    }
-    .confidence-bar {
-        height: 10px;
-        background-color: #e9ecef;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
-    .confidence-level {
-        height: 10px;
-        background-color: #28a745;
-        border-radius: 5px;
-    }
-    #preview-image {
-        max-width: 100%;
+    
+    #preview img {
+        max-width: 300px;
         max-height: 300px;
-        border-radius: 5px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-    .guidelines-container {
-        background-color: #f8f9fa;
-        border-radius: 5px;
+    
+    #camera-preview {
+        width: 100%;
+        max-width: 500px;
+        height: auto;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .camera-controls {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    .btn-capture {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        display: flex;
+        align-items: center;
+    }
+    
+    .btn-capture:hover {
+        background-color: #3e8e41;
+    }
+    
+    .btn-capture i {
+        margin-right: 8px;
+    }
+    
+    .loading-container {
+        display: none;
+        text-align: center;
+        margin: 20px 0;
+    }
+    
+    .spinner {
+        width: 40px;
+        height: 40px;
+        margin: 0 auto;
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top: 4px solid #4CAF50;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .results-container {
+        display: none;
+        margin-top: 30px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 20px;
+    }
+    
+    .results-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .results-header i {
+        font-size: 2rem;
+        margin-right: 15px;
+        color: #4CAF50;
+    }
+    
+    .waste-type {
+        text-transform: capitalize;
+        font-weight: bold;
+        color: #4CAF50;
+    }
+    
+    .confidence {
+        color: #666;
+        font-size: 0.9rem;
+        margin-left: 10px;
+    }
+    
+    .guidelines {
+        margin: 20px 0;
         padding: 15px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+    }
+    
+    .recycling-centers {
         margin-top: 20px;
     }
-    .center-info {
-        background-color: #e9ecef;
-        border-radius: 5px;
+    
+    .center-card {
+        margin-bottom: 10px;
         padding: 10px;
-        margin-bottom: 10px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
     }
-    .disposal-tag {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 15px;
-        margin-bottom: 10px;
+    
+    .btn-next {
+        margin-top: 20px;
+        text-align: center;
     }
-    .recyclable {
-        background-color: #d4edda;
-        color: #155724;
-    }
-    .non-recyclable {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-    .special {
-        background-color: #fff3cd;
-        color: #856404;
-    }
-    .loading-spinner {
+    
+    .error-message {
+        color: #f44336;
+        text-align: center;
+        margin: 20px 0;
+        padding: 10px;
+        background-color: rgba(244, 67, 54, 0.1);
+        border-radius: 8px;
         display: none;
-        width: 3rem;
-        height: 3rem;
-        margin: 20px auto;
-    }
-    .camera-controls {
-        margin-top: 15px;
-    }
-    .achievement-item {
-        background-color: #e9ecef;
-        border-radius: 5px;
-        padding: 10px;
-        margin-bottom: 10px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="scan-container">
-    <h1 class="text-center mb-4">Scan Waste</h1>
+    <h1 class="text-center mb-4"><i class="fas fa-camera"></i> Scan Your Waste</h1>
+    
+    <p class="text-center mb-4">
+        Take a photo or upload an image of your waste item for AI-powered classification 
+        and get personalized recycling guidance.
+    </p>
     
     <ul class="nav nav-tabs" id="scanTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab" aria-controls="upload" aria-selected="true">
-                <i class="fas fa-upload me-2"></i>Upload Image
+            <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" 
+                    type="button" role="tab" aria-controls="upload" aria-selected="true">
+                <i class="fas fa-upload"></i> Upload Image
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" type="button" role="tab" aria-controls="camera" aria-selected="false">
-                <i class="fas fa-camera me-2"></i>Use Camera
+            <button class="nav-link" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" 
+                    type="button" role="tab" aria-controls="camera" aria-selected="false">
+                <i class="fas fa-camera"></i> Use Camera
             </button>
         </li>
     </ul>
     
-    <div class="tab-content" id="scanTabsContent">
+    <div class="tab-content" id="scanTabContent">
         <!-- Upload Tab -->
         <div class="tab-pane fade show active" id="upload" role="tabpanel" aria-labelledby="upload-tab">
-            <div id="drop-area">
-                <form class="upload-form">
-                    <p><i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i></p>
-                    <p>Drag and drop an image here, or click to select</p>
-                    <input type="file" id="fileElem" accept="image/*">
-                    <button class="btn btn-primary" type="button" id="selectFile">Select Image</button>
-                </form>
-            </div>
-            
-            <div class="preview-section" id="upload-preview-section">
-                <h3>Preview</h3>
-                <img id="preview-image" src="" alt="Preview">
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-                    <button class="btn btn-secondary" id="cancel-upload">Cancel</button>
-                    <button class="btn btn-primary" id="analyze-image">Analyze</button>
+            <form id="upload-form">
+                <div id="drop-area">
+                    <p>Drag and drop an image file here, or click to select a file</p>
+                    <input type="file" id="file-input" accept="image/*">
+                    <button type="button" class="btn btn-primary mt-2" id="select-file-btn">
+                        <i class="fas fa-file-image"></i> Select Image
+                    </button>
                 </div>
-            </div>
+                
+                <div id="preview"></div>
+                
+                <div class="text-center mt-3" id="upload-btn-container" style="display: none;">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-cloud-upload-alt"></i> Analyze Image
+                    </button>
+                </div>
+            </form>
         </div>
         
         <!-- Camera Tab -->
         <div class="tab-pane fade" id="camera" role="tabpanel" aria-labelledby="camera-tab">
-            <div class="camera-container">
-                <video id="camera-preview" autoplay></video>
-                <div class="camera-controls d-grid gap-2 d-md-flex justify-content-md-center">
-                    <button class="btn btn-primary" id="start-camera" disabled><i class="fas fa-video me-2"></i>Start Camera</button>
-                    <button class="btn btn-danger" id="capture-image" disabled><i class="fas fa-camera me-2"></i>Capture</button>
-                    <button class="btn btn-secondary" id="switch-camera" disabled><i class="fas fa-sync-alt me-2"></i>Switch Camera</button>
-                </div>
+            <div class="text-center mb-3">
+                <video id="camera-preview" autoplay playsinline></video>
             </div>
             
-            <div class="preview-section" id="camera-preview-section">
-                <h3>Preview</h3>
-                <canvas id="capture-canvas" style="display:none;"></canvas>
-                <img id="capture-image-preview" src="" alt="Captured Image" style="max-width: 100%; max-height: 300px; border-radius: 5px;">
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
-                    <button class="btn btn-secondary" id="cancel-capture">Cancel</button>
-                    <button class="btn btn-primary" id="analyze-capture">Analyze</button>
+            <div class="camera-controls">
+                <button class="btn btn-primary" id="start-camera">
+                    <i class="fas fa-video"></i> Start Camera
+                </button>
+                
+                <button class="btn btn-success" id="capture-image" disabled>
+                    <i class="fas fa-camera"></i> Capture Image
+                </button>
+                
+                <button class="btn btn-secondary" id="switch-camera" disabled>
+                    <i class="fas fa-sync-alt"></i> Switch Camera
+                </button>
+            </div>
+            
+            <div id="camera-preview-container" class="text-center mt-3" style="display: none;">
+                <canvas id="canvas" style="display: none;"></canvas>
+                <div id="camera-result-preview"></div>
+                
+                <div class="text-center mt-3">
+                    <button class="btn btn-success" id="analyze-capture">
+                        <i class="fas fa-search"></i> Analyze Image
+                    </button>
+                    <button class="btn btn-secondary" id="retake-image">
+                        <i class="fas fa-redo"></i> Retake
+                    </button>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Loading Spinner -->
-    <div class="text-center">
-        <div class="spinner-border loading-spinner" id="loading-spinner" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
+    <div class="loading-container" id="loading">
+        <div class="spinner"></div>
+        <p class="mt-2">Analyzing your waste item...</p>
     </div>
     
-    <!-- Results Section -->
-    <div id="result-section" class="mt-4">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h3 class="mb-0">Results</h3>
-            </div>
-            <div class="card-body">
-                <div class="result-item">
-                    <h4 id="waste-type">Plastic Bottle</h4>
-                    <p>Confidence: <span id="confidence-value">95%</span></p>
-                    <div class="confidence-bar">
-                        <div class="confidence-level" id="confidence-bar" style="width: 95%;"></div>
-                    </div>
-                    <p>Points earned: <span id="points-earned">0</span></p>
-                </div>
-                
-                <div class="guidelines-container">
-                    <h4>Recycling Guidelines</h4>
-                    <div class="disposal-tag recyclable" id="disposal-method">Recyclable</div>
-                    <div id="guidelines-instructions">
-                        <!-- Content will be added dynamically -->
-                    </div>
-                </div>
-                
-                <div id="recycling-centers-section" class="mt-4">
-                    <h4>Nearby Recycling Centers</h4>
-                    <div id="centers-list">
-                        <!-- Content will be added dynamically -->
-                    </div>
-                </div>
-                
-                <div id="new-achievements-section" class="mt-4" style="display: none;">
-                    <h4>New Achievements!</h4>
-                    <div id="achievements-list">
-                        <!-- Content will be added dynamically -->
-                    </div>
-                </div>
-                
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                    <button class="btn btn-success" id="confirm-disposal">
-                        <i class="fas fa-check-circle me-2"></i>Confirm Correct Disposal
-                    </button>
-                    <button class="btn btn-primary" id="scan-new">
-                        <i class="fas fa-plus-circle me-2"></i>Scan Another
-                    </button>
-                </div>
-            </div>
+    <!-- Error Message -->
+    <div class="error-message" id="error-message"></div>
+    
+    <!-- Results -->
+    <div class="results-container" id="results">
+        <div class="results-header">
+            <i class="fas fa-recycle"></i>
+            <h2>Analysis Results</h2>
+        </div>
+        
+        <div class="alert alert-success">
+            <p>This item is a <span class="waste-type" id="waste-type"></span> 
+               <span class="confidence" id="confidence"></span></p>
+        </div>
+        
+        <div class="guidelines">
+            <h4><i class="fas fa-info-circle"></i> Recycling Guidelines</h4>
+            <div id="guidelines-content"></div>
+        </div>
+        
+        <div class="recycling-centers">
+            <h4><i class="fas fa-map-marker-alt"></i> Nearby Recycling Centers</h4>
+            <div id="centers-list"></div>
+        </div>
+        
+        <div class="btn-next">
+            <button class="btn btn-success btn-lg me-2" id="confirm-disposal">
+                <i class="fas fa-check-circle"></i> Confirm Proper Disposal
+            </button>
+            <button class="btn btn-primary btn-lg" id="scan-another">
+                <i class="fas fa-redo"></i> Scan Another Item
+            </button>
         </div>
     </div>
 </div>
@@ -232,73 +314,50 @@
 
 {% block scripts %}
 <script>
-    // Global variables
-    let currentScanId = null;
-    let currentWasteType = null;
-    let cameraStream = null;
-    let videoElement = null;
-    let canvasElement = null;
-    let captureImageElement = null;
-    let currentDeviceId = null;
-    let availableCameras = [];
-    let currentTabId = 'upload';
-    
-    // Elements
-    const dropArea = document.getElementById('drop-area');
-    const fileElem = document.getElementById('fileElem');
-    const selectFileBtn = document.getElementById('selectFile');
-    const previewImage = document.getElementById('preview-image');
-    const uploadPreviewSection = document.getElementById('upload-preview-section');
-    const cancelUploadBtn = document.getElementById('cancel-upload');
-    const analyzeImageBtn = document.getElementById('analyze-image');
-    
-    const startCameraBtn = document.getElementById('start-camera');
-    const captureCameraBtn = document.getElementById('capture-image');
-    const switchCameraBtn = document.getElementById('switch-camera');
-    const cameraPreview = document.getElementById('camera-preview');
-    const cameraPreviewSection = document.getElementById('camera-preview-section');
-    const cancelCaptureBtn = document.getElementById('cancel-capture');
-    const analyzeCaptureBtn = document.getElementById('analyze-capture');
-    const captureCanvas = document.getElementById('capture-canvas');
-    
-    const loadingSpinner = document.getElementById('loading-spinner');
-    const resultSection = document.getElementById('result-section');
-    const wasteTypeElement = document.getElementById('waste-type');
-    const confidenceValueElement = document.getElementById('confidence-value');
-    const confidenceBarElement = document.getElementById('confidence-bar');
-    const pointsEarnedElement = document.getElementById('points-earned');
-    const disposalMethodElement = document.getElementById('disposal-method');
-    const guidelinesInstructionsElement = document.getElementById('guidelines-instructions');
-    const recyclingCentersSection = document.getElementById('recycling-centers-section');
-    const centersListElement = document.getElementById('centers-list');
-    const newAchievementsSection = document.getElementById('new-achievements-section');
-    const achievementsListElement = document.getElementById('achievements-list');
-    const confirmDisposalBtn = document.getElementById('confirm-disposal');
-    const scanNewBtn = document.getElementById('scan-new');
-    
-    // Check if browser supports camera
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        startCameraBtn.disabled = false;
-    }
-    
-    // Event Listeners
     document.addEventListener('DOMContentLoaded', function() {
-        // Tab change event
-        const tabElements = document.querySelectorAll('button[data-bs-toggle="tab"]');
-        tabElements.forEach(tab => {
-            tab.addEventListener('shown.bs.tab', function(e) {
-                currentTabId = e.target.id.split('-')[0];
-                if (currentTabId === 'camera' && !cameraStream) {
-                    // Optional: auto-start camera when switching to camera tab
-                    // startCamera();
-                }
-            });
-        });
+        // Variables
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        const selectFileBtn = document.getElementById('select-file-btn');
+        const preview = document.getElementById('preview');
+        const uploadForm = document.getElementById('upload-form');
+        const uploadBtnContainer = document.getElementById('upload-btn-container');
         
-        // Upload image handling
+        const startCameraBtn = document.getElementById('start-camera');
+        const captureImageBtn = document.getElementById('capture-image');
+        const switchCameraBtn = document.getElementById('switch-camera');
+        const videoElement = document.getElementById('camera-preview');
+        const canvas = document.getElementById('canvas');
+        const cameraResultPreview = document.getElementById('camera-result-preview');
+        const cameraPreviewContainer = document.getElementById('camera-preview-container');
+        const analyzeCapture = document.getElementById('analyze-capture');
+        const retakeImage = document.getElementById('retake-image');
+        
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorMessage = document.getElementById('error-message');
+        
+        const wasteType = document.getElementById('waste-type');
+        const confidence = document.getElementById('confidence');
+        const guidelinesContent = document.getElementById('guidelines-content');
+        const centersList = document.getElementById('centers-list');
+        
+        const confirmDisposal = document.getElementById('confirm-disposal');
+        const scanAnother = document.getElementById('scan-another');
+        
+        let capturedImage = null;
+        let stream = null;
+        let currentFacingMode = 'environment'; // 'environment' for back camera, 'user' for front
+        
+        // File Drop functionality
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, preventDefaults, false);
         });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         
         ['dragenter', 'dragover'].forEach(eventName => {
             dropArea.addEventListener(eventName, highlight, false);
@@ -308,398 +367,457 @@
             dropArea.addEventListener(eventName, unhighlight, false);
         });
         
+        function highlight() {
+            dropArea.classList.add('highlight');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+        
         dropArea.addEventListener('drop', handleDrop, false);
-        selectFileBtn.addEventListener('click', () => fileElem.click());
-        fileElem.addEventListener('change', handleFiles);
         
-        // Camera handling
-        startCameraBtn.addEventListener('click', startCamera);
-        captureCameraBtn.addEventListener('click', captureImage);
-        switchCameraBtn.addEventListener('click', switchCamera);
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0 && files[0].type.match('image.*')) {
+                handleFiles(files);
+            } else {
+                showError('Please upload an image file (JPEG, PNG, etc.)');
+            }
+        }
         
-        // Preview section buttons
-        cancelUploadBtn.addEventListener('click', cancelUpload);
-        analyzeImageBtn.addEventListener('click', analyzeUploadedImage);
-        cancelCaptureBtn.addEventListener('click', cancelCapture);
-        analyzeCaptureBtn.addEventListener('click', analyzeCapture);
+        selectFileBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
         
-        // Result section buttons
-        confirmDisposalBtn.addEventListener('click', confirmDisposal);
-        scanNewBtn.addEventListener('click', scanNewItem);
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                handleFiles(this.files);
+            }
+        });
         
-        // Initialize canvas
-        canvasElement = document.getElementById('capture-canvas');
-        captureImageElement = document.getElementById('capture-image-preview');
-        videoElement = document.getElementById('camera-preview');
-    });
-    
-    // Event handlers
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-    
-    function highlight() {
-        dropArea.classList.add('highlight');
-    }
-    
-    function unhighlight() {
-        dropArea.classList.remove('highlight');
-    }
-    
-    function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        handleFiles(files);
-    }
-    
-    function handleFiles(e) {
-        const files = e.target?.files || e;
-        if (files && files[0]) {
+        function handleFiles(files) {
             const file = files[0];
             if (file.type.match('image.*')) {
                 const reader = new FileReader();
+                
                 reader.onload = function(e) {
-                    previewImage.src = e.target.result;
-                    uploadPreviewSection.style.display = 'block';
-                    dropArea.style.display = 'none';
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    uploadBtnContainer.style.display = 'block';
                 };
+                
                 reader.readAsDataURL(file);
             } else {
-                alert('Please select an image file');
+                showError('Please select an image file (JPEG, PNG, etc.)');
+                fileInput.value = '';
+                preview.innerHTML = '';
+                uploadBtnContainer.style.display = 'none';
             }
         }
-    }
-    
-    async function startCamera() {
-        try {
-            // Get available cameras
-            if (!availableCameras.length) {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                availableCameras = devices.filter(device => device.kind === 'videoinput');
-            }
+        
+        // Form submission
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            // Use first camera by default
-            currentDeviceId = currentDeviceId || (availableCameras.length > 0 ? availableCameras[0].deviceId : null);
-            
-            // Set up constraints
-            const constraints = {
-                video: {
-                    deviceId: currentDeviceId ? { exact: currentDeviceId } : undefined,
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 },
-                    facingMode: "environment"
-                }
-            };
-            
-            // Get user media
-            cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-            videoElement.srcObject = cameraStream;
-            
-            // Enable buttons
-            captureCameraBtn.disabled = false;
-            switchCameraBtn.disabled = availableCameras.length <= 1;
-            startCameraBtn.disabled = true;
-            
-        } catch (err) {
-            console.error("Error accessing camera: ", err);
-            alert(`Error accessing camera: ${err.message}`);
-        }
-    }
-    
-    function stopCamera() {
-        if (cameraStream) {
-            cameraStream.getTracks().forEach(track => track.stop());
-            cameraStream = null;
-            videoElement.srcObject = null;
-        }
-        captureCameraBtn.disabled = true;
-        switchCameraBtn.disabled = true;
-        startCameraBtn.disabled = false;
-    }
-    
-    async function switchCamera() {
-        if (availableCameras.length <= 1) {
-            return;
-        }
-        
-        // Stop current stream
-        stopCamera();
-        
-        // Find next camera
-        const currentIndex = availableCameras.findIndex(cam => cam.deviceId === currentDeviceId);
-        const nextIndex = (currentIndex + 1) % availableCameras.length;
-        currentDeviceId = availableCameras[nextIndex].deviceId;
-        
-        // Start with new camera
-        await startCamera();
-    }
-    
-    function captureImage() {
-        if (!cameraStream) {
-            return;
-        }
-        
-        // Set canvas dimensions to match video
-        canvasElement.width = videoElement.videoWidth;
-        canvasElement.height = videoElement.videoHeight;
-        
-        // Draw video frame to canvas
-        const context = canvasElement.getContext('2d');
-        context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-        
-        // Convert to image
-        const imageDataUrl = canvasElement.toDataURL('image/jpeg');
-        captureImageElement.src = imageDataUrl;
-        
-        // Show preview section
-        cameraPreviewSection.style.display = 'block';
-    }
-    
-    function cancelUpload() {
-        uploadPreviewSection.style.display = 'none';
-        dropArea.style.display = 'block';
-        previewImage.src = '';
-        fileElem.value = '';
-    }
-    
-    function cancelCapture() {
-        cameraPreviewSection.style.display = 'none';
-        captureImageElement.src = '';
-    }
-    
-    function analyzeUploadedImage() {
-        if (!previewImage.src) {
-            return;
-        }
-        
-        // Show loading spinner
-        loadingSpinner.style.display = 'block';
-        uploadPreviewSection.style.display = 'none';
-        
-        // Create a FormData object
-        const formData = new FormData();
-        formData.append('file', fileElem.files[0]);
-        
-        // Send file to server
-        fetch('/scan/upload', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            handleAnalysisResult(data);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error analyzing image: ' + error);
-            loadingSpinner.style.display = 'none';
-            uploadPreviewSection.style.display = 'block';
-        });
-    }
-    
-    function analyzeCapture() {
-        if (!captureImageElement.src) {
-            return;
-        }
-        
-        // Show loading spinner
-        loadingSpinner.style.display = 'block';
-        cameraPreviewSection.style.display = 'none';
-        
-        // Send image data to server
-        fetch('/scan/camera', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                image: captureImageElement.src
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            handleAnalysisResult(data);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error analyzing image: ' + error);
-            loadingSpinner.style.display = 'none';
-            cameraPreviewSection.style.display = 'block';
-        });
-    }
-    
-    function handleAnalysisResult(data) {
-        // Hide loading spinner
-        loadingSpinner.style.display = 'none';
-        
-        if (data.error || !data.success) {
-            alert(data.error || data.message || 'Analysis failed');
-            return;
-        }
-        
-        // Store scan data
-        currentScanId = data.scan_id;
-        currentWasteType = data.waste_type;
-        
-        // Update result section
-        wasteTypeElement.textContent = formatWasteType(data.waste_type);
-        
-        const confidencePercent = Math.round(data.confidence * 100);
-        confidenceValueElement.textContent = `${confidencePercent}%`;
-        confidenceBarElement.style.width = `${confidencePercent}%`;
-        
-        // Adjust confidence bar color based on value
-        if (confidencePercent > 80) {
-            confidenceBarElement.style.backgroundColor = '#28a745'; // Green
-        } else if (confidencePercent > 60) {
-            confidenceBarElement.style.backgroundColor = '#ffc107'; // Yellow
-        } else {
-            confidenceBarElement.style.backgroundColor = '#dc3545'; // Red
-        }
-        
-        pointsEarnedElement.textContent = data.points_earned;
-        
-        // Update disposal method tag
-        if (data.guidelines.recyclable) {
-            disposalMethodElement.textContent = 'Recyclable';
-            disposalMethodElement.className = 'disposal-tag recyclable';
-        } else {
-            disposalMethodElement.textContent = 'Non-recyclable';
-            disposalMethodElement.className = 'disposal-tag non-recyclable';
-        }
-        
-        if (data.guidelines.special_handling) {
-            disposalMethodElement.textContent = 'Special Handling';
-            disposalMethodElement.className = 'disposal-tag special';
-        }
-        
-        // Update guidelines
-        guidelinesInstructionsElement.textContent = data.guidelines.instructions;
-        
-        // Update centers
-        if (data.centers && data.centers.length > 0) {
-            recyclingCentersSection.style.display = 'block';
-            centersListElement.innerHTML = '';
-            
-            data.centers.forEach(center => {
-                const centerElement = document.createElement('div');
-                centerElement.className = 'center-info';
-                centerElement.innerHTML = `
-                    <strong>${center.name}</strong>
-                    <p>${center.address}</p>
-                    <p><small>${center.distance.toFixed(1)} km away</small></p>
-                `;
-                centersListElement.appendChild(centerElement);
-            });
-        } else {
-            recyclingCentersSection.style.display = 'none';
-        }
-        
-        // Handle achievements
-        if (data.new_achievements && data.new_achievements.length > 0) {
-            newAchievementsSection.style.display = 'block';
-            achievementsListElement.innerHTML = '';
-            
-            data.new_achievements.forEach(achievement => {
-                const achievementElement = document.createElement('div');
-                achievementElement.className = 'achievement-item';
-                achievementElement.innerHTML = `
-                    <h5>${achievement.name}</h5>
-                    <p>${achievement.description}</p>
-                    <p><small>+${achievement.points_reward} points</small></p>
-                `;
-                achievementsListElement.appendChild(achievementElement);
-            });
-        } else {
-            newAchievementsSection.style.display = 'none';
-        }
-        
-        // Show result section
-        resultSection.style.display = 'block';
-    }
-    
-    function formatWasteType(wasteType) {
-        // Convert snake_case or camelCase to Title Case with spaces
-        return wasteType
-            .replace(/_/g, ' ')
-            .replace(/([A-Z])/g, ' $1')
-            .replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())
-            .trim();
-    }
-    
-    function confirmDisposal() {
-        if (!currentScanId || !currentWasteType) {
-            return;
-        }
-        
-        fetch('/confirm-disposal', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                scan_id: currentScanId,
-                waste_type: currentWasteType
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
+            if (fileInput.files.length === 0) {
+                showError('Please select an image first');
                 return;
             }
             
-            // Update points
-            const currentPoints = parseInt(pointsEarnedElement.textContent) || 0;
-            pointsEarnedElement.textContent = currentPoints + data.points_earned;
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('image', file);
             
-            // Show any new achievements
-            if (data.new_achievements && data.new_achievements.length > 0) {
-                newAchievementsSection.style.display = 'block';
-                achievementsListElement.innerHTML = '';
+            showLoading();
+            
+            fetch('/api/upload_image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Error analyzing image');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'Error analyzing image');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError(error.message || 'Error uploading image. Please try again.');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        });
+        
+        // Camera functionality
+        startCameraBtn.addEventListener('click', startCamera);
+        captureImageBtn.addEventListener('click', captureImage);
+        switchCameraBtn.addEventListener('click', switchCamera);
+        analyzeCapture.addEventListener('click', analyzeCapturedImage);
+        retakeImage.addEventListener('click', retakePicture);
+        
+        async function startCamera() {
+            try {
+                if (stream) {
+                    stopCamera();
+                }
                 
-                data.new_achievements.forEach(achievement => {
-                    const achievementElement = document.createElement('div');
-                    achievementElement.className = 'achievement-item';
-                    achievementElement.innerHTML = `
-                        <h5>${achievement.name}</h5>
-                        <p>${achievement.description}</p>
-                        <p><small>+${achievement.points_reward} points</small></p>
-                    `;
-                    achievementsListElement.appendChild(achievementElement);
-                });
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = stream;
+                
+                captureImageBtn.disabled = false;
+                switchCameraBtn.disabled = false;
+                startCameraBtn.innerHTML = '<i class="fas fa-video-slash"></i> Stop Camera';
+                startCameraBtn.classList.replace('btn-primary', 'btn-danger');
+                
+                // Change event handler
+                startCameraBtn.removeEventListener('click', startCamera);
+                startCameraBtn.addEventListener('click', stopCamera);
+                
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                showError('Could not access camera. Make sure it\'s connected and you\'ve given permission.');
+            }
+        }
+        
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                videoElement.srcObject = null;
+                stream = null;
             }
             
-            // Disable the button
-            confirmDisposalBtn.disabled = true;
-            confirmDisposalBtn.textContent = 'Disposal Confirmed ✓';
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error confirming disposal: ' + error);
-        });
-    }
-    
-    function scanNewItem() {
-        // Reset everything
-        resultSection.style.display = 'none';
-        currentScanId = null;
-        currentWasteType = null;
-        confirmDisposalBtn.disabled = false;
-        confirmDisposalBtn.textContent = 'Confirm Correct Disposal';
-        
-        if (currentTabId === 'upload') {
-            // Reset upload section
-            uploadPreviewSection.style.display = 'none';
-            dropArea.style.display = 'block';
-            previewImage.src = '';
-            fileElem.value = '';
-        } else {
-            // Reset camera section
-            cameraPreviewSection.style.display = 'none';
-            captureImageElement.src = '';
+            captureImageBtn.disabled = true;
+            switchCameraBtn.disabled = true;
+            startCameraBtn.innerHTML = '<i class="fas fa-video"></i> Start Camera';
+            startCameraBtn.classList.replace('btn-danger', 'btn-primary');
+            
+            // Change event handler back
+            startCameraBtn.removeEventListener('click', stopCamera);
+            startCameraBtn.addEventListener('click', startCamera);
         }
-    }
+        
+        function switchCamera() {
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            stopCamera();
+            startCamera();
+        }
+        
+        function captureImage() {
+            if (!stream) return;
+            
+            const context = canvas.getContext('2d');
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            
+            // Draw the video frame to the canvas
+            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to data URL
+            capturedImage = canvas.toDataURL('image/jpeg');
+            
+            // Display the captured image
+            cameraResultPreview.innerHTML = `<img src="${capturedImage}" alt="Captured" 
+                                             style="max-width: 300px; max-height: 300px; border-radius: 8px;">`;
+            cameraPreviewContainer.style.display = 'block';
+            
+            // Hide the video preview temporarily
+            videoElement.style.display = 'none';
+        }
+        
+        function retakePicture() {
+            capturedImage = null;
+            cameraPreviewContainer.style.display = 'none';
+            videoElement.style.display = 'block';
+        }
+        
+        function dataURItoBlob(dataURI) {
+            // Convert base64/URLEncoded data component to raw binary data held in a string
+            let byteString;
+            if (dataURI.split(',')[0].indexOf('base64') >= 0) {
+                byteString = atob(dataURI.split(',')[1]);
+            } else {
+                byteString = unescape(dataURI.split(',')[1]);
+            }
+            
+            // Separate out the mime component
+            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+            
+            // Write the bytes of the string to a typed array
+            const ia = new Uint8Array(byteString.length);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            
+            return new Blob([ia], {type: mimeString});
+        }
+        
+        function analyzeCapturedImage() {
+            if (!capturedImage) {
+                showError('Please capture an image first');
+                return;
+            }
+            
+            showLoading();
+            
+            // Convert the data URL to a blob
+            const blob = dataURItoBlob(capturedImage);
+            
+            // Create a file from the blob
+            const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            // Send to server
+            fetch('/api/upload_image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Error analyzing image');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    displayResults(data);
+                    stopCamera();
+                } else {
+                    showError(data.error || 'Error analyzing image');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError(error.message || 'Error analyzing image. Please try again.');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+        
+        // Results handling
+        function displayResults(data) {
+            // Hide other sections
+            hideError();
+            
+            // Get the top prediction
+            const prediction = data.top_prediction;
+            if (!prediction) {
+                showError('Could not determine waste type. Please try again with a clearer image.');
+                return;
+            }
+            
+            // Display waste type and confidence
+            wasteType.textContent = prediction.label.replace(/_/g, ' ');
+            confidence.textContent = `(${Math.round(prediction.confidence * 100)}% confidence)`;
+            
+            // Display guidelines - using mock data for now
+            const guidelines = {
+                recyclable: prediction.label.includes('recycle') || 
+                            prediction.label.includes('paper') || 
+                            prediction.label.includes('plastic') || 
+                            prediction.label.includes('glass') || 
+                            prediction.label.includes('metal'),
+                preparation: prediction.label.includes('plastic') ? 'Rinse and remove labels if possible' : 
+                             prediction.label.includes('paper') ? 'Remove tape and staples' : 
+                             'Clean and separate components',
+                bin_color: prediction.label.includes('recycle') ? 'Blue' : 
+                           prediction.label.includes('compost') ? 'Green' : 
+                           prediction.label.includes('hazardous') ? 'Red' : 'Black',
+                facts: prediction.label.includes('plastic') ? 'It takes plastic up to 1,000 years to decompose.' : 
+                       prediction.label.includes('paper') ? 'Recycling 1 ton of paper saves 17 trees.' : 
+                       prediction.label.includes('glass') ? 'Glass can be recycled endlessly without quality degradation.' : 
+                       'Proper waste sorting reduces landfill usage by up to 25%.'
+            };
+            
+            let guidelinesHTML = '';
+            
+            if (guidelines) {
+                guidelinesHTML += `<div class="alert ${guidelines.recyclable ? 'alert-success' : 'alert-warning'}">
+                    <strong>${guidelines.recyclable ? 'Recyclable' : 'Not Recyclable'}</strong>
+                </div>`;
+                
+                guidelinesHTML += `<p><strong>Preparation:</strong> ${guidelines.preparation}</p>`;
+                guidelinesHTML += `<p><strong>Bin:</strong> ${guidelines.bin_color}</p>`;
+                
+                if (guidelines.facts) {
+                    guidelinesHTML += `<div class="alert alert-info mt-2">
+                        <i class="fas fa-info-circle"></i> <strong>Did you know?</strong> ${guidelines.facts}
+                    </div>`;
+                }
+            } else {
+                guidelinesHTML = '<p>No specific guidelines available for this item.</p>';
+            }
+            
+            guidelinesContent.innerHTML = guidelinesHTML;
+            
+            // Display mock recycling centers
+            const centers = [
+                {
+                    name: 'City Recycling Center',
+                    address: '123 Green St, San Francisco',
+                    distance: '1.2 miles',
+                    accepts: ['plastic', 'paper', 'glass', 'metal']
+                },
+                {
+                    name: 'EcoWaste Processing',
+                    address: '456 Recycle Ave, San Francisco',
+                    distance: '2.8 miles',
+                    accepts: ['electronics', 'batteries', 'hazardous']
+                },
+                {
+                    name: 'Green Future Recycling',
+                    address: '789 Earth Blvd, San Francisco',
+                    distance: '3.5 miles',
+                    accepts: ['plastic', 'paper', 'glass', 'metal', 'compost']
+                }
+            ];
+            
+            let centersHTML = '';
+            
+            if (centers && centers.length > 0) {
+                centers.forEach(center => {
+                    centersHTML += `<div class="center-card">
+                        <h5>${center.name}</h5>
+                        <p><i class="fas fa-map-marker-alt"></i> ${center.address} (${center.distance})</p>
+                        <p><strong>Accepts:</strong> ${center.accepts.join(', ')}</p>
+                    </div>`;
+                });
+            } else {
+                centersHTML = '<p>No recycling centers found nearby.</p>';
+            }
+            
+            centersList.innerHTML = centersHTML;
+            
+            // Show results container
+            results.style.display = 'block';
+        }
+        
+        // Helpers
+        function showLoading() {
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            hideError();
+        }
+        
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                hideError();
+            }, 5000);
+        }
+        
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+        
+        // Reset and scan again
+        scanAnother.addEventListener('click', function() {
+            results.style.display = 'none';
+            preview.innerHTML = '';
+            fileInput.value = '';
+            uploadBtnContainer.style.display = 'none';
+            
+            // Reset camera tab if it was used
+            if (cameraPreviewContainer.style.display !== 'none') {
+                retakePicture();
+            }
+        });
+        
+        // Confirm disposal
+        confirmDisposal.addEventListener('click', function() {
+            const wasteTypeValue = wasteType.textContent;
+            
+            fetch('/api/confirm_disposal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    waste_type: wasteTypeValue.replace(/\s+/g, '_')
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Error confirming disposal');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    const message = data.message || 'Disposal confirmed! Thank you for recycling responsibly.';
+                    
+                    // Create a success alert
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success mt-3';
+                    alertDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+                    if (data.points_earned) {
+                        alertDiv.innerHTML += ` You earned <strong>${data.points_earned} points</strong>!`;
+                    }
+                    
+                    // Insert the alert at the top of the results
+                    const resultsHeader = document.querySelector('.results-header');
+                    if (resultsHeader && resultsHeader.nextElementSibling) {
+                        results.insertBefore(alertDiv, resultsHeader.nextElementSibling);
+                    } else {
+                        guidelinesContent.prepend(alertDiv);
+                    }
+                    
+                    // Disable the confirm button
+                    confirmDisposal.disabled = true;
+                    confirmDisposal.innerHTML = '<i class="fas fa-check"></i> Disposal Confirmed';
+                } else {
+                    showError(data.error || 'Error confirming disposal');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError(error.message || 'Error confirming disposal. Please try again.');
+            });
+        });
+        
+        // Tab switching
+        document.querySelectorAll('.nav-link').forEach(tab => {
+            tab.addEventListener('click', function() {
+                if (this.id === 'camera-tab') {
+                    // When switching to camera tab, stop any capture in progress
+                    if (stream) {
+                        stopCamera();
+                    }
+                }
+            });
+        });
+    });
 </script>
 {% endblock %} 

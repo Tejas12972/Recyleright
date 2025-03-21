@@ -6,11 +6,11 @@ import logging
 import datetime
 import os
 
-# Add parent directory to path to allow imports
+# Import configuration directly
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from app import config
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(parent_dir)
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,98 @@ class PointsSystem:
             "Master": 5000
         }
     
+    def award_scan_points(self, user_id):
+        """
+        Award points to a user for scanning an item.
+        
+        Args:
+            user_id (str): The user ID.
+            
+        Returns:
+            dict: Dictionary with points earned and updated user data, or None if failed.
+        """
+        try:
+            # Use fixed points for now (configurable implementation)
+            points_earned = self.points_per_scan
+            
+            # Check if user has reached daily limit
+            daily_points = self._get_daily_points(user_id)
+            if daily_points >= self.max_daily_points:
+                logger.info(f"User {user_id} has reached daily points limit")
+                return {'points_earned': 0}
+            
+            # Ensure we don't exceed daily limit
+            remaining_daily_points = self.max_daily_points - daily_points
+            if points_earned > remaining_daily_points:
+                points_earned = remaining_daily_points
+            
+            # Update points in the database
+            updated_user = self.db.update_user_points(user_id, points_earned)
+            
+            if updated_user:
+                logger.info(f"Awarded {points_earned} points to user {user_id} for scanning waste")
+                return {
+                    'points_earned': points_earned,
+                    'total_points': updated_user.get('points', 0),
+                    'level': updated_user.get('level', 'Beginner')
+                }
+            else:
+                logger.warning(f"Failed to update points for user {user_id}")
+                return {'points_earned': 0}
+            
+        except Exception as e:
+            logger.error(f"Error awarding points for scan: {e}", exc_info=True)
+            return {'points_earned': 0}
+    
+    def award_disposal_points(self, user_id, waste_type):
+        """
+        Award points to a user for confirming proper disposal.
+        
+        Args:
+            user_id (str): The user ID.
+            waste_type (str): The waste type disposed.
+            
+        Returns:
+            dict: Dictionary with points earned and updated user data, or None if failed.
+        """
+        try:
+            # Base points for disposal
+            points_earned = self.points_per_correct_disposal
+            
+            # Bonus points for certain waste types that are harder to recycle properly
+            hard_to_recycle = ["electronic_waste", "batteries", "light_bulb", "styrofoam"]
+            if waste_type in hard_to_recycle:
+                points_earned += 5  # Bonus for difficult materials
+                
+            # Check if user has reached daily limit
+            daily_points = self._get_daily_points(user_id)
+            if daily_points >= self.max_daily_points:
+                logger.info(f"User {user_id} has reached daily points limit")
+                return {'points_earned': 0}
+            
+            # Ensure we don't exceed daily limit
+            remaining_daily_points = self.max_daily_points - daily_points
+            if points_earned > remaining_daily_points:
+                points_earned = remaining_daily_points
+            
+            # Update points in the database
+            updated_user = self.db.update_user_points(user_id, points_earned)
+            
+            if updated_user:
+                logger.info(f"Awarded {points_earned} points to user {user_id} for disposing {waste_type}")
+                return {
+                    'points_earned': points_earned,
+                    'total_points': updated_user.get('points', 0),
+                    'level': updated_user.get('level', 'Beginner')
+                }
+            else:
+                logger.warning(f"Failed to update points for user {user_id}")
+                return {'points_earned': 0}
+            
+        except Exception as e:
+            logger.error(f"Error awarding points for disposal: {e}", exc_info=True)
+            return {'points_earned': 0}
+
     def award_points_for_scan(self, user_id, scan_id=None, waste_type=None, confidence=None):
         """
         Award points to a user for scanning an item.
@@ -221,27 +313,31 @@ class PointsSystem:
         Get the total points earned by a user today.
         
         Args:
-            user_id (int): The user ID.
+            user_id (str): The user ID.
             
         Returns:
             int: Total points earned today.
         """
         try:
-            today = datetime.datetime.now().strftime("%Y-%m-%d")
+            # Get today's date range
+            today = datetime.datetime.now().date()
+            today_start = datetime.datetime.combine(today, datetime.time.min)
+            today_end = datetime.datetime.combine(today, datetime.time.max)
             
-            self.db.cursor.execute("""
-            SELECT SUM(points_earned) as total 
-            FROM scans 
-            WHERE user_id = ? AND date(timestamp) = ?
-            """, (user_id, today))
+            # Sum points from scans made today
+            points = 0
+            scans = self.db.db.scans.find({
+                "user_id": self.db.get_object_id(user_id),
+                "timestamp": {
+                    "$gte": today_start,
+                    "$lte": today_end
+                }
+            })
             
-            result = self.db.cursor.fetchone()
+            for scan in scans:
+                points += scan.get("points_earned", 0)
             
-            if result and result["total"]:
-                return result["total"]
-            
-            return 0
-            
+            return points
         except Exception as e:
             logger.error(f"Error getting daily points: {e}", exc_info=True)
             return 0

@@ -8,8 +8,10 @@ It imports the Flask web interface and runs the application.
 
 import os
 import logging
-from logging.handlers import RotatingFileHandler
-from flask import Flask, render_template
+import json
+import uuid
+from werkzeug.utils import secure_filename
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -17,6 +19,12 @@ load_dotenv()
 
 # Import configuration
 import config
+
+# Import application components
+from data.database import get_db
+from models.waste_classifier import WasteClassifier
+from api.geolocation import GeolocationService
+from gamification.points_system import PointsSystem
 
 # Set up logging
 if not os.path.exists(os.path.dirname(config.LOG_FILE)):
@@ -26,7 +34,7 @@ logging.basicConfig(
     level=getattr(logging, config.LOG_LEVEL),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        RotatingFileHandler(config.LOG_FILE, maxBytes=1024*1024, backupCount=5),
+        logging.FileHandler(config.LOG_FILE),
         logging.StreamHandler()
     ]
 )
@@ -47,6 +55,12 @@ def create_app():
     # Set secret key
     app.secret_key = config.SECRET_KEY
 
+    # Copy config values explicitly
+    app.config['MODEL_PATH'] = config.MODEL_PATH
+    app.config['LABELS_PATH'] = config.LABELS_PATH
+    app.config['ALLOWED_EXTENSIONS'] = config.ALLOWED_EXTENSIONS
+    app.config['MONGODB_URI'] = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/recycleright')
+
     # Register error handlers
     @app.errorhandler(404)
     def not_found_error(error):
@@ -62,6 +76,32 @@ def create_app():
     # Import and register routes
     from ui.routes import register_routes
     register_routes(app)
+
+    # Initialize components
+    db = get_db()
+    geo_service = GeolocationService()
+    classifier = WasteClassifier(
+        model_path=app.config.get('MODEL_PATH', 'models/waste_classifier.tflite'),
+        labels_path=app.config.get('LABELS_PATH', 'models/labels/waste_labels.txt')
+    )
+    points_system = PointsSystem(db)
+
+    # Create upload directory if it doesn't exist
+    UPLOAD_FOLDER = 'ui/static/uploads'
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
+
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+    # Make services available to the routes
+    app.config['database'] = db
+    app.config['waste_classifier'] = classifier
+    app.config['geo_service'] = geo_service
+    app.config['points_system'] = points_system
 
     return app
 

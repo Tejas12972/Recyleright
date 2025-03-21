@@ -3,14 +3,18 @@ Routes module for RecycleRight web interface.
 """
 
 import os
+import uuid
 from flask import render_template, request, jsonify, session, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymongo.errors
+import logging
 
 from data.database import get_db
 from models.waste_classifier import WasteClassifier
 from api.geolocation import GeolocationService
+
+logger = logging.getLogger(__name__)
 
 def register_routes(app):
     """Register routes with the Flask application."""
@@ -46,9 +50,9 @@ def register_routes(app):
         return True
 
     def allowed_file(filename):
-        """Check if file extension is allowed."""
+        """Check if file is allowed based on extension."""
         return '.' in filename and \
-               filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+               filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
     @app.route('/')
     def home():
@@ -130,109 +134,402 @@ def register_routes(app):
         
         try:
             user = db.get_user(user_id=session['user_id'])
+            if not user:
+                flash('User not found. Please log in again.', 'error')
+                return redirect(url_for('logout'))
+                
+            # Get user stats
             stats = db.get_user_stats(session['user_id'])
-            challenges = db.get_user_active_challenges(session['user_id'])
+            if not stats:
+                stats = {
+                    "user_id": session['user_id'],
+                    "points": user.get('points', 0),
+                    "level": user.get('level', 'Beginner'),
+                    "rank": 1,
+                    "next_level": "Intermediate",
+                    "points_to_next_level": 100,
+                    "level_progress": 0,
+                    "items_scanned": 0,
+                    "items_recycled": 0
+                }
             
-            return render_template('dashboard.html', user=user, stats=stats, challenges=challenges)
+            # Get active challenges
+            challenges = db.get_user_active_challenges(session['user_id'])
+            if challenges is None:
+                challenges = []
+                
+            # Get nearby recycling centers using default location
+            recycling_centers = []
+            user_location = user.get('location', None)
+            
+            if geo_service and user_location:
+                try:
+                    recycling_centers = geo_service.find_recycling_centers(
+                        user_location.get('lat', 37.7749),  # Default to San Francisco
+                        user_location.get('lng', -122.4194),
+                        radius=10
+                    )
+                except Exception as e:
+                    app.logger.error(f"Error finding recycling centers: {e}", exc_info=True)
+            
+            # Get recent activity (mock data for now)
+            recent_activity = []
+            try:
+                # Get recent scans
+                scans = db.db.scans.find(
+                    {"user_id": db._get_object_id(session['user_id'])},
+                    sort=[("timestamp", -1)],
+                    limit=5
+                )
+                
+                for scan in scans:
+                    recent_activity.append({
+                        "date": scan.get("timestamp").strftime("%Y-%m-%d %H:%M") if scan.get("timestamp") else "Unknown",
+                        "type": "Scan",
+                        "details": f"Scanned {scan.get('waste_type', 'unknown item')}",
+                        "points": scan.get("points_earned", 0)
+                    })
+            except Exception as e:
+                app.logger.error(f"Error getting recent activity: {e}", exc_info=True)
+                
+            # If we have less than 5 items, add some mock data
+            if len(recent_activity) < 5:
+                recent_activity.append({
+                    "date": "2023-01-15 10:30",
+                    "type": "Challenge",
+                    "details": "Completed 'First Steps' challenge",
+                    "points": 50
+                })
+            
+            return render_template('dashboard.html', 
+                                  user=user, 
+                                  stats=stats, 
+                                  challenges=challenges,
+                                  recycling_centers=recycling_centers,
+                                  recent_activity=recent_activity)
         except Exception as e:
-            app.logger.error(f"Dashboard error: {e}")
+            app.logger.error(f"Dashboard error: {e}", exc_info=True)
             flash('Error loading dashboard. Please try again later.', 'error')
             return redirect(url_for('home'))
 
-    @app.route('/scan', methods=['GET', 'POST'])
+    @app.route('/scan')
     def scan():
-        """Handle waste scanning."""
+        """Render scan page."""
         if 'user_id' not in session:
+            flash('Please log in to use scanning features.', 'warning')
             return redirect(url_for('login'))
-        
-        if not check_db() or not classifier:
-            flash('Service temporarily unavailable. Please try again later.', 'error')
-            return redirect(url_for('dashboard'))
-        
-        if request.method == 'POST':
-            if 'file' not in request.files:
-                return jsonify({'error': 'No file uploaded'}), 400
             
-            file = request.files['file']
-            if file.filename == '':
-                return jsonify({'error': 'No file selected'}), 400
-            
-            if not allowed_file(file.filename):
-                return jsonify({'error': 'File type not allowed'}), 400
-            
-            try:
-                # Save file
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(filepath)
-                
-                # Process image
-                waste_type, confidence = classifier.get_top_prediction(filepath)
-                
-                if waste_type:
-                    # Record scan
-                    scan_id = db.record_scan(session['user_id'], waste_type, confidence, filepath)
-                    
-                    # Get recycling guidelines
-                    guidelines = db.get_recycling_guidelines(waste_type, 'default')
-                    
-                    return jsonify({
-                        'success': True,
-                        'waste_type': waste_type,
-                        'confidence': confidence,
-                        'guidelines': guidelines
-                    })
-                
-                return jsonify({'error': 'Could not classify waste'}), 400
-                
-            except Exception as e:
-                app.logger.error(f"Error processing scan: {e}")
-                return jsonify({'error': 'Error processing image'}), 500
-        
         return render_template('scan.html')
 
-    @app.route('/centers')
-    def centers():
-        """Show nearby recycling centers."""
+    @app.route('/api/upload_image', methods=['POST'])
+    def upload_image():
+        """Handle image upload and classification."""
         if 'user_id' not in session:
-            return redirect(url_for('login'))
-        
-        if not check_db() or not geo_service:
-            flash('Service temporarily unavailable. Please try again later.', 'error')
-            return redirect(url_for('dashboard'))
-        
+            return jsonify({'error': 'Authentication required'}), 401
+            
         try:
-            user = db.get_user(user_id=session['user_id'])
-            if not user.get('location'):
-                flash('Please update your location first', 'warning')
-                return redirect(url_for('dashboard'))
+            if 'image' not in request.files:
+                return jsonify({'error': 'No image uploaded'}), 400
+                
+            file = request.files['image']
+            if file.filename == '':
+                return jsonify({'error': 'No image selected'}), 400
+                
+            if not file or not allowed_file(file.filename):
+                return jsonify({'error': 'Invalid file type. Please upload a valid image.'}), 400
             
-            centers = db.get_nearby_recycling_centers(
-                user['location_lat'],
-                user['location_lon'],
-                radius_km=10
-            )
+            # Save uploaded file
+            filename = secure_filename(f"{uuid.uuid4()}_{file.filename}")
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             
-            return render_template('centers.html', centers=centers)
+            # Create directory if it doesn't exist
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            file.save(file_path)
+            
+            app.logger.info(f"Saved image to {file_path}")
+            
+            # Get the classifier from app config and classify the image
+            classifier = app.config.get('waste_classifier')
+            if not classifier:
+                app.logger.error("Waste classifier not configured in app.config. Check MODEL_PATH and LABELS_PATH in config.py")
+                mock_predictions = [
+                    {"label": "plastic_bottle", "confidence": 0.85},
+                    {"label": "glass_bottle", "confidence": 0.65},
+                    {"label": "aluminum_can", "confidence": 0.45}
+                ]
+                app.logger.warning("Using mock predictions as fallback")
+                return jsonify({
+                    'success': True,
+                    'file_path': file_path,
+                    'predictions': mock_predictions,
+                    'top_prediction': mock_predictions[0],
+                    'message': 'Using mock classification (classifier not available)'
+                }), 200
+                
+            predictions = classifier.get_all_predictions(file_path)
+            top_prediction = predictions[0] if predictions else None
+            
+            # Award points for scanning
+            if 'user_id' in session and top_prediction:
+                try:
+                    points_system = app.config.get('points_system')
+                    user_id = session['user_id']
+                    
+                    if points_system:
+                        points_earned = points_system.award_scan_points(
+                            user_id=user_id,
+                            waste_type=top_prediction['label'],
+                            image_path=file_path
+                        )
+                        app.logger.info(f"Awarded {points_earned} points to user {user_id} for scanning {top_prediction['label']}")
+                    else:
+                        app.logger.warning("Points system not configured")
+                except Exception as e:
+                    app.logger.error(f"Error awarding points: {e}", exc_info=True)
+            
+            # Return the predictions
+            return jsonify({
+                'success': True,
+                'file_path': file_path,
+                'predictions': predictions,
+                'top_prediction': top_prediction
+            }), 200
+            
         except Exception as e:
-            app.logger.error(f"Error loading recycling centers: {e}")
-            flash('Error loading recycling centers. Please try again later.', 'error')
-            return redirect(url_for('dashboard'))
+            app.logger.error(f"Error processing image upload: {e}", exc_info=True)
+            return jsonify({'error': 'Error processing image. Please try again.'}), 500
 
     @app.route('/leaderboard')
     def leaderboard():
-        """Show leaderboard."""
+        """Render leaderboard page."""
+        try:
+            # Get database from app config
+            db = app.config.get('database')
+            if not db:
+                app.logger.error("Database not configured")
+                flash('Leaderboard service is currently unavailable.', 'error')
+                users = []
+            else:
+                users = db.get_leaderboard(limit=10)
+                
+            # Get current user rank if logged in
+            user_rank = None
+            if 'user_id' in session and db:
+                try:
+                    user_id = session['user_id']
+                    user_rank = db.get_user_rank(user_id)
+                except Exception as e:
+                    app.logger.error(f"Error getting user rank: {e}", exc_info=True)
+            
+            return render_template('leaderboard.html', users=users, user_rank=user_rank)
+        except Exception as e:
+            app.logger.error(f"Error loading leaderboard: {e}", exc_info=True)
+            flash('Error loading leaderboard. Please try again later.', 'error')
+            return render_template('leaderboard.html', users=[], user_rank=None)
+            
+    @app.route('/api/leaderboard')
+    def api_leaderboard():
+        """API endpoint for leaderboard data."""
+        try:
+            top_users = db.get_leaderboard(limit=10)
+            return jsonify({
+                'success': True,
+                'leaderboard': top_users
+            })
+        except Exception as e:
+            logger.error(f"Error fetching leaderboard: {e}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'message': 'Error loading leaderboard data'
+            }), 500
+            
+    @app.route('/api/confirm_disposal', methods=['POST'])
+    def confirm_disposal():
+        """Handle waste disposal confirmation."""
+        if 'user_id' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+            
+        try:
+            data = request.get_json()
+            if not data or 'waste_type' not in data:
+                return jsonify({'error': 'Missing waste type information'}), 400
+                
+            waste_type = data['waste_type']
+            
+            # Award points for proper disposal
+            points_earned = 0
+            try:
+                points_system = app.config.get('points_system')
+                user_id = session['user_id']
+                
+                if points_system:
+                    points_earned = points_system.award_disposal_points(
+                        user_id=user_id,
+                        waste_type=waste_type
+                    )
+                    app.logger.info(f"Awarded {points_earned} points to user {user_id} for disposing {waste_type}")
+            except Exception as e:
+                app.logger.error(f"Error awarding disposal points: {e}", exc_info=True)
+                
+            return jsonify({
+                'success': True,
+                'message': 'Thank you for recycling responsibly!',
+                'points_earned': points_earned
+            }), 200
+            
+        except Exception as e:
+            app.logger.error(f"Error confirming disposal: {e}", exc_info=True)
+            return jsonify({'error': 'Error processing your request. Please try again.'}), 500
+
+    @app.route('/centers')
+    def centers():
+        """Render recycling centers page."""
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+            
+        # Default location (San Francisco)
+        default_location = {
+            'lat': 37.7749,
+            'lng': -122.4194
+        }
+        
+        # Get user's location if available
+        user_location = session.get('location', default_location)
+        
+        # Get geo_service from app config
+        geo_service = app.config.get('geo_service')
+        
+        # Get nearby recycling centers
+        try:
+            if geo_service:
+                centers = geo_service.find_recycling_centers(
+                    user_location.get('lat', default_location['lat']),
+                    user_location.get('lng', default_location['lng']),
+                    radius=10
+                )
+            else:
+                logger.warning("Geolocation service not available")
+                centers = []
+                flash('Recycling center search service is currently unavailable.', 'warning')
+        except Exception as e:
+            app.logger.error(f"Error finding recycling centers: {e}", exc_info=True)
+            centers = []
+            flash('Error loading recycling centers. Please try again later.', 'error')
+        
+        return render_template('centers.html', centers=centers, location=user_location)
+
+    @app.route('/api/guidelines/<waste_type>', methods=['GET'])
+    def get_recycling_guidelines(waste_type):
+        """Get recycling guidelines for a specific waste type."""
+        try:
+            # Get database from app config
+            db = app.config.get('database')
+            if not db:
+                app.logger.error("Database not configured")
+                return jsonify({'error': 'Service temporarily unavailable'}), 503
+                
+            # Get guidelines from database
+            guidelines = db.get_recycling_guidelines(waste_type)
+            if not guidelines:
+                # Provide basic guidelines if none found
+                guidelines = {
+                    'waste_type': waste_type,
+                    'recyclable': waste_type in ['plastic', 'paper', 'glass', 'metal', 'cardboard'],
+                    'preparation': 'Clean and remove labels if possible.',
+                    'bin_color': 'blue' if waste_type in ['plastic', 'paper', 'glass', 'metal', 'cardboard'] else 'black',
+                    'facts': 'Recycling helps reduce landfill waste and conserves natural resources.'
+                }
+                
+            return jsonify({
+                'success': True,
+                'guidelines': guidelines
+            }), 200
+            
+        except Exception as e:
+            app.logger.error(f"Error getting recycling guidelines: {e}", exc_info=True)
+            return jsonify({'error': 'Error retrieving guidelines. Please try again.'}), 500
+
+    @app.route('/achievements')
+    def achievements():
+        """Render achievements page."""
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+            
         if not check_db():
             flash('Service temporarily unavailable. Please try again later.', 'error')
             return redirect(url_for('home'))
-        
+            
         try:
-            leaders = db.get_leaderboard(limit=10)
-            return render_template('leaderboard.html', leaders=leaders)
+            # Get user
+            user = db.get_user(user_id=session['user_id'])
+            if not user:
+                flash('User not found', 'error')
+                return redirect(url_for('logout'))
+                
+            # Get achievements (mock data for now)
+            achievements = [
+                {
+                    'title': 'Recycling Rookie',
+                    'description': 'Recycle your first item',
+                    'completed': True,
+                    'date_earned': '2023-01-15',
+                    'icon': 'fa-recycle'
+                },
+                {
+                    'title': 'Waste Warrior',
+                    'description': 'Recycle 10 items',
+                    'completed': False,
+                    'progress': 6,
+                    'goal': 10,
+                    'icon': 'fa-shield'
+                },
+                {
+                    'title': 'Earth Champion',
+                    'description': 'Recycle 50 items',
+                    'completed': False,
+                    'progress': 6,
+                    'goal': 50,
+                    'icon': 'fa-globe'
+                }
+            ]
+            
+            return render_template('achievements.html', user=user, achievements=achievements)
         except Exception as e:
-            app.logger.error(f"Error loading leaderboard: {e}")
-            flash('Error loading leaderboard. Please try again later.', 'error')
+            app.logger.error(f"Error loading achievements: {e}", exc_info=True)
+            flash('Error loading achievements. Please try again later.', 'error')
             return redirect(url_for('home'))
+            
+    @app.route('/recycling_centers')
+    def recycling_centers():
+        """Redirect to centers page."""
+        return redirect(url_for('centers'))
+
+    @app.route('/api/set_location', methods=['POST'])
+    def set_location():
+        """Set user's location."""
+        try:
+            data = request.get_json()
+            if not data or 'lat' not in data or 'lng' not in data:
+                return jsonify({'error': 'Missing location data'}), 400
+                
+            # Store location in session
+            session['location'] = {
+                'lat': data['lat'],
+                'lng': data['lng']
+            }
+            
+            # Update user's location in database if logged in
+            if 'user_id' in session and db:
+                try:
+                    db.update_user_location(session['user_id'], data['lat'], data['lng'])
+                except Exception as e:
+                    app.logger.error(f"Error updating user location: {e}", exc_info=True)
+            
+            return jsonify({'success': True}), 200
+            
+        except Exception as e:
+            app.logger.error(f"Error setting location: {e}", exc_info=True)
+            return jsonify({'error': 'Error setting location. Please try again.'}), 500
 
     @app.errorhandler(404)
     def not_found_error(error):

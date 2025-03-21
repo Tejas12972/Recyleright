@@ -1,0 +1,15 @@
+plastic_bottle
+glass_bottle
+aluminum_can
+paper
+cardboard
+plastic_bag
+food_waste
+styrofoam
+electronic_waste
+batteries
+light_bulb
+clothing
+metal
+plastic_container
+tetra_pak 

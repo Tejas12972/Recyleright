@@ -7,190 +7,195 @@
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="mb-3">Your Achievements</h1>
-            <p class="lead">Complete challenges and earn achievements to level up and earn points!</p>
+            <p class="lead">Track your progress and earn rewards for your recycling efforts!</p>
         </div>
     </div>
     
-    <!-- User Stats Summary -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-primary text-white shadow">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Your Stats</h5>
+                </div>
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-3 text-center text-md-start">
-                            <h4 class="mb-0">Level {{ user_stats.level }}</h4>
-                            <p class="mb-0">{{ user_stats.points }} points total</p>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                            <span class="h3 mb-0">{{ user.username[:1] }}</span>
                         </div>
-                        <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <small>Level {{ user_stats.level }}</small>
-                                <small>Level {{ user_stats.level + 1 }}</small>
-                            </div>
-                            <div class="progress" style="height: 10px;">
-                                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ user_stats.level_progress }}%" 
-                                    aria-valuenow="{{ user_stats.level_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <small class="d-block text-center mt-1">{{ user_stats.points_to_next_level }} points to next level</small>
+                        <div>
+                            <h5 class="mb-1">{{ user.username }}</h5>
+                            <p class="text-muted mb-0">Level {{ user.level|default(1) }}</p>
                         </div>
-                        <div class="col-md-3 text-center text-md-end mt-3 mt-md-0">
-                            <h5 class="mb-1">Rank: #{{ user_stats.rank }}</h5>
-                            <a href="{{ url_for('leaderboard') }}" class="btn btn-sm btn-outline-light">View Leaderboard</a>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Total Points</span>
+                            <span>{{ user.points|default(0) }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 65%" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <small class="text-muted">100 more points to next level</small>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h3>{{ user.items_scanned|default(0) }}</h3>
+                            <small class="text-muted">Scanned</small>
+                        </div>
+                        <div class="col-4">
+                            <h3>{{ user.items_recycled|default(0) }}</h3>
+                            <small class="text-muted">Recycled</small>
+                        </div>
+                        <div class="col-4">
+                            <h3>{{ user.rank|default(0) }}</h3>
+                            <small class="text-muted">Rank</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#earned" data-bs-toggle="tab">Earned</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#in-progress" data-bs-toggle="tab">In Progress</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#all" data-bs-toggle="tab">All</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="earned">
+                            {% set earned_achievements = achievements|selectattr('completed', 'eq', true)|list %}
+                            {% if earned_achievements %}
+                                <div class="row">
+                                    {% for achievement in earned_achievements %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="achievement-card p-3 border rounded">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="achievement-icon me-3 text-success">
+                                                        <i class="fas {{ achievement.icon }} fa-2x"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="mb-1">{{ achievement.title }}</h5>
+                                                        <p class="mb-1 small">{{ achievement.description }}</p>
+                                                        <small class="text-muted">Earned on {{ achievement.date_earned }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                                    <p>You haven't earned any achievements yet.<br>Start recycling to earn your first achievement!</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="tab-pane fade" id="in-progress">
+                            {% set in_progress_achievements = achievements|selectattr('completed', 'eq', false)|list %}
+                            {% if in_progress_achievements %}
+                                <div class="row">
+                                    {% for achievement in in_progress_achievements %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="achievement-card p-3 border rounded">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <div class="achievement-icon me-3 text-secondary">
+                                                        <i class="fas {{ achievement.icon }} fa-2x"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="mb-1">{{ achievement.title }}</h5>
+                                                        <p class="mb-1 small">{{ achievement.description }}</p>
+                                                    </div>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar bg-success" role="progressbar" 
+                                                         style="width: {{ (achievement.progress / achievement.goal) * 100 }}%" 
+                                                         aria-valuenow="{{ (achievement.progress / achievement.goal) * 100 }}" 
+                                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                                <small class="text-muted">{{ achievement.progress }} / {{ achievement.goal }}</small>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-hourglass-half fa-3x text-muted mb-3"></i>
+                                    <p>No achievements in progress.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="tab-pane fade" id="all">
+                            {% if achievements %}
+                                <div class="row">
+                                    {% for achievement in achievements %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="achievement-card p-3 border rounded">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <div class="achievement-icon me-3 {{ 'text-success' if achievement.completed else 'text-secondary' }}">
+                                                        <i class="fas {{ achievement.icon }} fa-2x"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="mb-1">{{ achievement.title }}</h5>
+                                                        <p class="mb-1 small">{{ achievement.description }}</p>
+                                                        {% if achievement.completed %}
+                                                            <small class="text-muted">Earned on {{ achievement.date_earned }}</small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% if not achievement.completed and achievement.progress is defined %}
+                                                    <div class="progress" style="height: 8px;">
+                                                        <div class="progress-bar bg-success" role="progressbar" 
+                                                             style="width: {{ (achievement.progress / achievement.goal) * 100 }}%" 
+                                                             aria-valuenow="{{ (achievement.progress / achievement.goal) * 100 }}" 
+                                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                    <small class="text-muted">{{ achievement.progress }} / {{ achievement.goal }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-medal fa-3x text-muted mb-3"></i>
+                                    <p>No achievements available.</p>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Active Challenges -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h3 class="mb-3">Active Challenges</h3>
-            {% if challenges %}
-                <div class="row">
-                    {% for challenge in challenges %}
-                        <div class="col-md-4 mb-3">
-                            <div class="card h-100 shadow-sm">
-                                <div class="card-header bg-info text-white">
-                                    <h5 class="mb-0">{{ challenge.title }}</h5>
-                                </div>
-                                <div class="card-body">
-                                    <p>{{ challenge.description }}</p>
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <small>Progress: {{ challenge.progress }}/{{ challenge.goal }}</small>
-                                        <span class="badge bg-primary">{{ challenge.points }} points</span>
-                                    </div>
-                                    <div class="progress">
-                                        <div class="progress-bar bg-success" role="progressbar" 
-                                            style="width: {{ (challenge.progress / challenge.goal) * 100 }}%" 
-                                            aria-valuenow="{{ (challenge.progress / challenge.goal) * 100 }}" 
-                                            aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                                <div class="card-footer bg-light">
-                                    <small class="text-muted">Expires: {{ challenge.expires }}</small>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i> You don't have any active challenges. Start scanning items to get new challenges!
-                </div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- Achievements -->
-    <div class="row">
-        <div class="col-12 mb-4">
-            <h3 class="mb-3">Achievements</h3>
-            <ul class="nav nav-tabs mb-4" id="achievementsTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="earned-tab" data-bs-toggle="tab" data-bs-target="#earned" type="button" 
-                        role="tab" aria-controls="earned" aria-selected="true">Earned ({{ earned_achievements|length }})</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="locked-tab" data-bs-toggle="tab" data-bs-target="#locked" type="button" 
-                        role="tab" aria-controls="locked" aria-selected="false">Locked ({{ locked_achievements|length }})</button>
-                </li>
-            </ul>
-            
-            <div class="tab-content" id="achievementsTabsContent">
-                <!-- Earned Achievements -->
-                <div class="tab-pane fade show active" id="earned" role="tabpanel" aria-labelledby="earned-tab">
-                    {% if earned_achievements %}
-                        <div class="row">
-                            {% for achievement in earned_achievements %}
-                                <div class="col-md-4 mb-3">
-                                    <div class="card achievement-card h-100 shadow-sm">
-                                        <div class="card-header">
-                                            <h5 class="mb-0">{{ achievement.name }}</h5>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="text-center mb-3">
-                                                <i class="fas {{ achievement.icon }} fa-3x text-warning"></i>
-                                            </div>
-                                            <p>{{ achievement.description }}</p>
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <span class="badge bg-success">{{ achievement.points }} points</span>
-                                                <small class="text-muted">Earned: {{ achievement.earned_date }}</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
-                            <h5>No achievements earned yet</h5>
-                            <p>Complete challenges to earn achievements and rewards!</p>
-                        </div>
-                    {% endif %}
-                </div>
-                
-                <!-- Locked Achievements -->
-                <div class="tab-pane fade" id="locked" role="tabpanel" aria-labelledby="locked-tab">
-                    {% if locked_achievements %}
-                        <div class="row">
-                            {% for achievement in locked_achievements %}
-                                <div class="col-md-4 mb-3">
-                                    <div class="card achievement-card locked-achievement h-100 shadow-sm">
-                                        <div class="card-header">
-                                            <h5 class="mb-0">{{ achievement.name }}</h5>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="text-center mb-3">
-                                                <i class="fas {{ achievement.icon }} fa-3x text-muted"></i>
-                                            </div>
-                                            <p>{{ achievement.description }}</p>
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <span class="badge bg-secondary">{{ achievement.points }} points</span>
-                                                {% if achievement.hint %}
-                                                    <button class="btn btn-sm btn-outline-secondary" 
-                                                        data-bs-toggle="tooltip" 
-                                                        title="{{ achievement.hint }}">
-                                                        <i class="fas fa-question-circle"></i> Hint
-                                                    </button>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                            <h5>You've earned all available achievements!</h5>
-                            <p>Check back later for new challenges and achievements.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
+{% endblock %}
 
-<!-- New Achievement Modal (Hidden, shown via JavaScript when a new achievement is earned) -->
-<div class="modal fade" id="new-achievements-modal" tabindex="-1" aria-labelledby="newAchievementModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="newAchievementModalLabel">New Achievement Unlocked!</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="new-achievements-container">
-                    <!-- Achievement cards will be inserted here via JavaScript -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Bootstrap tabs initialization
+        const triggerTabList = [].slice.call(document.querySelectorAll('.nav-tabs a'));
+        triggerTabList.forEach(function(triggerEl) {
+            const tabTrigger = new bootstrap.Tab(triggerEl);
+            triggerEl.addEventListener('click', function(event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+    });
+</script>
 {% endblock %} 

@@ -1,38 +1,23 @@
 # RecycleRight
 
-RecycleRight is an AI-powered waste sorting assistant that helps users identify waste items, provides guidance on proper disposal, and locates nearby recycling centers.
-
-## Overview
-
-RecycleRight uses machine learning to analyze images of waste items, classify them, and provide personalized recycling guidelines. The application features a gamification system that rewards users for environmentally responsible behaviors, making recycling more engaging and educational.
+RecycleRight is an AI-powered waste management application that helps users properly classify and recycle waste items.
 
 ## Features
 
-- **AI Waste Classification**: Identify waste items from photos and receive proper disposal recommendations
-- **Personalized Recycling Guidelines**: Get customized recycling instructions based on the identified waste type
-- **Gamification System**: Earn points, complete challenges, and unlock achievements as you recycle
-- **Recycling Center Finder**: Locate nearby facilities for proper disposal of different waste types
-- **Educational Content**: Learn about the environmental impact of waste and the benefits of recycling
+- **AI Waste Classification**: Upload images of waste items to get AI-powered classification and recycling guidance
+- **Recycling Centers**: Find nearby recycling centers based on your location
+- **User Dashboard**: Track your recycling activity and progress
+- **Gamification**: Earn points and achievements for responsible waste disposal
+- **Leaderboard**: Compete with other users to see who's making the biggest environmental impact
 
-## Tech Stack
+## Prerequisites
 
-- **Backend**: Python, Flask
-- **Frontend**: HTML, CSS, JavaScript, Bootstrap
-- **AI/ML**: TensorFlow Lite
-- **Database**: MongoDB
-- **APIs**: OpenCV, Geolocation API
+- Python 3.8 or higher
+- MongoDB (local or cloud instance)
+- OpenCV for image processing
+- Flask web framework
 
-## Setup
-
-### Prerequisites
-
-- Python 3.8+
-- MongoDB
-- pip (Python package manager)
-- Virtual environment (recommended)
-- Google Maps API key (for geolocation services)
-
-### Installation
+## Installation
 
 1. Clone the repository:
    ```
@@ -46,227 +31,110 @@ RecycleRight uses machine learning to analyze images of waste items, classify th
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. Install dependencies:
+3. Install the dependencies:
    ```
    pip install -r requirements.txt
    ```
 
 4. Set up environment variables:
+   Create a `.env` file in the project root with the following variables:
    ```
-   cp .env.example .env
+   FLASK_APP=app.py
+   FLASK_DEBUG=1
+   SECRET_KEY=your_secret_key_here
+   MONGODB_URI=mongodb://localhost:27017/recycleright
    ```
-   Edit the `.env` file with your specific configuration values (see Environment Variables section below).
 
-5. MongoDB setup:
-   - Ensure MongoDB is running
-   - Default local connection: `mongodb://localhost:27017/`
-   - The application will create the database and collections automatically
+## Running the Application
 
-6. Create upload and log directories:
+### Using the Run Script
+
+The easiest way to run the application is by using the provided `run.sh` script, which ensures all required directories exist and creates necessary files:
+
+1. Make the script executable:
    ```
-   mkdir -p uploads logs
+   chmod +x run.sh
+   ```
+
+2. Run the application:
+   ```
+   ./run.sh
+   ```
+
+### Manual Setup
+
+If you prefer to set up the environment manually:
+
+1. Create required directories:
+   ```
+   mkdir -p logs
+   mkdir -p uploads
+   mkdir -p models/labels
    mkdir -p ui/static/uploads
+   mkdir -p ui/static/images
    ```
 
-### Environment Variables
+2. Create a labels file for waste classification:
+   ```
+   cat > models/labels/waste_labels.txt << EOL
+   plastic_bottle
+   glass_bottle
+   aluminum_can
+   paper
+   cardboard
+   plastic_bag
+   food_waste
+   styrofoam
+   electronic_waste
+   batteries
+   light_bulb
+   clothing
+   metal
+   plastic_container
+   tetra_pak
+   EOL
+   ```
 
-Create a `.env` file in the root directory with the following variables:
-
-```
-# Flask Settings
-FLASK_APP=app.py
-FLASK_ENV=development
-FLASK_DEBUG=1
-SECRET_KEY=your_secret_key_here
-PORT=5000
-
-# Database Settings
-MONGODB_URI=mongodb://localhost:27017/
-MONGODB_DB=recycleright
-
-# API Keys
-GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
-
-# Model & Asset Paths
-MODEL_PATH=models/waste_classifier.tflite
-UPLOAD_FOLDER=uploads
-MAX_CONTENT_LENGTH=16777216
-
-# App Settings
-DEFAULT_LATITUDE=37.7749
-DEFAULT_LONGITUDE=-122.4194
-DEFAULT_RADIUS=10
-ITEMS_PER_PAGE=10
-
-# Points System
-POINTS_SCAN=5
-POINTS_PROPER_DISPOSAL=20
-POINTS_CHALLENGE_COMPLETION=50
-
-# Logging
-LOG_LEVEL=INFO
-LOG_FILE=logs/recycleright.log
-```
-
-### Running the Application
-
-1. Start the web application in development mode:
+3. Start the application:
    ```
    python app.py
    ```
-   or
+
+4. Open your browser and navigate to:
    ```
-   flask run
+   http://localhost:5001
    ```
-   The application will be available at `http://127.0.0.1:5000/`
-
-2. For production deployment:
-   ```
-   gunicorn -w 4 -b 0.0.0.0:5000 app:app
-   ```
-
-3. Run with specific environment file:
-   ```
-   FLASK_APP=app.py FLASK_ENV=production flask run
-   ```
-
-4. Run with increased performance:
-   ```
-   python -O app.py
-   ```
-
-### Running with Docker (Optional)
-
-If you have Docker installed, you can use the following commands:
-
-1. Build the Docker image:
-   ```
-   docker build -t recycleright .
-   ```
-
-2. Run the container:
-   ```
-   docker run -p 5000:5000 --env-file .env recycleright
-   ```
-
-## API Reference
-
-RecycleRight provides the following API endpoints:
-
-### Authentication
-
-- **POST /api/auth/register** - Register a new user
-  - Payload: `{"username": "user", "password": "pass", "email": "email@example.com"}`
-
-- **POST /api/auth/login** - User login
-  - Payload: `{"username": "user", "password": "pass"}`
-  - Returns: JWT token
-
-### Waste Classification
-
-- **POST /api/classify** - Classify waste from an image
-  - Content-Type: `multipart/form-data`
-  - Form field: `image` (file upload)
-  - Returns: Classification results and recycling guidelines
-
-### Recycling Centers
-
-- **GET /api/centers** - Get nearby recycling centers
-  - Query params: `latitude`, `longitude`, `radius` (km), `waste_type` (optional)
-  - Returns: List of recycling centers with location details
-
-### User Data
-
-- **GET /api/user/profile** - Get user profile
-- **GET /api/user/points** - Get user points and level
-- **GET /api/user/achievements** - Get user achievements
-- **GET /api/user/challenges** - Get active user challenges
-- **GET /api/leaderboard** - Get user rankings
-
-## Web Interface
-
-The RecycleRight web interface provides the following pages:
-
-- **Home** (`/`): Introduction to RecycleRight and its features
-- **Login** (`/login`): User authentication
-- **Register** (`/register`): Create a new account
-- **Dashboard** (`/dashboard`): User statistics, active challenges, and quick actions
-- **Scan** (`/scan`): Upload waste item images or use camera to classify waste
-- **Achievements** (`/achievements`): View earned achievements and active challenges
-- **Leaderboard** (`/leaderboard`): Compare your recycling progress with other users
-- **Recycling Centers** (`/centers`): Find nearby centers based on your location
 
 ## Project Structure
 
-```
-recycleright/
-├── app.py                # Main application entry point
-├── app/                  # Core application logic
-│   ├── config.py         # Configuration settings
-├── api/                  # API modules
-│   ├── geolocation.py    # Geolocation service
-├── classifiers/          # Waste classification models
-│   ├── waste_classifier.py
-├── data/                 # Data management
-│   ├── database.py       # MongoDB database interface
-├── gamification/         # Gamification systems
-│   ├── points_system.py  # User points and levels
-│   ├── challenges.py     # User challenges and achievements
-├── ui/                   # User interface
-│   ├── web_interface.py  # Web interface using Flask
-│   ├── templates/        # HTML templates
-│   ├── static/           # Static assets (CSS, JS, images)
-├── models/               # ML model files
-├── uploads/              # Temporary storage for uploaded images
-├── logs/                 # Application logs
-├── .env.example          # Example environment variables
-├── .gitignore            # Git ignore file
-└── requirements.txt      # Project dependencies
-```
+- `app.py`: Main application entry point
+- `config.py`: Configuration settings
+- `api/`: API modules for external services
+- `data/`: Database and data management
+- `models/`: ML models for waste classification
+- `ui/`: User interface components
+  - `static/`: Static assets (CSS, JS, images)
+  - `templates/`: HTML templates
+- `gamification/`: Points and achievement system
+
+## Usage
+
+1. **Sign Up/Login**: Create an account or login to access all features
+2. **Scan Waste**: Upload an image of a waste item or use your camera to capture one
+3. **View Classification**: Get AI-powered classification and recycling guidance
+4. **Find Centers**: Locate nearby recycling centers for proper disposal
+5. **Track Progress**: Monitor your recycling activity and earned points on your dashboard
+6. **View Leaderboard**: See how you rank against other users
 
 ## Troubleshooting
 
-### Common Issues
+If you encounter any issues running the application:
 
-1. **MongoDB Connection Error**:
-   - Ensure MongoDB is running
-   - Check MongoDB URI in `.env` file
-   - Run `mongod --dbpath=/path/to/data/directory`
-
-2. **Missing API Keys**:
-   - Ensure all API keys are correctly set in `.env`
-   - For testing without Google Maps API, set `SKIP_GEOLOCATION=1` in `.env`
-
-3. **Image Classification Errors**:
-   - Check that TensorFlow Lite model exists at path specified in `.env`
-   - Ensure image format is supported (JPG, PNG)
-   - Check upload directory permissions
-
-### Logs
-
-Application logs are stored in the `logs` directory. To increase log verbosity, set `LOG_LEVEL=DEBUG` in your `.env` file.
-
-## Development
-
-### Running Tests
-
-```
-pytest
-```
-
-### Adding New Features
-
-1. Fork the repository
-2. Create a feature branch
-3. Add your feature and tests
-4. Submit a pull request
+- Check the logs in the `logs/recycleright.log` file
+- Ensure MongoDB is running and accessible
+- Verify that all required directories exist
+- Make sure environment variables are properly set
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Thanks to all contributors who have helped build RecycleRight
-- Data sources for recycling guidelines and environmental education
-- Environmental agencies for providing recycling center information

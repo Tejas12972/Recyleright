@@ -12,6 +12,7 @@ import hashlib
 import math
 import time
 from urllib.parse import quote_plus
+import random
 
 import config
 
@@ -43,12 +44,10 @@ class Database:
         self.client = None
         self.db = None
         self.connected = False
+        self.mock_mode = False
         
-        # Try to connect but don't fail if unsuccessful
-        try:
-            self.connect()
-        except Exception as e:
-            logger.warning(f"Initial database connection failed: {e}. Will retry on next operation.")
+        # Connect to the database
+        self.connect()
     
     def connect(self):
         """Establish a connection to the MongoDB database."""
@@ -99,6 +98,7 @@ class Database:
                 except Exception as e:
                     retries -= 1
                     if retries == 0:
+                        logger.error("All connection retries failed.")
                         raise
                     time.sleep(1)  # Wait before retrying
     
@@ -150,7 +150,7 @@ class Database:
         except Exception as e:
             logger.error(f"Error setting up MongoDB collections: {e}", exc_info=True)
             raise
-    
+
     def add_user(self, username, email, password_hash, location=None, settings=None):
         """
         Add a new user to the database.
@@ -309,54 +309,36 @@ class Database:
             logger.error(f"Error recording scan: {e}", exc_info=True)
             return None
     
-    def get_recycling_guidelines(self, waste_type, region):
+    def get_recycling_guidelines(self, waste_type):
         """
-        Get recycling guidelines for a specific waste type and region.
+        Get recycling guidelines for a specific waste type.
         
         Args:
-            waste_type (str): Type of waste material.
-            region (str): Geographic region code.
+            waste_type (str): The type of waste to get guidelines for
             
         Returns:
-            dict: Guidelines for the specified waste type and region.
+            dict: Guidelines information or None if not found
         """
         try:
-            # Try exact match first
-            guideline = self.db.recycling_guidelines.find_one({
-                "waste_type": waste_type,
-                "region": region
-            })
+            # Make sure we have a valid waste_type and we're connected to MongoDB
+            if not waste_type or not self._check_connection():
+                return None
+                
+            # Normalize waste type
+            waste_type = waste_type.lower().strip().replace(' ', '_')
             
-            if guideline:
-                guideline["id"] = str(guideline["_id"])
-                del guideline["_id"]
-                return guideline
+            # Query the guidelines collection
+            guidelines = self.db.guidelines.find_one({'waste_type': waste_type})
             
-            # If no exact match, try default region
-            guideline = self.db.recycling_guidelines.find_one({
-                "waste_type": waste_type,
-                "region": "default"
-            })
-            
-            if guideline:
-                guideline["id"] = str(guideline["_id"])
-                del guideline["_id"]
-                return guideline
-            
-            # If still no match, return generic guidelines
-            guideline = self.db.recycling_guidelines.find_one({
-                "waste_type": "non_recyclable",
-                "region": "default"
-            })
-            
-            if guideline:
-                guideline["id"] = str(guideline["_id"])
-                del guideline["_id"]
-                return guideline
-            
+            if guidelines:
+                # Convert ObjectId to string for JSON serialization
+                guidelines['_id'] = str(guidelines['_id'])
+                return guidelines
+                
             return None
+            
         except Exception as e:
-            logger.error(f"Error retrieving recycling guidelines: {e}", exc_info=True)
+            self.logger.error(f"Error getting recycling guidelines: {e}", exc_info=True)
             return None
     
     def get_nearby_recycling_centers(self, lat, lon, radius_km=10, materials=None):
@@ -849,33 +831,88 @@ class Database:
 
     def get_leaderboard(self, limit=10):
         """
-        Get the top users by points.
+        Get the user leaderboard based on points.
         
         Args:
             limit (int): Maximum number of users to return.
             
         Returns:
-            list: Top users with their points and levels.
+            list: List of user data for the leaderboard.
         """
         try:
-            users = list(self.db.users.find({}, {
-                "_id": 1,
-                "username": 1,
-                "points": 1,
-                "level": 1
-            }).sort("points", pymongo.DESCENDING).limit(limit))
+            self.ensure_connected()
             
-            leaderboard = []
-            for i, user in enumerate(users):
-                leaderboard.append({
-                    "rank": i + 1,
-                    "user_id": str(user["_id"]),
-                    "username": user["username"],
-                    "points": user["points"],
-                    "level": user["level"]
-                })
+            # Get users sorted by points
+            leaders = list(self.db.users.find(
+                {},
+                {"username": 1, "points": 1, "level": 1, "_id": 0}
+            ).sort("points", pymongo.DESCENDING).limit(limit))
             
-            return leaderboard
+            return leaders
         except Exception as e:
             logger.error(f"Error getting leaderboard: {e}", exc_info=True)
-            return [] 
+            return []
+
+    def get_object_id(self, id_str):
+        """
+        Convert string ID to MongoDB ObjectId.
+        
+        Args:
+            id_str (str): String ID.
+            
+        Returns:
+            ObjectId: MongoDB ObjectId instance.
+        """
+        try:
+            return ObjectId(id_str)
+        except Exception as e:
+            logger.error(f"Error converting string ID to ObjectId: {e}", exc_info=True)
+            return None
+
+    def get_user_rank(self, user_id):
+        """
+        Get the rank of a user on the leaderboard.
+        
+        Args:
+            user_id: The user ID
+            
+        Returns:
+            dict: {rank: int, points: int, total_users: int}
+        """
+        try:
+            # Make sure we have a valid user_id and we're connected to MongoDB
+            if not user_id or not self._check_connection():
+                return {'rank': 0, 'points': 0, 'total_users': 0}
+            
+            # Convert user_id to ObjectId if necessary
+            user_obj_id = self._get_object_id(user_id)
+            
+            # Get all users sorted by points
+            pipeline = [
+                {'$project': {'username': 1, 'points': 1}},
+                {'$sort': {'points': -1}}
+            ]
+            
+            users = list(self.db.users.aggregate(pipeline))
+            total_users = len(users)
+            
+            # Find the user's position
+            current_user = None
+            for i, user in enumerate(users):
+                if str(user['_id']) == str(user_obj_id):
+                    current_user = user
+                    rank = i + 1
+                    break
+            
+            if not current_user:
+                return {'rank': 0, 'points': 0, 'total_users': total_users}
+                
+            return {
+                'rank': rank,
+                'points': current_user.get('points', 0),
+                'total_users': total_users
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error getting user rank: {e}", exc_info=True)
+            return {'rank': 0, 'points': 0, 'total_users': 0} 

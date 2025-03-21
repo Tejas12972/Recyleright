@@ -1,137 +1,140 @@
 {% extends "layout.html" %}
 
-{% block title %}RecycleRight - AI-Powered Waste Sorting Assistant{% endblock %}
+{% block title %}RecycleRight - AI-Powered Waste Management{% endblock %}
 
 {% block content %}
-<div class="home-container">
-    <section class="hero">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold">Recycle Smarter, Not Harder</h1>
-                <p class="lead">RecycleRight uses AI to help you identify and properly dispose of waste, making recycling easier and more effective.</p>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row py-lg-5">
+            <div class="col-lg-6 col-md-8 mx-auto text-center">
+                <h1 class="animate-fade-in">RecycleRight</h1>
+                <p class="lead animate-fade-in">AI-powered waste sorting assistance to help you recycle correctly and reduce environmental impact.</p>
+                <p class="animate-slide-up">
                     {% if session.get('user_id') %}
-                        <a href="{{ url_for('scan_page') }}" class="btn btn-primary btn-lg px-4 me-md-2">Start Scanning</a>
-                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg px-4">My Dashboard</a>
+                    <a href="{{ url_for('scan') }}" class="btn btn-light btn-lg mt-3">Start Scanning</a>
                     {% else %}
-                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
-                        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary btn-lg px-4">Login</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-light me-2">Login</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-secondary">Register</a>
                     {% endif %}
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <img src="{{ url_for('static', filename='images/hero-image.png') }}" class="img-fluid rounded hero-image" alt="Recycling Illustration">
+                </p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="features my-5 py-5">
-        <h2 class="text-center mb-5">Why Choose RecycleRight?</h2>
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Features</h2>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="card h-100 feature-card">
+                <div class="card h-100">
                     <div class="card-body text-center">
                         <div class="feature-icon">
-                            <i class="fas fa-camera fa-3x text-primary mb-3"></i>
+                            <i class="fas fa-camera"></i>
                         </div>
-                        <h3 class="card-title">Instant Recognition</h3>
-                        <p class="card-text">Simply take a photo of any waste item, and our AI will identify it instantly.</p>
+                        <h3 class="card-title">AI Waste Classification</h3>
+                        <p class="card-text">Upload photos or use your camera to instantly identify waste items and get proper disposal instructions.</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 feature-card">
+                <div class="card h-100">
                     <div class="card-body text-center">
                         <div class="feature-icon">
-                            <i class="fas fa-map-marker-alt fa-3x text-primary mb-3"></i>
+                            <i class="fas fa-map-marker-alt"></i>
                         </div>
-                        <h3 class="card-title">Local Guidelines</h3>
-                        <p class="card-text">Get recycling instructions based on your location's specific recycling rules.</p>
+                        <h3 class="card-title">Recycling Centers</h3>
+                        <p class="card-text">Find nearby recycling centers for specialized waste that cannot be disposed of through regular channels.</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 feature-card">
+                <div class="card h-100">
                     <div class="card-body text-center">
                         <div class="feature-icon">
-                            <i class="fas fa-trophy fa-3x text-primary mb-3"></i>
+                            <i class="fas fa-trophy"></i>
                         </div>
-                        <h3 class="card-title">Earn & Learn</h3>
-                        <p class="card-text">Make recycling fun by earning points, completing challenges, and tracking your impact.</p>
+                        <h3 class="card-title">Gamification</h3>
+                        <p class="card-text">Earn points, complete challenges, and compete on leaderboards while helping the environment.</p>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="how-it-works my-5 py-5 bg-light rounded p-4">
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
         <h2 class="text-center mb-5">How It Works</h2>
         <div class="row">
-            <div class="col-md-3">
-                <div class="step text-center">
-                    <div class="step-number">1</div>
-                    <h4>Scan</h4>
-                    <p>Take a photo of your waste item using our app</p>
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center mx-auto mb-4" style="width: 100px; height: 100px;">
+                    <i class="fas fa-camera fa-3x"></i>
                 </div>
+                <h3 class="h5">Scan Item</h3>
+                <p>Take a photo of your waste item using our app.</p>
             </div>
-            <div class="col-md-3">
-                <div class="step text-center">
-                    <div class="step-number">2</div>
-                    <h4>Identify</h4>
-                    <p>Our AI identifies the type of material</p>
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center mx-auto mb-4" style="width: 100px; height: 100px;">
+                    <i class="fas fa-robot fa-3x"></i>
                 </div>
+                <h3 class="h5">AI Analysis</h3>
+                <p>Our AI identifies the item and its materials.</p>
             </div>
-            <div class="col-md-3">
-                <div class="step text-center">
-                    <div class="step-number">3</div>
-                    <h4>Learn</h4>
-                    <p>Get local disposal instructions</p>
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center mx-auto mb-4" style="width: 100px; height: 100px;">
+                    <i class="fas fa-info-circle fa-3x"></i>
                 </div>
+                <h3 class="h5">Get Instructions</h3>
+                <p>Receive tailored recycling or disposal guidelines.</p>
             </div>
-            <div class="col-md-3">
-                <div class="step text-center">
-                    <div class="step-number">4</div>
-                    <h4>Recycle</h4>
-                    <p>Dispose properly and track your impact</p>
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center mx-auto mb-4" style="width: 100px; height: 100px;">
+                    <i class="fas fa-award fa-3x"></i>
                 </div>
+                <h3 class="h5">Earn Points</h3>
+                <p>Confirm proper disposal and earn rewards.</p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="stats my-5 py-4">
-        <h2 class="text-center mb-5">Make a Difference</h2>
+<!-- Stats Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Impact</h2>
         <div class="row text-center">
-            <div class="col-md-4">
-                <div class="stat-item">
-                    <h3 class="stat-number">75%</h3>
-                    <p class="stat-description">of waste is recyclable but only 30% gets recycled</p>
-                </div>
+            <div class="col-md-4 mb-4">
+                <h3 class="display-4">75%</h3>
+                <p class="lead">Increase in proper recycling by our users</p>
             </div>
-            <div class="col-md-4">
-                <div class="stat-item">
-                    <h3 class="stat-number">8 million</h3>
-                    <p class="stat-description">tons of plastic enter our oceans every year</p>
-                </div>
+            <div class="col-md-4 mb-4">
+                <h3 class="display-4">50K+</h3>
+                <p class="lead">Waste items scanned and properly sorted</p>
             </div>
-            <div class="col-md-4">
-                <div class="stat-item">
-                    <h3 class="stat-number">1,000+</h3>
-                    <p class="stat-description">waste types our AI can identify accurately</p>
-                </div>
+            <div class="col-md-4 mb-4">
+                <h3 class="display-4">10K+</h3>
+                <p class="lead">Active users making a difference</p>
             </div>
         </div>
-    </section>
-    
-    <section class="cta my-5 py-5 text-center">
-        <h2>Ready to Start Recycling Right?</h2>
-        <p class="lead">Join our community and help make a difference today.</p>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 text-center bg-primary text-white">
+    <div class="container">
+        <h2>Start Recycling Right Today</h2>
+        <p class="lead">Join our community of environmentally conscious individuals.</p>
         {% if session.get('user_id') %}
-            <a href="{{ url_for('scan_page') }}" class="btn btn-primary btn-lg mt-3">Start Scanning</a>
+        <a href="{{ url_for('scan') }}" class="btn btn-light btn-lg mt-3">Start Scanning</a>
         {% else %}
-            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg mt-3">Get Started Now</a>
+        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg mt-3">Sign Up Now</a>
         {% endif %}
-    </section>
-</div>
+    </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
