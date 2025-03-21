@@ -19,7 +19,14 @@ from dotenv import load_dotenv
 # Add parent directory to path to allow imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import config
+# Import config using importlib to avoid circular imports
+import importlib.util
+spec = importlib.util.spec_from_file_location("config", 
+    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "app/config.py"))
+config = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(config)
+
+# Now import the rest of the modules
 from models.waste_classifier import WasteClassifier
 from data.database import get_db
 from data.recycling_guidelines import RecyclingGuidelines

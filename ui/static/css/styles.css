@@ -307,4 +307,82 @@ main {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Scanner styles */
+.scanner-container {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid #28a745;
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* Stats and achievements */
+.achievement-badge {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  background-color: #28a745;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2rem;
+}
+
+/* Leaderboard styles */
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.leaderboard-rank {
+  font-size: 1.5rem;
+  font-weight: bold;
+  width: 50px;
+}
+
+.leaderboard-user {
+  flex: 1;
+}
+
+.leaderboard-points {
+  font-weight: bold;
+  color: #28a745;
+}
+
+/* Map styles */
+#map {
+  height: 400px;
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .achievement-badge {
+    width: 80px;
+    height: 80px;
+    font-size: 1.5rem;
+  }
+  
+  .leaderboard-rank {
+    width: 40px;
+    font-size: 1.2rem;
+  }
 } 

@@ -53,6 +53,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (locationBtn) {
         setupGeolocation(locationBtn);
     }
+
+    // Auto-dismiss flash messages after 5 seconds
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
 });
 
 // Setup Image Upload functionality
@@ -536,4 +545,131 @@ function setupGeolocation(locationBtn) {
             alert('Geolocation is not supported by this browser.');
         }
     });
+}
+
+// Form validation
+function validateForm(form) {
+    const requiredFields = form.querySelectorAll('[required]');
+    let isValid = true;
+
+    requiredFields.forEach(function(field) {
+        if (!field.value.trim()) {
+            isValid = false;
+            field.classList.add('is-invalid');
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+
+    return isValid;
+}
+
+// File upload preview
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        const preview = document.getElementById('imagePreview');
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Camera handling
+let stream = null;
+let videoElement = null;
+
+async function startCamera() {
+    try {
+        videoElement = document.getElementById('camera');
+        if (!videoElement) return;
+
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' },
+            audio: false 
+        });
+        videoElement.srcObject = stream;
+    } catch (err) {
+        console.error('Error accessing camera:', err);
+        alert('Could not access the camera. Please check permissions.');
+    }
+}
+
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        if (videoElement) {
+            videoElement.srcObject = null;
+        }
+        stream = null;
+    }
+}
+
+function captureImage() {
+    if (!videoElement) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    
+    const context = canvas.getContext('2d');
+    context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+    
+    // Convert to blob and create file
+    canvas.toBlob(function(blob) {
+        const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
+        const container = new DataTransfer();
+        container.items.add(file);
+        
+        // Update file input
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+            fileInput.files = container.files;
+            // Trigger preview
+            previewImage(fileInput);
+        }
+    }, 'image/jpeg');
+}
+
+// Map handling
+function initMap(centerLat, centerLng, markers) {
+    if (!document.getElementById('map')) return;
+
+    const map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: centerLat, lng: centerLng },
+        zoom: 12
+    });
+
+    markers.forEach(function(markerData) {
+        new google.maps.Marker({
+            position: { lat: markerData.lat, lng: markerData.lng },
+            map: map,
+            title: markerData.title
+        });
+    });
+}
+
+// Loading state
+function setLoading(isLoading) {
+    const loadingElement = document.getElementById('loading');
+    const contentElement = document.getElementById('content');
+    
+    if (loadingElement && contentElement) {
+        loadingElement.style.display = isLoading ? 'block' : 'none';
+        contentElement.style.display = isLoading ? 'none' : 'block';
+    }
+}
+
+// Error handling
+function handleError(error) {
+    console.error('Error:', error);
+    const errorContainer = document.getElementById('error-container');
+    if (errorContainer) {
+        errorContainer.textContent = error.message || 'An error occurred. Please try again.';
+        errorContainer.style.display = 'block';
+    }
 } 

@@ -10,12 +10,10 @@ import pymongo
 from bson.objectid import ObjectId
 import hashlib
 import math
+import time
+from urllib.parse import quote_plus
 
-# Add parent directory to path to allow imports
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from app import config
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +24,8 @@ def get_db():
     """Get the global database instance."""
     global _db_instance
     if _db_instance is None:
+        if not config.DB_URI:
+            raise ValueError("MongoDB URI not configured. Please check your .env file.")
         _db_instance = Database(config.DB_URI)
     return _db_instance
 
@@ -42,22 +42,65 @@ class Database:
         self.uri = uri
         self.client = None
         self.db = None
+        self.connected = False
         
-        self.connect()
-        self.setup_collections()
+        # Try to connect but don't fail if unsuccessful
+        try:
+            self.connect()
+        except Exception as e:
+            logger.warning(f"Initial database connection failed: {e}. Will retry on next operation.")
     
     def connect(self):
         """Establish a connection to the MongoDB database."""
         try:
-            self.client = pymongo.MongoClient(self.uri)
-            self.db = self.client[config.DB_NAME]
-            
-            # Test connection
-            self.client.server_info()
-            logger.info(f"Connected to MongoDB database {config.DB_NAME}")
+            if not self.connected:
+                # Configure MongoDB client with appropriate settings for Atlas
+                self.client = pymongo.MongoClient(
+                    self.uri,
+                    serverSelectionTimeoutMS=5000,
+                    connectTimeoutMS=5000,
+                    socketTimeoutMS=5000,
+                    maxPoolSize=50,
+                    retryWrites=True,
+                    w='majority'
+                )
+                
+                # Get database instance
+                self.db = self.client[config.DB_NAME]
+                
+                # Test connection
+                self.client.server_info()
+                self.connected = True
+                logger.info(f"Connected to MongoDB database {config.DB_NAME}")
+                
+                # Set up collections after successful connection
+                self.setup_collections()
+        except pymongo.errors.ServerSelectionTimeoutError as e:
+            self.connected = False
+            logger.error(f"Could not connect to MongoDB server: {e}", exc_info=True)
+            raise
+        except pymongo.errors.OperationFailure as e:
+            self.connected = False
+            logger.error(f"MongoDB authentication failed: {e}", exc_info=True)
+            raise
         except Exception as e:
+            self.connected = False
             logger.error(f"Error connecting to MongoDB: {e}", exc_info=True)
             raise
+
+    def ensure_connected(self):
+        """Ensure database is connected before operations."""
+        if not self.connected:
+            retries = 3
+            while retries > 0:
+                try:
+                    self.connect()
+                    break
+                except Exception as e:
+                    retries -= 1
+                    if retries == 0:
+                        raise
+                    time.sleep(1)  # Wait before retrying
     
     def close(self):
         """Close the database connection."""
@@ -123,6 +166,8 @@ class Database:
             str: User ID if successful, None otherwise.
         """
         try:
+            self.ensure_connected()
+            
             location_doc = None
             if location:
                 location_doc = {
@@ -165,6 +210,8 @@ class Database:
             dict: User information if found, None otherwise.
         """
         try:
+            self.ensure_connected()
+            
             if user_id:
                 user = self.db.users.find_one({"_id": ObjectId(user_id)})
             elif username:
