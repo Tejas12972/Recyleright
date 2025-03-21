@@ -8,7 +8,6 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymongo.errors
 
-from app import app
 from data.database import get_db
 from models.waste_classifier import WasteClassifier
 from api.geolocation import GeolocationService
