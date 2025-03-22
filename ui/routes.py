@@ -410,6 +410,7 @@ def register_routes(app):
     @app.route('/centers', methods=['GET', 'POST'])
     def centers():
         """Show recycling centers page"""
+        # Default location - Massachusetts
         user_location = {"lat": 42.4072, "lon": -71.3824}
         address = None  # Initialize address variable
         search_error = None
@@ -425,8 +426,14 @@ def register_routes(app):
                 location_result = geo_service.get_location_from_address(address)
                 
                 if location_result:
-                    # Update user location
-                    user_location = location_result
+                    # Update user location - handle tuple or dict return type
+                    if isinstance(location_result, tuple) and len(location_result) == 2:
+                        # Tuple format (lat, lon)
+                        user_location = {"lat": location_result[0], "lon": location_result[1]}
+                    elif isinstance(location_result, dict) and 'lat' in location_result and 'lon' in location_result:
+                        # Dictionary format
+                        user_location = location_result
+                    
                     logger.info(f"Address converted to coordinates: {user_location}")
                     
                     # Store address in session for future reference
@@ -453,8 +460,14 @@ def register_routes(app):
                 location_result = geo_service.get_location_from_address(address)
                 
                 if location_result:
-                    # Update user location
-                    user_location = location_result
+                    # Update user location - handle tuple or dict return type
+                    if isinstance(location_result, tuple) and len(location_result) == 2:
+                        # Tuple format (lat, lon)
+                        user_location = {"lat": location_result[0], "lon": location_result[1]}
+                    elif isinstance(location_result, dict) and 'lat' in location_result and 'lon' in location_result:
+                        # Dictionary format
+                        user_location = location_result
+                    
                     logger.info(f"Address converted to coordinates: {user_location}")
                     
                     # Store address in session for future reference
@@ -490,7 +503,8 @@ def register_routes(app):
             centers=centers, 
             address=address,
             user_location=user_location,
-            search_error=search_error
+            search_error=search_error,
+            config=config
         )
 
     @app.route('/api/guidelines/<waste_type>', methods=['GET'])

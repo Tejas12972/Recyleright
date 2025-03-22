@@ -280,18 +280,18 @@
             {% if center.lat and center.lon %}
             {
                 "position": { 
-                    "lat": {{ center.lat }}, 
-                    "lng": {{ center.lon }}
+                    "lat": {{ center.lat|tojson|safe }}, 
+                    "lng": {{ center.lon|tojson|safe }}
                 },
                 "title": {{ center.name|tojson|safe }},
                 "centerData": {
                     "index": {{ loop.index0 }},
                     "name": {{ center.name|tojson|safe }},
                     "address": {{ center.address|tojson|safe }},
-                    "distance": {{ "%.1f"|format(center.distance) + " miles"|tojson|safe }},
+                    "distance": {{ "%.1f"|format(center.distance)|tojson|safe }},
                     "phone": {{ center.phone|default('Not available')|tojson|safe }},
                     "website": {{ center.website|default('#')|tojson|safe }},
-                    "accepts": [{% for item in center.accepts %}{{ item|tojson|safe }}{% if not loop.last %}, {% endif %}{% endfor %}]
+                    "accepts": {{ center.accepts|tojson|safe }}
                 }
             }{% if not loop.last %},{% endif %}
             {% endif %}
@@ -358,7 +358,11 @@
                 const centersDataElem = document.getElementById('centers-data');
                 if (centersDataElem) {
                     console.log("Getting centers from JSON");
-                    const centersData = JSON.parse(centersDataElem.textContent);
+                    const rawData = centersDataElem.textContent.trim();
+                    console.log(`Raw data (${rawData.length} chars):`);
+                    console.log(rawData.substring(0, 200) + "...");
+                    
+                    const centersData = JSON.parse(rawData);
                     centers = centersData.centers || [];
                     console.log(`Found ${centers.length} centers in JSON data`);
                 } else {
@@ -367,40 +371,54 @@
             } catch (e) {
                 console.error("Error parsing centers data:", e);
                 console.log("Raw data length:", document.getElementById('centers-data')?.textContent?.length);
-                console.log("Raw data excerpt:", document.getElementById('centers-data')?.textContent?.substring(0, 100) + "...");
+                console.log("Raw data excerpt:", document.getElementById('centers-data')?.textContent?.substring(0, 300));
+                centers = [];
             }
             
-            // Add markers for recycling centers
-            const markers = [];
-            const infoWindows = [];
+            // Define global markers and infoWindows arrays
+            window.markers = [];
+            window.infoWindows = [];
             
             if (centers && centers.length > 0) {
                 console.log(`Adding ${centers.length} markers to map`);
                 
                 for (let i = 0; i < centers.length; i++) {
                     const center = centers[i];
-                    console.log(`Adding marker for ${center.name} at ${center.lat},${center.lon}`);
+                    console.log(`Adding marker for center:`, center);
                     
-                    const position = {lat: center.lat, lng: center.lon};
+                    // Use position if available, otherwise use lat/lon directly
+                    let position;
+                    if (center.position) {
+                        position = center.position;
+                    } else if (center.lat !== undefined && center.lon !== undefined) {
+                        position = {lat: parseFloat(center.lat), lng: parseFloat(center.lon)};
+                    } else {
+                        console.warn(`Missing position for center ${i}`, center);
+                        continue;
+                    }
+                    
                     const marker = new google.maps.Marker({
                         position: position,
                         map: map,
-                        title: center.name,
+                        title: center.title || center.name || `Center ${i+1}`,
                         animation: google.maps.Animation.DROP
                     });
                     
                     // Add marker position to bounds
                     bounds.extend(position);
                     
+                    // Get center data either from centerData property or directly from center
+                    const centerData = center.centerData || center;
+                    
                     // Create info window content
                     const contentString = `
                         <div class="info-window">
-                            <h5>${center.name}</h5>
-                            <p><strong>Address:</strong> ${center.address}</p>
-                            <p><strong>Distance:</strong> ${center.distance.toFixed(1)} km</p>
-                            ${center.phone ? `<p><strong>Phone:</strong> ${center.phone}</p>` : ''}
-                            ${center.website ? `<p><a href="${center.website}" target="_blank">Website</a></p>` : ''}
-                            <p><strong>Accepts:</strong> ${center.accepts.join(', ')}</p>
+                            <h5>${centerData.name}</h5>
+                            <p><strong>Address:</strong> ${centerData.address}</p>
+                            <p><strong>Distance:</strong> ${typeof centerData.distance === 'number' ? centerData.distance.toFixed(1) + ' km' : centerData.distance}</p>
+                            ${centerData.phone ? `<p><strong>Phone:</strong> ${centerData.phone}</p>` : ''}
+                            ${centerData.website && centerData.website !== '#' ? `<p><a href="${centerData.website}" target="_blank">Website</a></p>` : ''}
+                            <p><strong>Accepts:</strong> ${Array.isArray(centerData.accepts) ? centerData.accepts.join(', ') : 'Various materials'}</p>
                         </div>
                     `;
                     
@@ -410,7 +428,7 @@
                     
                     marker.addListener('click', function() {
                         // Close all open info windows
-                        infoWindows.forEach(function(infoWindow) {
+                        window.infoWindows.forEach(function(infoWindow) {
                             infoWindow.close();
                         });
                         
@@ -421,8 +439,8 @@
                         highlightCenter(i);
                     });
                     
-                    markers.push(marker);
-                    infoWindows.push(infoWindow);
+                    window.markers.push(marker);
+                    window.infoWindows.push(infoWindow);
                 }
                 
                 // Fit map to bounds with all markers
@@ -447,36 +465,31 @@
                 const viewButtons = document.querySelectorAll('.view-on-map');
                 console.log(`Found ${viewButtons.length} view-on-map buttons`);
                 
-                viewButtons.forEach(function(button, index) {
+                viewButtons.forEach(function(button) {
                     button.addEventListener('click', function(e) {
                         e.preventDefault();
                         
-                        // Get center from the data attribute
-                        const centerId = parseInt(this.getAttribute('data-center-id'));
+                        // Get center ID from data attribute
+                        let centerId = parseInt(this.getAttribute('data-center-id') || this.getAttribute('data-index'));
                         
-                        if (centerId >= 0 && centerId < markers.length) {
+                        if (!isNaN(centerId) && centerId >= 0 && centerId < window.markers.length) {
                             // Close all info windows
-                            infoWindows.forEach(function(infoWindow) {
+                            window.infoWindows.forEach(function(infoWindow) {
                                 infoWindow.close();
                             });
                             
                             // Center map on marker
-                            map.setCenter(markers[centerId].getPosition());
+                            map.setCenter(window.markers[centerId].getPosition());
                             map.setZoom(13);
                             
                             // Open info window
-                            infoWindows[centerId].open(map, markers[centerId]);
+                            window.infoWindows[centerId].open(map, window.markers[centerId]);
                             
                             // Highlight center in list
                             highlightCenter(centerId);
+                        } else {
+                            console.error(`Invalid center ID: ${centerId}`);
                         }
-                    });
-                });
-                
-                // Highlight center in list when hovering over marker
-                markers.forEach(function(marker, index) {
-                    marker.addListener('mouseover', function() {
-                        highlightCenter(index);
                     });
                 });
             } else {

@@ -637,65 +637,58 @@
         
         // Results handling
         function displayResults(data) {
-            // Hide other sections
-            hideError();
+            // Hide loading and show results
+            loading.style.display = 'none';
+            results.style.display = 'block';
             
-            // Get the top prediction
             const prediction = data.top_prediction;
+            
             if (!prediction) {
-                showError('Could not determine waste type. Please try again with a clearer image.');
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'Could not identify the item. Please try again with a clearer image.';
                 return;
             }
             
-            // Display waste type and confidence
+            // Display top prediction
             wasteType.textContent = prediction.label.replace(/_/g, ' ');
-            confidence.textContent = `(${Math.round(prediction.confidence * 100)}% confidence)`;
+            confidence.textContent = `${Math.round(prediction.confidence * 100)}% confidence`;
             
-            // Display guidelines - using mock data for now
-            const guidelines = {
-                recyclable: prediction.label.includes('recycle') || 
-                            prediction.label.includes('paper') || 
-                            prediction.label.includes('plastic') || 
-                            prediction.label.includes('glass') || 
-                            prediction.label.includes('metal'),
-                preparation: prediction.label.includes('plastic') ? 'Rinse and remove labels if possible' : 
-                             prediction.label.includes('paper') ? 'Remove tape and staples' : 
-                             'Clean and separate components',
-                bin_color: prediction.label.includes('recycle') ? 'Blue' : 
-                           prediction.label.includes('compost') ? 'Green' : 
-                           prediction.label.includes('hazardous') ? 'Red' : 'Black',
-                facts: prediction.label.includes('plastic') ? 'It takes plastic up to 1,000 years to decompose.' : 
-                       prediction.label.includes('paper') ? 'Recycling 1 ton of paper saves 17 trees.' : 
-                       prediction.label.includes('glass') ? 'Glass can be recycled endlessly without quality degradation.' : 
-                       'Proper waste sorting reduces landfill usage by up to 25%.'
-            };
+            // Fetch guidelines from API
+            const wasteTypeValue = prediction.label;
             
-            let guidelinesHTML = '';
-            
-            if (guidelines) {
-                guidelinesHTML += `<div class="alert ${guidelines.recyclable ? 'alert-success' : 'alert-warning'}">
-                    <strong>${guidelines.recyclable ? 'Recyclable' : 'Not Recyclable'}</strong>
-                </div>`;
-                
-                guidelinesHTML += `<p><strong>Preparation:</strong> ${guidelines.preparation}</p>`;
-                guidelinesHTML += `<p><strong>Bin:</strong> ${guidelines.bin_color}</p>`;
-                
-                if (guidelines.facts) {
-                    guidelinesHTML += `<div class="alert alert-info mt-2">
-                        <i class="fas fa-info-circle"></i> <strong>Did you know?</strong> ${guidelines.facts}
-                    </div>`;
-                }
-            } else {
-                guidelinesHTML = '<p>No specific guidelines available for this item.</p>';
-            }
-            
-            guidelinesContent.innerHTML = guidelinesHTML;
-            
-            // Fetch recycling centers
-            fetchRecyclingCenters(prediction.label);
-            
-            // Show results container
-            results.style.display = 'block';
+            fetch(`/api/guidelines/${wasteTypeValue}`)
+                .then(response => response.json())
+                .then(data => {
+                    const guidelines = data.guidelines;
+                    
+                    let guidelinesHTML = '';
+                    
+                    if (guidelines) {
+                        guidelinesHTML += `<div class="alert ${guidelines.recyclable ? 'alert-success' : 'alert-warning'}">
+                            <strong>${guidelines.recyclable ? 'Recyclable' : 'Not Recyclable'}</strong>
+                        </div>`;
+                        
+                        guidelinesHTML += `<p><strong>Preparation:</strong> ${guidelines.preparation}</p>`;
+                        guidelinesHTML += `<p><strong>Bin:</strong> ${guidelines.bin_color}</p>`;
+                        
+                        if (guidelines.facts) {
+                            guidelinesHTML += `<div class="alert alert-info mt-2">
+                                <i class="fas fa-info-circle"></i> <strong>Did you know?</strong> ${guidelines.facts}
+                            </div>`;
+                        }
+                    } else {
+                        guidelinesHTML = '<p>No specific guidelines available for this item.</p>';
+                    }
+                    
+                    guidelinesContent.innerHTML = guidelinesHTML;
+                    
+                    // Also fetch nearby recycling centers
+                    fetchRecyclingCenters(wasteTypeValue);
+                })
+                .catch(error => {
+                    console.error('Error fetching guidelines:', error);
+                    guidelinesContent.innerHTML = '<p>Error loading recycling guidelines.</p>';
+                });
         }
         
         function fetchRecyclingCenters(wasteType) {
