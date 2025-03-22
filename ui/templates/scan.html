@@ -8,182 +8,467 @@
         max-width: 1000px;
         margin: 0 auto;
         padding: 30px;
-        background-color: rgba(255, 255, 255, 0.08);
+        background-color: rgba(255, 255, 255, 0.1);
         border-radius: 16px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     }
     
     .page-header {
         margin-bottom: 30px;
         text-align: center;
         padding-bottom: 20px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     }
     
     .page-header h1 {
-        font-size: 2.2rem;
-        margin-bottom: 12px;
-        color: #4CAF50;
-        font-weight: 600;
+        font-size: 2.4rem;
+        margin-bottom: 16px;
+        color: #5CDB95;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .page-header p {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         max-width: 700px;
         margin: 0 auto;
-        opacity: 0.9;
-        line-height: 1.5;
+        opacity: 1;
+        line-height: 1.6;
+        color: #f1f1f1;
     }
     
     .nav-tabs {
         border-bottom: none;
-        margin-bottom: 15px;
+        margin-bottom: 20px;
     }
     
     .nav-tabs .nav-link {
-        border-radius: 8px 8px 0 0;
+        border-radius: 12px;
         background-color: rgba(255, 255, 255, 0.1);
-        margin-right: 5px;
+        margin-right: 8px;
         transition: all 0.3s ease;
-        font-size: 0.95rem;
-        padding: 10px 20px;
+        font-size: 1rem;
+        padding: 12px 22px;
         border: none;
+        font-weight: 500;
     }
     
     .nav-tabs .nav-link.active {
-        background-color: #4CAF50;
-        color: white;
-        font-weight: 500;
+        background-color: #5CDB95;
+        color: #11222a;
+        font-weight: 600;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
     
     .tab-content {
-        padding: 25px;
-        background-color: rgba(255, 255, 255, 0.08);
-        border-radius: 0 8px 8px 8px;
-        min-height: 400px;
-    }
-    
-    #drop-area {
-        border: 2px dashed rgba(132, 197, 171, 0.5);
-        border-radius: 16px;
         padding: 30px;
+        background-color: rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        min-height: 400px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Improved Drop Area */
+    #drop-area {
+        border: 2px dashed rgba(92, 219, 149, 0.4);
+        border-radius: 20px;
+        padding: 40px 30px;
         text-align: center;
-        transition: all 0.3s ease;
-        margin: 0 auto 30px;
-        background-color: rgba(132, 197, 171, 0.05);
+        transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        margin: 0 auto 35px;
+        background-color: rgba(92, 219, 149, 0.03);
         max-width: 500px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        position: relative;
+        overflow: hidden;
     }
-    
-    #drop-area p {
-        margin-bottom: 20px;
-        color: #eee;
-        font-size: 1.1rem;
-    }
-    
-    #select-file-btn {
-        padding: 14px 28px;
-        font-size: 1.15rem;
-        border-radius: 12px;
-        background-color: #4CAF50;
-        border-color: #4CAF50;
-        transition: all 0.3s ease;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    
-    #select-file-btn:hover {
-        background-color: #3d8b40;
-        border-color: #3d8b40;
+
+    #drop-area:hover {
+        border-color: #5CDB95;
         transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        background-color: rgba(92, 219, 149, 0.05);
     }
-    
+
+    #drop-area:after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(92, 219, 149, 0.1) 0%, rgba(92, 219, 149, 0) 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    #drop-area:hover:after {
+        opacity: 1;
+    }
+
+    #drop-area p {
+        margin-bottom: 24px;
+        color: #f1f1f1;
+        font-size: 1.15rem;
+        font-weight: 300;
+    }
+
+    #drop-area .upload-icon-container {
+        margin-bottom: 22px;
+        position: relative;
+    }
+
+    #drop-area .upload-icon {
+        font-size: 3.5rem;
+        color: #5CDB95;
+        margin-bottom: 15px;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        transition: all 0.5s ease;
+    }
+
+    #drop-area:hover .upload-icon {
+        transform: translateY(-5px);
+    }
+
+    /* Pulsing animation for upload icon */
+    @keyframes gentle-pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    #drop-area .upload-icon {
+        animation: gentle-pulse 3s infinite;
+    }
+
+    /* Upload button improvements */
+    #select-file-btn {
+        padding: 16px 32px;
+        font-size: 1.1rem;
+        border-radius: 50px;
+        background: linear-gradient(135deg, #5CDB95 0%, #48bb7e 100%);
+        border: none;
+        color: #11222a;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(92, 219, 149, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    #select-file-btn:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: all 0.6s ease;
+    }
+
+    #select-file-btn:hover {
+        background: linear-gradient(135deg, #5CDB95 0%, #3da76c 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(92, 219, 149, 0.4);
+    }
+
+    #select-file-btn:hover:after {
+        left: 100%;
+    }
+
     #drop-area.highlight {
-        border-color: #4CAF50;
-        background-color: rgba(76, 175, 80, 0.1);
+        border-color: #5CDB95;
+        background-color: rgba(92, 219, 149, 0.1);
+        transform: scale(1.02);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     }
-    
-    #file-input {
-        display: none;
+
+    /* Upload instructions improvements */
+    .upload-instructions {
+        margin-top: 10px;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
     }
-    
+
+    .supported-formats {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.5);
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 4px 10px;
+        border-radius: 20px;
+    }
+
+    /* Improved Preview Container */
     #preview {
         margin: 30px auto;
         text-align: center;
-        max-width: 400px;
+        max-width: 500px;
+        position: relative;
+        transition: all 0.3s ease;
     }
-    
-    #preview img {
-        max-width: 100%;
-        max-height: 350px;
-        object-fit: contain;
-        border-radius: 12px;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-        margin: 0 auto;
-        display: block;
-    }
-    
-    .camera-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    #camera-preview {
+
+    /* Image Preview Wrapper */
+    .image-preview-wrapper {
+        position: relative;
         width: 100%;
-        max-width: 350px;
-        height: auto;
-        margin-bottom: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        padding-top: 75%; /* 4:3 Aspect Ratio */
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        border: 1px solid rgba(92, 219, 149, 0.3);
+        transition: all 0.3s ease;
     }
-    
-    #camera-result-preview {
-        margin: 10px auto;
-        text-align: center;
+
+    /* Image Preview Container */
+    .image-preview-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        backdrop-filter: blur(4px);
+        background-color: rgba(17, 34, 42, 0.4);
     }
-    
-    #camera-result-preview img {
-        max-width: 300px;
-        max-height: 250px;
+
+    /* Image Preview Styling */
+    #preview img {
+        max-width: 90%;
+        max-height: 90%;
         object-fit: contain;
         border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
     }
-    
-    .camera-controls {
-        margin-top: 15px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        justify-content: center;
-    }
-    
-    .camera-controls button {
-        padding: 8px 15px;
-        border-radius: 6px;
+
+    /* Image Info Bar */
+    .image-info-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: rgba(17, 34, 42, 0.7);
+        padding: 10px 15px;
+        color: #fff;
         font-size: 0.9rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        backdrop-filter: blur(5px);
+        opacity: 0;
+        transform: translateY(100%);
+        transition: all 0.3s ease;
+    }
+
+    .image-preview-wrapper:hover .image-info-bar {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .image-info-bar .file-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 70%;
+    }
+
+    .image-info-bar .file-size {
+        font-weight: 500;
+        color: #5CDB95;
+    }
+
+    /* Success Indicator */
+    .upload-success-indicator {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background-color: rgba(92, 219, 149, 0.9);
+        color: #fff;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transform: scale(0);
+        animation: popup 0.5s forwards;
+    }
+
+    @keyframes popup {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    /* Image Preview Actions */
+    .image-preview-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+    }
+
+    .image-preview-actions button {
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .image-preview-actions button i {
+        margin-right: 8px;
+    }
+
+    .image-preview-actions .remove-image-btn {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #f1f1f1;
+        border: none;
+    }
+
+    .image-preview-actions .remove-image-btn:hover {
+        background-color: rgba(244, 67, 54, 0.2);
+        color: #f44336;
+    }
+
+    /* Analyze Button Improvements */
+    #analyze-btn-container {
+        margin: 25px auto;
+        text-align: center;
+        max-width: 500px;
+        display: none;
+        transform: translateY(10px);
+        animation: slide-up 0.5s forwards;
+    }
+
+    @keyframes slide-up {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    #analyze-btn {
+        padding: 15px 32px;
+        font-size: 1.2rem;
+        border-radius: 50px;
+        background: linear-gradient(135deg, #5CDB95 0%, #4bc080 100%);
+        border: none;
+        color: #11222a;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(92, 219, 149, 0.4);
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    #analyze-btn:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: all 0.6s ease;
+        z-index: -1;
+    }
+
+    #analyze-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(92, 219, 149, 0.5);
+    }
+
+    #analyze-btn:hover:before {
+        left: 100%;
+    }
+
+    /* Dark Mode Adjustments */
+    @media (prefers-color-scheme: dark) {
+        .image-preview-wrapper {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-color: rgba(92, 219, 149, 0.2);
+        }
+    }
+
+    /* Mobile Adjustments */
+    @media (max-width: 768px) {
+        #drop-area {
+            padding: 30px 20px;
+        }
+        
+        #drop-area .upload-icon {
+            font-size: 2.8rem;
+        }
+        
+        #drop-area p {
+            font-size: 1.05rem;
+            margin-bottom: 20px;
+        }
+        
+        #select-file-btn {
+            padding: 14px 28px;
+            font-size: 1rem;
+        }
+
+        #preview {
+            max-width: 100%;
+        }
+        
+        .image-preview-wrapper {
+            padding-top: 80%; /* Slightly taller on mobile */
+        }
     }
     
     .loading-container {
         display: none;
         text-align: center;
-        margin: 20px auto;
-        padding: 15px;
-        max-width: 300px;
-        background-color: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
+        margin: 30px auto;
+        padding: 30px;
+        max-width: 400px;
+        background-color: rgba(0, 0, 0, 0.3);
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(8px);
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        color: white;
     }
     
     .spinner {
-        width: 40px;
-        height: 40px;
-        margin: 0 auto;
-        border: 4px solid rgba(0, 0, 0, 0.1);
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 20px;
+        border: 6px solid rgba(255, 255, 255, 0.2);
         border-radius: 50%;
-        border-top: 4px solid #4CAF50;
+        border-top: 6px solid #5CDB95;
         animation: spin 1s linear infinite;
     }
     
@@ -195,30 +480,31 @@
     .results-container {
         display: none;
         margin-top: 40px;
-        background-color: rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 30px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 35px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     }
     
     .results-header {
         display: flex;
         align-items: center;
-        margin-bottom: 25px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     }
     
     .results-header i {
-        font-size: 2rem;
-        margin-right: 15px;
-        color: #4CAF50;
+        font-size: 2.2rem;
+        margin-right: 16px;
+        color: #5CDB95;
     }
     
     .results-header h2 {
-        font-size: 1.8rem;
+        font-size: 2rem;
         margin: 0;
-        font-weight: 600;
+        font-weight: 700;
+        color: #f1f1f1;
     }
     
     .results-grid {
@@ -245,11 +531,13 @@
     }
     
     .result-image img {
-        max-width: 250px;
-        max-height: 250px;
+        max-width: 150px;
+        max-height: 150px;
         object-fit: contain;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        margin: 0 auto;
+        display: block;
     }
     
     .waste-type {
@@ -349,12 +637,27 @@
     }
     
     .btn-next {
-        margin-top: 25px;
+        margin-top: 30px;
         text-align: center;
     }
     
     .btn-next button {
-        margin: 0 5px 10px;
+        padding: 14px 32px;
+        font-size: 1.2rem;
+        border-radius: 50px;
+        background-color: #5CDB95;
+        border: none;
+        color: #11222a;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-next button:hover {
+        background-color: #4bc080;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     }
     
     .error-message {
@@ -397,15 +700,29 @@
         background-color: rgba(255, 255, 255, 0.05);
         padding: 15px;
         border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .gpt-analysis-section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        background-color: rgba(255, 255, 255, 0.08);
     }
     
     .gpt-analysis-section h5 {
         font-size: 1.1rem;
         color: #2E7D32;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         border-bottom: 1px solid rgba(76, 175, 80, 0.2);
         padding-bottom: 8px;
         font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+    
+    .gpt-analysis-section h5 i {
+        margin-right: 8px;
     }
     
     .gpt-analysis-section ul {
@@ -414,13 +731,26 @@
     }
     
     .gpt-analysis-section li {
-        margin-bottom: 5px;
+        margin-bottom: 8px;
+        line-height: 1.4;
+        position: relative;
+        padding-left: 5px;
+    }
+    
+    .gpt-analysis-section li:last-child {
+        margin-bottom: 0;
+    }
+    
+    .gpt-analysis-section p {
+        margin-bottom: 0;
+        line-height: 1.5;
     }
     
     /* Badge styles for waste type */
     .badge-recyclable {
         background-color: #4CAF50;
-        color: white;
+        color: #11222a;
+        font-weight: 700;
         padding: 5px 10px;
         border-radius: 4px;
         font-size: 0.85rem;
@@ -444,68 +774,10 @@
     
     .badge-mixed {
         background-color: #FF9800;
-        color: white;
+        color: #11222a;
         padding: 5px 10px;
         border-radius: 4px;
         font-size: 0.85rem;
-    }
-    
-    @media (max-width: 768px) {
-        .scan-container {
-            padding: 20px 15px;
-            margin: 0 8px;
-            border-radius: 12px;
-        }
-        
-        .page-header h1 {
-            font-size: 1.8rem;
-        }
-        
-        .page-header p {
-            font-size: 1rem;
-            padding: 0 5px;
-        }
-        
-        .tab-content {
-            padding: 15px;
-            min-height: auto;
-        }
-        
-        #drop-area {
-            padding: 20px 15px;
-            margin-bottom: 20px;
-        }
-        
-        #select-file-btn {
-            width: 100%;
-            padding: 12px 20px;
-        }
-        
-        #preview img {
-            max-height: 300px;
-        }
-        
-        .results-container {
-            padding: 20px 15px;
-        }
-        
-        .results-grid {
-            display: block;
-        }
-        
-        .results-column {
-            margin-bottom: 20px;
-        }
-        
-        .result-image img {
-            max-width: 100%;
-            max-height: 250px;
-        }
-        
-        .btn-next button {
-            width: 100%;
-            margin: 0 0 15px 0;
-        }
     }
     
     .button-animation {
@@ -517,13 +789,13 @@
     }
     
     .upload-icon-container {
-        margin-bottom: 15px;
+        margin-bottom: 18px;
     }
     
     .upload-icon {
-        font-size: 2.5rem;
-        color: #4CAF50;
-        margin-bottom: 10px;
+        font-size: 3rem;
+        color: #5CDB95;
+        margin-bottom: 15px;
         animation: pulse 2s infinite;
     }
     
@@ -541,27 +813,6 @@
             opacity: 1;
         }
     }
-    
-    .loading-container {
-        display: none;
-        text-align: center;
-        margin: 20px auto;
-        padding: 20px;
-        max-width: 350px;
-        background-color: rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-    
-    .spinner {
-        width: 50px;
-        height: 50px;
-        margin: 0 auto;
-        border: 4px solid rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        border-top: 4px solid #4CAF50;
-        animation: spin 1s linear infinite;
-    }
 </style>
 {% endblock %}
 
@@ -570,78 +821,45 @@
     <div class="page-header">
         <h1><i class="fas fa-camera"></i> Scan Your Waste</h1>
         <p>
-            Take a photo or upload an image of your waste item for AI-powered classification 
+            Upload an image of your waste item for AI-powered classification 
             and get personalized recycling guidance.
         </p>
     </div>
     
-    <ul class="nav nav-tabs" id="scanTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" 
-                    type="button" role="tab" aria-controls="upload" aria-selected="true">
-                <i class="fas fa-upload"></i> Upload Image
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" 
-                    type="button" role="tab" aria-controls="camera" aria-selected="false">
-                <i class="fas fa-camera"></i> Use Camera
-            </button>
-        </li>
-    </ul>
-    
-    <div class="tab-content" id="scanTabContent">
+    <div class="tab-content">
         <!-- Upload Tab -->
-        <div class="tab-pane fade show active" id="upload" role="tabpanel" aria-labelledby="upload-tab">
+        <div class="tab-pane fade show active" id="upload" role="tabpanel">
             <form id="upload-form">
+                <!-- Updated Drop Area -->
                 <div id="drop-area">
                     <div class="upload-icon-container">
                         <i class="fas fa-cloud-upload-alt upload-icon"></i>
                     </div>
-                    <p>Take a photo of your waste item for analysis</p>
-                    <input type="file" id="file-input" accept="image/*" capture="environment">
+                    <p>Upload a photo of your waste item for AI analysis</p>
+                    <input type="file" id="file-input" accept="image/*">
                     <button type="button" class="btn btn-primary mt-2 button-animation" id="select-file-btn">
-                        <i class="fas fa-camera"></i> Upload Image
+                        <i class="fas fa-upload"></i> Select Image
                     </button>
-                </div>
-                
-                <div id="preview"></div>
-            </form>
-        </div>
-        
-        <!-- Camera Tab -->
-        <div class="tab-pane fade" id="camera" role="tabpanel" aria-labelledby="camera-tab">
-            <div class="camera-container">
-                <video id="camera-preview" autoplay playsinline></video>
-                
-                <div class="camera-controls">
-                    <button class="btn btn-primary" id="start-camera">
-                        <i class="fas fa-video"></i> Start Camera
-                    </button>
-                    
-                    <button class="btn btn-success" id="capture-image" disabled>
-                        <i class="fas fa-camera"></i> Capture Image
-                    </button>
-                    
-                    <button class="btn btn-secondary" id="switch-camera" disabled>
-                        <i class="fas fa-sync-alt"></i> Switch Camera
-                    </button>
-                </div>
-                
-                <div id="camera-preview-container" class="mt-3" style="display: none;">
-                    <canvas id="canvas" style="display: none;"></canvas>
-                    <div id="camera-result-preview"></div>
-                    
-                    <div class="text-center mt-3">
-                        <button class="btn btn-success" id="analyze-capture">
-                            <i class="fas fa-search"></i> Analyze Image
-                        </button>
-                        <button class="btn btn-secondary" id="retake-image">
-                            <i class="fas fa-redo"></i> Retake
-                        </button>
+                    <div class="supported-formats">
+                        Supported: JPG, PNG, WEBP
+                    </div>
+                    <div class="upload-instructions">
+                        Or drag and drop your image file here
                     </div>
                 </div>
-            </div>
+                
+                <!-- Updated Preview Area -->
+                <div id="preview">
+                    <!-- The preview content will be dynamically inserted here -->
+                </div>
+                
+                <!-- Updated Analyze Button Container -->
+                <div id="analyze-btn-container">
+                    <button type="button" class="btn btn-success button-animation" id="analyze-btn">
+                        <i class="fas fa-search"></i> Analyze Image
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
     
@@ -683,7 +901,7 @@
             <div class="results-column">
                 <div id="gpt-analysis-container" class="gpt-analysis">
                     <h4><i class="fas fa-brain"></i> AI Analysis Results</h4>
-                    <p class="text-muted">Advanced analysis will appear here after scanning</p>
+                    <!-- Analysis content will be dynamically inserted here -->
                 </div>
                 
                 <div class="recycling-centers">
@@ -694,9 +912,6 @@
         </div>
         
         <div class="btn-next">
-            <button class="btn btn-success btn-lg me-3 button-animation" id="confirm-disposal">
-                <i class="fas fa-check-circle"></i> Confirm Proper Disposal
-            </button>
             <button class="btn btn-primary btn-lg button-animation" id="scan-another">
                 <i class="fas fa-redo"></i> Scan Another Item
             </button>
@@ -714,17 +929,8 @@
         const selectFileBtn = document.getElementById('select-file-btn');
         const preview = document.getElementById('preview');
         const uploadForm = document.getElementById('upload-form');
-        const uploadBtnContainer = document.getElementById('upload-btn-container');
-        
-        const startCameraBtn = document.getElementById('start-camera');
-        const captureImageBtn = document.getElementById('capture-image');
-        const switchCameraBtn = document.getElementById('switch-camera');
-        const videoElement = document.getElementById('camera-preview');
-        const canvas = document.getElementById('canvas');
-        const cameraResultPreview = document.getElementById('camera-result-preview');
-        const cameraPreviewContainer = document.getElementById('camera-preview-container');
-        const analyzeCapture = document.getElementById('analyze-capture');
-        const retakeImage = document.getElementById('retake-image');
+        const analyzeBtnContainer = document.getElementById('analyze-btn-container');
+        const analyzeBtn = document.getElementById('analyze-btn');
         
         const loading = document.getElementById('loading');
         const results = document.getElementById('results');
@@ -735,12 +941,11 @@
         const guidelinesContent = document.getElementById('guidelines-content');
         const centersList = document.getElementById('centers-list');
         
-        const confirmDisposal = document.getElementById('confirm-disposal');
         const scanAnother = document.getElementById('scan-another');
         
-        let capturedImage = null;
-        let stream = null;
-        let currentFacingMode = 'environment'; // 'environment' for back camera, 'user' for front
+        let uploadedFile = null;
+        let uploadedImageWidth = 0;
+        let uploadedImageHeight = 0;
         
         // File Drop functionality
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -752,20 +957,48 @@
             e.stopPropagation();
         }
         
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, highlight, false);
+        // Enhanced visual feedback during file drop
+        dropArea.addEventListener('dragenter', function(e) {
+            preventDefaults(e);
+            highlight();
+            
+            // Additional visual cue
+            const uploadIcon = dropArea.querySelector('.upload-icon');
+            if (uploadIcon) {
+                uploadIcon.style.color = '#5CDB95';
+                uploadIcon.style.transform = 'scale(1.2)';
+            }
+        });
+
+        dropArea.addEventListener('dragleave', function(e) {
+            preventDefaults(e);
+            unhighlight();
+            
+            // Reset icon
+            const uploadIcon = dropArea.querySelector('.upload-icon');
+            if (uploadIcon) {
+                uploadIcon.style.color = '';
+                uploadIcon.style.transform = '';
+            }
         });
         
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, unhighlight, false);
-        });
-        
+        // Enhanced drop area highlight effect
         function highlight() {
             dropArea.classList.add('highlight');
+            
+            // Add scale effect
+            dropArea.style.transform = 'scale(1.02)';
+            dropArea.style.borderColor = '#5CDB95';
+            dropArea.style.backgroundColor = 'rgba(92, 219, 149, 0.1)';
         }
-        
+
         function unhighlight() {
             dropArea.classList.remove('highlight');
+            
+            // Remove scale effect
+            dropArea.style.transform = '';
+            dropArea.style.borderColor = '';
+            dropArea.style.backgroundColor = '';
         }
         
         dropArea.addEventListener('drop', handleDrop, false);
@@ -791,15 +1024,57 @@
             }
         });
         
+        // Updated handleFiles function for better image preview
         function handleFiles(files) {
             const file = files[0];
             if (file.type.match('image.*')) {
+                uploadedFile = file; // Store the file for later analysis
                 const reader = new FileReader();
                 
+                // Format file size for display
+                const fileSize = formatFileSize(file.size);
+                const fileName = file.name;
+                
                 reader.onload = function(e) {
-                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-                    // Analyze the image automatically after upload
-                    analyzeImage(file);
+                    // Create a more sophisticated preview layout
+                    preview.innerHTML = `
+                        <div class="image-preview-wrapper">
+                            <div class="image-preview-container">
+                                <img src="${e.target.result}" alt="Preview">
+                            </div>
+                            <div class="upload-success-indicator">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="image-info-bar">
+                                <span class="file-name">${fileName}</span>
+                                <span class="file-size">${fileSize}</span>
+                            </div>
+                        </div>
+                        <div class="image-preview-actions">
+                            <button type="button" class="btn remove-image-btn" id="remove-image-btn">
+                                <i class="fas fa-times"></i> Remove
+                            </button>
+                        </div>`;
+                    
+                    // Show analyze button with animation
+                    analyzeBtnContainer.style.display = 'block';
+                    
+                    // Add event listener for remove button
+                    document.getElementById('remove-image-btn').addEventListener('click', function() {
+                        preview.innerHTML = '';
+                        fileInput.value = '';
+                        uploadedFile = null;
+                        analyzeBtnContainer.style.display = 'none';
+                    });
+                    
+                    // Preload image dimensions for better UI
+                    const img = new Image();
+                    img.onload = function() {
+                        // Store dimensions for potential use later
+                        uploadedImageWidth = this.width;
+                        uploadedImageHeight = this.height;
+                    };
+                    img.src = e.target.result;
                 };
                 
                 reader.readAsDataURL(file);
@@ -807,8 +1082,39 @@
                 showError('Please select an image file (JPEG, PNG, etc.)');
                 fileInput.value = '';
                 preview.innerHTML = '';
+                analyzeBtnContainer.style.display = 'none';
+                uploadedFile = null;
             }
         }
+        
+        // Helper function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+        
+        // Update the animation for the analyze button
+        analyzeBtn.addEventListener('mouseover', function() {
+            this.innerHTML = '<i class="fas fa-search"></i> Ready to Analyze';
+        });
+
+        analyzeBtn.addEventListener('mouseout', function() {
+            this.innerHTML = '<i class="fas fa-search"></i> Analyze Image';
+        });
+        
+        // Analyze button click handler
+        analyzeBtn.addEventListener('click', function() {
+            if (uploadedFile) {
+                analyzeImage(uploadedFile);
+            } else {
+                showError('Please upload an image first');
+            }
+        });
         
         // Form submission is now handled by the analyzeImage function
         function analyzeImage(file) {
@@ -817,192 +1123,56 @@
             const formData = new FormData();
             formData.append('file', file);
             
-            fetch('/scan/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                console.log("Upload response status:", response.status);
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        console.error("API error:", data);
-                        throw new Error(data.error || 'Error analyzing image');
-                    }).catch(err => {
-                        console.error("JSON parse error:", err);
-                        throw new Error('Error analyzing image: Invalid response format');
-                    });
-                }
-                return response.json().catch(err => {
-                    console.error("JSON parse error:", err);
-                    throw new Error('Error analyzing image: Invalid response format');
-                });
-            })
-            .then(data => {
-                if (data.success) {
-                    displayResults(data);
-                } else {
-                    console.error("API call succeeded but returned error:", data);
-                    showError(data.error || 'Error analyzing image');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showError(error.message || 'Error uploading image. Please try again.');
-            })
-            .finally(() => {
-                hideLoading();
-            });
-        }
-        
-        // Camera functionality
-        startCameraBtn.addEventListener('click', startCamera);
-        captureImageBtn.addEventListener('click', captureImage);
-        switchCameraBtn.addEventListener('click', switchCamera);
-        analyzeCapture.addEventListener('click', analyzeCapturedImage);
-        retakeImage.addEventListener('click', retakePicture);
-        
-        async function startCamera() {
-            try {
-                if (stream) {
-                    stopCamera();
-                }
-                
-                const constraints = {
-                    video: {
-                        facingMode: currentFacingMode,
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                };
-                
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-                videoElement.srcObject = stream;
-                
-                captureImageBtn.disabled = false;
-                switchCameraBtn.disabled = false;
-                startCameraBtn.innerHTML = '<i class="fas fa-video-slash"></i> Stop Camera';
-                startCameraBtn.classList.replace('btn-primary', 'btn-danger');
-                
-                // Change event handler
-                startCameraBtn.removeEventListener('click', startCamera);
-                startCameraBtn.addEventListener('click', stopCamera);
-                
-                // Update switch camera button text based on current mode
-                switchCameraBtn.innerHTML = currentFacingMode === 'environment' 
-                    ? '<i class="fas fa-sync-alt"></i> Switch to Front Camera' 
-                    : '<i class="fas fa-sync-alt"></i> Switch to Back Camera';
-                
-            } catch (err) {
-                console.error('Error accessing camera:', err);
-                showError('Could not access camera. Make sure it\'s connected and you\'ve given permission.');
-            }
-        }
-        
-        function stopCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                videoElement.srcObject = null;
-                stream = null;
-            }
-            
-            captureImageBtn.disabled = true;
-            switchCameraBtn.disabled = true;
-            startCameraBtn.innerHTML = '<i class="fas fa-video"></i> Start Camera';
-            startCameraBtn.classList.replace('btn-danger', 'btn-primary');
-            
-            // Change event handler back
-            startCameraBtn.removeEventListener('click', stopCamera);
-            startCameraBtn.addEventListener('click', startCamera);
-        }
-        
-        function switchCamera() {
-            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-            // Update button text to indicate which camera will be activated next time
-            switchCameraBtn.innerHTML = currentFacingMode === 'environment' 
-                ? '<i class="fas fa-sync-alt"></i> Switch to Front Camera' 
-                : '<i class="fas fa-sync-alt"></i> Switch to Back Camera';
-            stopCamera();
-            startCamera();
-        }
-        
-        function captureImage() {
-            if (!stream) return;
-            
-            const context = canvas.getContext('2d');
-            canvas.width = videoElement.videoWidth;
-            canvas.height = videoElement.videoHeight;
-            
-            // Draw the video frame to the canvas
-            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-            
-            // Convert to data URL
-            capturedImage = canvas.toDataURL('image/jpeg');
-            
-            // Display the captured image
-            cameraResultPreview.innerHTML = `<img src="${capturedImage}" alt="Captured" 
-                                             style="max-width: 300px; max-height: 300px; border-radius: 8px;">`;
-            cameraPreviewContainer.style.display = 'block';
-            
-            // Hide the video preview temporarily
-            videoElement.style.display = 'none';
-        }
-        
-        function retakePicture() {
-            capturedImage = null;
-            cameraPreviewContainer.style.display = 'none';
-            videoElement.style.display = 'block';
-        }
-        
-        function analyzeCapturedImage() {
-            if (!capturedImage) {
-                showError('Please capture an image first');
-                return;
-            }
-            
-            showLoading();
-            
-            // Send image data as JSON
-            fetch('/scan/camera', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    image: capturedImage
+            // Add a small delay to ensure loading animation is visible
+            setTimeout(() => {
+                fetch('/scan/upload', {
+                    method: 'POST',
+                    body: formData
                 })
-            })
-            .then(response => {
-                console.log("Camera upload response status:", response.status);
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        console.error("API error:", data);
-                        throw new Error(data.error || 'Error analyzing image');
-                    }).catch(err => {
+                .then(response => {
+                    console.log("Upload response status:", response.status);
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            console.error("API error:", data);
+                            throw new Error(data.error || 'Error analyzing image');
+                        }).catch(err => {
+                            console.error("JSON parse error:", err);
+                            throw new Error('Error analyzing image: Invalid response format');
+                        });
+                    }
+                    return response.json().catch(err => {
                         console.error("JSON parse error:", err);
                         throw new Error('Error analyzing image: Invalid response format');
                     });
-                }
-                return response.json().catch(err => {
-                    console.error("JSON parse error:", err);
-                    throw new Error('Error analyzing image: Invalid response format');
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Ensure we have a valid structure for display, create fallback if needed
+                        if (!data.top_prediction) {
+                            data.top_prediction = {
+                                label: 'unknown',
+                                confidence: 0.7
+                            };
+                        }
+                        
+                        // Scroll to results
+                        displayResults(data);
+                        setTimeout(() => {
+                            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 100);
+                    } else {
+                        console.error("API call succeeded but returned error:", data);
+                        showError(data.error || 'Error analyzing image');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError(error.message || 'Error uploading image. Please try again.');
+                })
+                .finally(() => {
+                    hideLoading();
                 });
-            })
-            .then(data => {
-                if (data.success) {
-                    displayResults(data);
-                    stopCamera();
-                } else {
-                    console.error("API call succeeded but returned error:", data);
-                    showError(data.error || 'Error analyzing image');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showError(error.message || 'Error analyzing image. Please try again.');
-            })
-            .finally(() => {
-                hideLoading();
-            });
+            }, 500); // 500ms delay to show loading animation
         }
         
         // Results handling
@@ -1012,31 +1182,21 @@
             results.style.display = 'block';
             errorMessage.style.display = 'none';
             
-            const prediction = data.top_prediction;
-            console.log("Top prediction:", prediction);
-            
-            if (!prediction) {
-                console.error("No prediction found in response");
-                errorMessage.style.display = 'block';
-                errorMessage.textContent = 'Could not identify the item. Please try again with a clearer image.';
-                return;
-            }
-            
             try {
-                // Display the image in results
-                const resultImageContainer = document.getElementById('result-image-container');
-                let imageSrc = '';
+                const prediction = data.top_prediction;
+                console.log("Top prediction:", prediction);
                 
-                // Get the image source from either the file path or the captured image
-                if (data.file_path) {
-                    // Convert server filepath to web URL by replacing any upload folder path
-                    imageSrc = data.file_path.replace(/^.*uploads/, '/static/uploads');
-                } else if (capturedImage) {
-                    imageSrc = capturedImage;
+                if (!prediction) {
+                    console.error("No prediction found in response");
+                    errorMessage.style.display = 'block';
+                    errorMessage.textContent = 'Could not identify the item. Please try again with a clearer image.';
+                    return;
                 }
                 
-                if (imageSrc) {
-                    resultImageContainer.innerHTML = `<img src="${imageSrc}" alt="Analyzed Waste Item">`;
+                // For uploaded files, don't show the image again - it's already in the preview
+                const resultImageContainer = document.getElementById('result-image-container');
+                if (resultImageContainer) {
+                    resultImageContainer.innerHTML = '';
                 }
                 
                 // Parse the material type from the label
@@ -1063,221 +1223,265 @@
                 console.log("Material type:", materialType);
                 
                 // Display top prediction and material type
-                wasteType.textContent = itemLabel;
-                confidence.textContent = `${Math.round(prediction.confidence * 100)}% confidence`;
+                if (wasteType) wasteType.textContent = itemLabel;
+                if (confidence) confidence.textContent = `${Math.round(prediction.confidence * 100)}% confidence`;
                 
                 // Display what item was scanned
-                document.getElementById('item-scanned').innerHTML = `<strong>Item Scanned:</strong> ${data.item_name || itemLabel}`;
+                const itemScannedEl = document.getElementById('item-scanned');
+                if (itemScannedEl) {
+                    itemScannedEl.innerHTML = `<strong>Item Scanned:</strong> ${data.item_name || itemLabel}`;
+                }
                 
                 // Check for GPT-4o analysis results
                 const gptAnalysisContainer = document.getElementById('gpt-analysis-container');
                 
-                if (data.gpt_analysis && 
-                   (data.gpt_analysis.material_composition?.length > 0 || 
-                    data.gpt_analysis.recyclability?.length > 0 || 
-                    data.gpt_analysis.disposal_suggestions?.length > 0)) {
-                    
-                    console.log("GPT analysis data:", data.gpt_analysis);
-                    
-                    // Determine badge class based on waste type
-                    const wasteTypeBadgeClass = `badge-${data.gpt_analysis.waste_type || 'mixed'}`;
-                    
-                    // Create HTML content for GPT analysis
-                    let gptAnalysisHtml = `
-                        <h4><i class="fas fa-brain"></i> AI Analysis Results</h4>
-                        <div class="mb-3">
-                            <span class="badge ${wasteTypeBadgeClass} p-2">
-                                ${(data.gpt_analysis.waste_type || 'Unknown').toUpperCase()}
-                            </span>
-                        </div>
-                    `;
-                    
-                    // Material Composition Section
-                    if (data.gpt_analysis.material_composition && data.gpt_analysis.material_composition.length > 0) {
-                        gptAnalysisHtml += `
-                            <div class="gpt-analysis-section">
-                                <h5><i class="fas fa-atom"></i> Material Composition</h5>
-                                <ul>
-                                    ${data.gpt_analysis.material_composition.map(item => `<li>${item}</li>`).join('')}
-                                </ul>
+                // Log the entire data object to debug
+                console.log("Complete response data:", data);
+                
+                // Always generate analysis content, with or without GPT data
+                if (gptAnalysisContainer) {
+                    if (data.gpt_analysis && 
+                      (data.gpt_analysis.material_composition?.length > 0 || 
+                       data.gpt_analysis.recyclability?.length > 0 || 
+                       data.gpt_analysis.disposal_suggestions?.length > 0)) {
+                        
+                        console.log("GPT analysis data found:", data.gpt_analysis);
+                        
+                        // Determine badge class based on waste type
+                        const wasteTypeBadgeClass = `badge-${data.gpt_analysis.waste_type || 'mixed'}`;
+                        
+                        // Create HTML content for GPT analysis
+                        let gptAnalysisHtml = `
+                            <h4><i class="fas fa-brain"></i> AI Analysis Results</h4>
+                            <div class="mb-3">
+                                <span class="badge ${wasteTypeBadgeClass} p-2" style="color: #11222a; font-weight: 700;">
+                                    ${(data.gpt_analysis.waste_type || 'Unknown').toUpperCase()}
+                                </span>
                             </div>
                         `;
-                    }
-                    
-                    // Recyclability Section
-                    if (data.gpt_analysis.recyclability && data.gpt_analysis.recyclability.length > 0) {
-                        gptAnalysisHtml += `
+                        
+                        // Material Composition Section
+                        if (data.gpt_analysis.material_composition && data.gpt_analysis.material_composition.length > 0) {
+                            gptAnalysisHtml += `
+                                <div class="gpt-analysis-section">
+                                    <h5><i class="fas fa-atom"></i> Material Composition</h5>
+                                    <ul>
+                                        ${data.gpt_analysis.material_composition.map(item => `<li>${parseMarkdown(item)}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            `;
+                        }
+                        
+                        // Recyclability Section
+                        if (data.gpt_analysis.recyclability && data.gpt_analysis.recyclability.length > 0) {
+                            gptAnalysisHtml += `
+                                <div class="gpt-analysis-section">
+                                    <h5><i class="fas fa-recycle"></i> Recyclability</h5>
+                                    <ul>
+                                        ${data.gpt_analysis.recyclability.map(item => `<li>${parseMarkdown(item)}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            `;
+                        }
+                        
+                        // Disposal Suggestions Section
+                        if (data.gpt_analysis.disposal_suggestions && data.gpt_analysis.disposal_suggestions.length > 0) {
+                            gptAnalysisHtml += `
+                                <div class="gpt-analysis-section">
+                                    <h5><i class="fas fa-trash-alt"></i> Disposal Suggestions</h5>
+                                    <ul>
+                                        ${data.gpt_analysis.disposal_suggestions.map(item => `<li>${parseMarkdown(item)}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            `;
+                        }
+                        
+                        // Set the HTML content
+                        gptAnalysisContainer.innerHTML = gptAnalysisHtml;
+                    } else {
+                        console.log("No GPT analysis data found, generating standard analysis for material type:", materialType);
+                        
+                        // If no GPT analysis, display a standard analysis based on the waste type
+                        let analysisMessage = "";
+                        let recyclingTips = [];
+                        let disposalSuggestions = [];
+                        
+                        // Generate material-specific analysis
+                        if (materialType === 'Plastic') {
+                            analysisMessage = "Plastic items are made from petroleum-based materials that can take hundreds of years to decompose naturally.";
+                            recyclingTips = [
+                                "Plastic items should be clean and dry before recycling",
+                                "Remove any non-plastic components like metal caps",
+                                "Check the recycling number on the bottom - numbers 1 (PET) and 2 (HDPE) are most widely accepted",
+                                "Plastic bags and films often require special recycling programs"
+                            ];
+                            disposalSuggestions = [
+                                "Rinse container to remove food residue",
+                                "Remove and separate caps and lids if different material",
+                                "Place in recycling bin (check local guidelines for specific types)",
+                                "Consider reusing clean containers instead of disposing"
+                            ];
+                        } else if (materialType === 'Glass') {
+                            analysisMessage = "Glass is made from natural materials like sand, soda ash, and limestone, and is 100% recyclable.";
+                            recyclingTips = [
+                                "Glass can be recycled endlessly without loss in quality or purity",
+                                "Different colors of glass (clear, green, brown) may need to be separated",
+                                "Rinse containers to remove food residue",
+                                "Remove caps and lids as they are often made from different materials"
+                            ];
+                            disposalSuggestions = [
+                                "Rinse container thoroughly",
+                                "Remove any non-glass components",
+                                "Place in glass recycling bin (sorted by color if required)",
+                                "Be careful with broken glass - wrap in paper before disposal"
+                            ];
+                        } else if (materialType === 'Paper/Cardboard') {
+                            analysisMessage = "Paper products are made from wood pulp and can be recycled 5-7 times before fibers become too short.";
+                            recyclingTips = [
+                                "Paper products should be clean and free of food residue",
+                                "Remove any plastic windows or non-paper components",
+                                "Flatten cardboard boxes to save space",
+                                "Keep paper dry to maintain recyclability"
+                            ];
+                            disposalSuggestions = [
+                                "Break down cardboard boxes to save space",
+                                "Remove any tape, staples, or non-paper materials",
+                                "Place clean paper in paper recycling bin",
+                                "Compost heavily soiled paper if possible"
+                            ];
+                        } else if (materialType === 'Metal') {
+                            analysisMessage = "Metal items like cans are highly recyclable materials that can be recycled indefinitely without degradation.";
+                            recyclingTips = [
+                                "Metal containers should be empty, clean, and dry",
+                                "Labels can typically stay on metal cans",
+                                "Aluminum cans are among the most valuable recyclable materials",
+                                "Small metal items can be collected together in a larger metal container"
+                            ];
+                            disposalSuggestions = [
+                                "Rinse containers to remove food residue",
+                                "Crush cans to save space (optional)",
+                                "Place in metal recycling bin",
+                                "Consider separating different types of metals if required locally"
+                            ];
+                        } else if (materialType === 'Organic') {
+                            analysisMessage = "Organic waste includes food scraps and yard waste that can be composted to create nutrient-rich soil.";
+                            recyclingTips = [
+                                "Organic waste can be composted at home or through municipal programs",
+                                "Composting reduces methane emissions from landfills",
+                                "Many cities have separate collection for organic waste",
+                                "Both food scraps and yard waste can typically be composted together"
+                            ];
+                            disposalSuggestions = [
+                                "Place in home compost bin or municipal organic waste bin",
+                                "Layer with brown materials (leaves, paper) in home compost",
+                                "Use compostable bags if required by local collection",
+                                "Consider worm composting for apartment living"
+                            ];
+                        } else if (materialType === 'Electronic') {
+                            analysisMessage = "Electronic waste contains valuable recoverable materials as well as potentially hazardous components.";
+                            recyclingTips = [
+                                "Electronics should never be thrown in regular trash",
+                                "Many electronic retailers offer take-back programs",
+                                "Data should be wiped from devices before recycling",
+                                "E-waste recycling recovers valuable metals and prevents toxic materials from entering landfills"
+                            ];
+                            disposalSuggestions = [
+                                "Take to designated e-waste recycling center",
+                                "Use manufacturer or retailer take-back programs",
+                                "Remove batteries before recycling if possible",
+                                "Check for local e-waste collection events"
+                            ];
+                        } else {
+                            analysisMessage = "This item should be disposed of according to local recycling guidelines.";
+                            recyclingTips = [
+                                "Check with your local recycling program for specific guidelines",
+                                "When in doubt, keep it out of the recycling bin",
+                                "Mixed materials are often difficult to recycle",
+                                "Clean items before recycling whenever possible"
+                            ];
+                            disposalSuggestions = [
+                                "Research proper disposal methods for your area",
+                                "Contact local waste management for special items",
+                                "Consider donation if the item is still usable",
+                                "Separate components made of different materials if possible"
+                            ];
+                        }
+                        
+                        // Create detailed fallback analysis
+                        gptAnalysisContainer.innerHTML = `
+                            <h4><i class="fas fa-brain"></i> AI Analysis Results</h4>
+                            <div class="gpt-analysis-section">
+                                <h5><i class="fas fa-atom"></i> Material Composition</h5>
+                                <p>${analysisMessage}</p>
+                            </div>
                             <div class="gpt-analysis-section">
                                 <h5><i class="fas fa-recycle"></i> Recyclability</h5>
                                 <ul>
-                                    ${data.gpt_analysis.recyclability.map(item => `<li>${item}</li>`).join('')}
+                                    ${recyclingTips.map(tip => `<li>${tip}</li>`).join('')}
                                 </ul>
                             </div>
-                        `;
-                    }
-                    
-                    // Disposal Suggestions Section
-                    if (data.gpt_analysis.disposal_suggestions && data.gpt_analysis.disposal_suggestions.length > 0) {
-                        gptAnalysisHtml += `
                             <div class="gpt-analysis-section">
                                 <h5><i class="fas fa-trash-alt"></i> Disposal Suggestions</h5>
                                 <ul>
-                                    ${data.gpt_analysis.disposal_suggestions.map(item => `<li>${item}</li>`).join('')}
+                                    ${disposalSuggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
                                 </ul>
                             </div>
                         `;
                     }
-                    
-                    // Set the HTML content
-                    gptAnalysisContainer.innerHTML = gptAnalysisHtml;
-                } else {
-                    // If no GPT analysis, display a standard analysis based on the waste type
-                    let analysisMessage = "";
-                    
-                    if (materialType === 'Plastic') {
-                        analysisMessage = "Plastic items should be clean and dry before recycling. Remove any non-plastic components.";
-                    } else if (materialType === 'Glass') {
-                        analysisMessage = "Glass is 100% recyclable and can be recycled endlessly without loss in quality.";
-                    } else if (materialType === 'Paper/Cardboard') {
-                        analysisMessage = "Paper products should be clean and free of food residue. Flatten cardboard boxes to save space.";
-                    } else if (materialType === 'Metal') {
-                        analysisMessage = "Metal items are highly recyclable. Ensure they are clean and free of food residue.";
-                    } else if (materialType === 'Organic') {
-                        analysisMessage = "Organic waste can be composted to create nutrient-rich soil for gardening.";
-                    } else if (materialType === 'Electronic') {
-                        analysisMessage = "Electronic waste contains hazardous materials and should be taken to specialized e-waste recycling centers.";
-                    } else {
-                        analysisMessage = "Follow local recycling guidelines for proper disposal of this item.";
-                    }
-                    
-                    const recyclabilityGuide = itemLabel.includes('plastic') ? 
-                        "Check the recycling number on the bottom of the item. Numbers 1 (PET) and 2 (HDPE) are widely accepted." : 
-                        "This item should be disposed of according to local recycling guidelines.";
-                    
-                    gptAnalysisContainer.innerHTML = `
-                        <h4><i class="fas fa-brain"></i> AI Analysis Results</h4>
-                        <div class="gpt-analysis-section">
-                            <h5><i class="fas fa-atom"></i> Material Composition</h5>
-                            <p>This item appears to be made primarily of ${materialType.toLowerCase()}.</p>
-                        </div>
-                        <div class="gpt-analysis-section">
-                            <h5><i class="fas fa-recycle"></i> Recyclability</h5>
-                            <p>${analysisMessage}</p>
-                        </div>
-                        <div class="gpt-analysis-section">
-                            <h5><i class="fas fa-trash-alt"></i> Disposal Suggestions</h5>
-                            <p>${recyclabilityGuide}</p>
-                        </div>
-                    `;
                 }
                 
-                // Store scan_id and waste_type for confirmation
-                let scan_id = data.scan_id || null;
-                console.log("Scan ID:", scan_id);
-                const wasteTypeValue = prediction.label;
-                
-                // Setup confirm disposal button
-                confirmDisposal.onclick = function() {
-                    confirmWasteDisposal(wasteTypeValue, scan_id);
-                };
-                
                 // Fetch guidelines from API
-                console.log("Fetching guidelines for waste type:", wasteTypeValue);
-                fetch(`/api/guidelines/${wasteTypeValue}`)
-                    .then(response => {
-                        console.log("Guidelines response status:", response.status);
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log("Guidelines data:", data);
-                        const guidelines = data.guidelines;
-                        
-                        let guidelinesHTML = '';
-                        
-                        if (guidelines) {
-                            guidelinesHTML += `<div class="alert ${guidelines.recyclable ? 'alert-success' : 'alert-warning'}">
-                                <strong>${guidelines.recyclable ? 'Recyclable ♻️' : 'Not Recyclable ⚠️'}</strong>
-                            </div>`;
+                console.log("Fetching guidelines for waste type:", prediction.label);
+                const guidelinesContentEl = document.getElementById('guidelines-content');
+                
+                if (guidelinesContentEl) {
+                    fetch(`/api/guidelines/${prediction.label}`)
+                        .then(response => {
+                            console.log("Guidelines response status:", response.status);
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log("Guidelines data:", data);
+                            const guidelines = data.guidelines;
                             
-                            // Add material type information
-                            guidelinesHTML += `<p><strong>Material:</strong> ${materialType}</p>`;
-                            guidelinesHTML += `<p><strong>Preparation:</strong> ${guidelines.preparation}</p>`;
-                            guidelinesHTML += `<p><strong>Bin:</strong> <span class="badge bg-${guidelines.bin_color === 'blue' ? 'primary' : guidelines.bin_color === 'green' ? 'success' : guidelines.bin_color === 'black' ? 'dark' : 'secondary'} p-2">${guidelines.bin_color.toUpperCase()} BIN</span></p>`;
+                            let guidelinesHTML = '';
                             
-                            if (guidelines.facts) {
-                                guidelinesHTML += `<div class="alert alert-info mt-3">
-                                    <i class="fas fa-info-circle me-2"></i> <strong>Did you know?</strong> ${guidelines.facts}
+                            if (guidelines) {
+                                guidelinesHTML += `<div class="alert ${guidelines.recyclable ? 'alert-success' : 'alert-warning'}">
+                                    <strong>${guidelines.recyclable ? 'Recyclable ♻️' : 'Not Recyclable ⚠️'}</strong>
                                 </div>`;
+                                
+                                // Add material type information
+                                guidelinesHTML += `<p><strong>Material:</strong> ${materialType}</p>`;
+                                guidelinesHTML += `<p><strong>Preparation:</strong> ${guidelines.preparation}</p>`;
+                                guidelinesHTML += `<p><strong>Bin:</strong> <span class="badge bg-${guidelines.bin_color === 'blue' ? 'primary' : guidelines.bin_color === 'green' ? 'success' : guidelines.bin_color === 'black' ? 'dark' : 'secondary'} p-2">${guidelines.bin_color.toUpperCase()} BIN</span></p>`;
+                                
+                                if (guidelines.facts) {
+                                    guidelinesHTML += `<div class="alert alert-info mt-3">
+                                        <i class="fas fa-info-circle me-2"></i> <strong>Did you know?</strong> ${guidelines.facts}
+                                    </div>`;
+                                }
+                            } else {
+                                guidelinesHTML = '<p>No specific guidelines available for this item.</p>';
                             }
-                        } else {
-                            guidelinesHTML = '<p>No specific guidelines available for this item.</p>';
-                        }
-                        
-                        guidelinesContent.innerHTML = guidelinesHTML;
-                        
-                        // Also fetch nearby recycling centers
-                        fetchRecyclingCenters(wasteTypeValue);
-                    })
-                    .catch(error => {
-                        console.error('Error fetching guidelines:', error);
-                        guidelinesContent.innerHTML = '<p>Error loading recycling guidelines.</p>';
-                    });
+                            
+                            guidelinesContentEl.innerHTML = guidelinesHTML;
+                            
+                            // Also fetch nearby recycling centers
+                            fetchRecyclingCenters(prediction.label);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching guidelines:', error);
+                            if (guidelinesContentEl) {
+                                guidelinesContentEl.innerHTML = '<p>Error loading recycling guidelines.</p>';
+                            }
+                        });
+                }
             } catch (error) {
                 console.error("Error displaying results:", error);
                 errorMessage.style.display = 'block';
                 errorMessage.textContent = 'Error displaying results. Please try again.';
             }
-        }
-        
-        function confirmWasteDisposal(wasteType, scan_id) {
-            // Show button loading state
-            const originalText = confirmDisposal.innerHTML;
-            confirmDisposal.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Confirming...';
-            confirmDisposal.disabled = true;
-            
-            fetch('/api/confirm_disposal', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    waste_type: wasteType,
-                    scan_id: scan_id
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    confirmDisposal.innerHTML = '<i class="fas fa-check"></i> Confirmed!';
-                    confirmDisposal.classList.remove('btn-success');
-                    confirmDisposal.classList.add('btn-outline-success');
-                    
-                    // Show congratulations message
-                    if (data.points_earned > 0) {
-                        const pointsMessage = `
-                            <div class="alert alert-success mt-3 text-center animated fadeIn">
-                                <i class="fas fa-trophy me-2"></i>
-                                <strong>Congratulations!</strong> You earned ${data.points_earned} points for proper disposal.
-                            </div>
-                        `;
-                        document.querySelector('.btn-next').insertAdjacentHTML('beforebegin', pointsMessage);
-                    }
-                    
-                    // Disable confirm button
-                    confirmDisposal.disabled = true;
-                } else {
-                    throw new Error(data.error || 'Error confirming disposal');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                confirmDisposal.innerHTML = originalText;
-                confirmDisposal.disabled = false;
-                
-                // Show error message
-                errorMessage.style.display = 'block';
-                errorMessage.textContent = error.message || 'Error confirming disposal. Please try again.';
-            });
         }
         
         function fetchRecyclingCenters(wasteType) {
@@ -1320,8 +1524,7 @@
             if (!centers || centers.length === 0) {
                 centersList.innerHTML = `
                     <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> No recycling centers found nearby.
-                        <p class="mt-2 mb-0">Try visiting our <a href="/centers" class="alert-link">Recycling Centers page</a> to search for locations in your area.</p>
+                        <i class="fas fa-info-circle"></i> Visit the Centers tab to find where to dispose of this item.
                     </div>
                 `;
                 return;
@@ -1374,8 +1577,7 @@
             
             centersList.innerHTML = `
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Enable location services to find recycling centers near you.
-                    <p class="mt-2 mb-0">Or visit our <a href="/centers" class="alert-link">Recycling Centers page</a> to search for locations in your area.</p>
+                    <i class="fas fa-info-circle"></i> Visit the Centers tab to find where to dispose of this item.
                 </div>
             `;
         }
@@ -1386,22 +1588,18 @@
             results.style.display = 'none';
             errorMessage.style.display = 'none';
             
-            // Disable scan buttons to prevent multiple submissions
-            const uploadBtn = document.querySelector('#upload-form button[type="submit"]');
-            const analyzeBtn = document.getElementById('analyze-capture');
+            // Add overlay to prevent interaction
+            document.body.style.overflow = 'hidden';
             
-            if (uploadBtn) uploadBtn.disabled = true;
+            // Disable scan buttons to prevent multiple submissions
             if (analyzeBtn) analyzeBtn.disabled = true;
         }
         
         function hideLoading() {
             loading.style.display = 'none';
+            document.body.style.overflow = '';
             
             // Re-enable scan buttons
-            const uploadBtn = document.querySelector('#upload-form button[type="submit"]');
-            const analyzeBtn = document.getElementById('analyze-capture');
-            
-            if (uploadBtn) uploadBtn.disabled = false;
             if (analyzeBtn) analyzeBtn.disabled = false;
         }
         
@@ -1423,36 +1621,32 @@
         }
         
         // Reset and scan again
-        scanAnother.addEventListener('click', function() {
-            // Hide results and clear preview
-            results.style.display = 'none';
-            preview.innerHTML = '';
-            fileInput.value = '';
-            
-            // Reset camera if needed
-            if (capturedImage) {
-                capturedImage = null;
-                cameraPreviewContainer.style.display = 'none';
-            }
-            
-            // Reset tabs to upload tab
-            document.getElementById('upload-tab').click();
-            
-            // Scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-        
-        // Tab switching
-        document.querySelectorAll('.nav-link').forEach(tab => {
-            tab.addEventListener('click', function() {
-                if (this.id === 'camera-tab') {
-                    // When switching to camera tab, stop any capture in progress
-                    if (stream) {
-                        stopCamera();
-                    }
-                }
+        if (scanAnother) {
+            scanAnother.addEventListener('click', function() {
+                // Hide results and clear preview
+                results.style.display = 'none';
+                preview.innerHTML = '';
+                fileInput.value = '';
+                uploadedFile = null;
+                analyzeBtnContainer.style.display = 'none';
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
-        });
+        }
+        
+        // Parse markdown from the response
+        function parseMarkdown(text) {
+            if (!text) return '';
+            
+            // Replace ** for bold text (properly escaped)
+            let parsedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Additional check to replace any remaining ** that weren't caught
+            parsedText = parsedText.replace(/\*\*/g, '');
+            
+            return parsedText;
+        }
     });
 </script>
 {% endblock %} 

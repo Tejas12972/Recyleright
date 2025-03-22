@@ -149,8 +149,7 @@
                                     <tr>
                                         <th>Date</th>
                                         <th>Activity</th>
-                                        <th>Details</th>
-                                        <th>Points</th>
+                                        <th class="text-end">Points</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -158,12 +157,13 @@
                                         <tr>
                                             <td>{{ activity.date }}</td>
                                             <td>{{ activity.type }}</td>
-                                            <td>{{ activity.details }}</td>
-                                            <td>
+                                            <td class="text-end">
                                                 {% if activity.points > 0 %}
-                                                    <span class="text-success">+{{ activity.points }}</span>
+                                                    <span class="badge bg-success">+{{ activity.points }}</span>
+                                                {% elif activity.points < 0 %}
+                                                    <span class="badge bg-danger">{{ activity.points }}</span>
                                                 {% else %}
-                                                    <span>{{ activity.points }}</span>
+                                                    <span class="badge bg-secondary">{{ activity.points }}</span>
                                                 {% endif %}
                                             </td>
                                         </tr>

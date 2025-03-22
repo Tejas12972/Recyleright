@@ -224,23 +224,70 @@ def register_routes(app):
                 )
                 
                 for scan in scans:
+                    # Get points from the scan record or use the default from config
+                    points_earned = scan.get("points_earned", 0)
+                    
+                    # If points_earned is 0 or not set, use the default value from config
+                    if points_earned == 0:
+                        import config
+                        points_earned = config.POINTS_PER_SCAN
+                        
+                        # Add bonus for certain waste types (similar to how it's handled in points_system.py)
+                        waste_type = scan.get('waste_type', '')
+                        if waste_type in ["e_waste", "hazardous", "plastic_PVC", "plastic_PS"]:
+                            points_earned += 5  # Additional points for hard-to-recycle materials
+                    
                     recent_activity.append({
                         "date": scan.get("timestamp").strftime("%Y-%m-%d %H:%M") if scan.get("timestamp") else "Unknown",
                         "type": "Scan",
                         "details": f"Scanned {scan.get('waste_type', 'unknown item')}",
-                        "points": scan.get("points_earned", 0)
+                        "points": points_earned
                     })
             except Exception as e:
                 app.logger.error(f"Error getting recent activity: {e}", exc_info=True)
                 
             # If we have less than 5 items, add some mock data
             if len(recent_activity) < 5:
-                recent_activity.append({
-                    "date": "2023-01-15 10:30",
-                    "type": "Challenge",
-                    "details": "Completed 'First Steps' challenge",
-                    "points": 50
-                })
+                # Import config for consistent values
+                import config
+                
+                # Add some realistic mock data with appropriate point values
+                mock_activities = [
+                    {
+                        "date": "2023-01-15 10:30",
+                        "type": "Challenge",
+                        "details": "Completed 'First Steps' challenge",
+                        "points": 50  # Challenges typically give more points
+                    },
+                    {
+                        "date": "2023-01-10 15:45", 
+                        "type": "Scan",
+                        "details": "Scanned plastic_bottle",
+                        "points": config.POINTS_PER_SCAN
+                    },
+                    {
+                        "date": "2023-01-10 15:50",
+                        "type": "Disposal",
+                        "details": "Confirmed proper disposal of plastic_bottle",
+                        "points": config.POINTS_PER_CORRECT_DISPOSAL
+                    },
+                    {
+                        "date": "2023-01-05 09:20",
+                        "type": "Scan",
+                        "details": "Scanned e_waste",
+                        "points": config.POINTS_PER_SCAN + 5  # Bonus for hard-to-recycle items
+                    },
+                    {
+                        "date": "2023-01-05 09:25",
+                        "type": "Achievement",
+                        "details": "Earned 'Eco Warrior' badge",
+                        "points": 30
+                    }
+                ]
+                
+                # Add enough mock activities to reach 5 total items
+                needed_items = 5 - len(recent_activity)
+                recent_activity.extend(mock_activities[:needed_items])
             
             return render_template('dashboard.html', 
                                   user=user, 
@@ -335,7 +382,10 @@ def register_routes(app):
                     materials = analysis_result.get('material_composition', [])
                     for material in materials:
                         material_lower = material.lower()
-                        if 'plastic' in material_lower and 'bottle' in material_lower:
+                        if 'aluminum' in material_lower or 'metal' in material_lower:
+                            label_mapping['recyclable'] = 'aluminum_can' if 'can' in material_lower else 'metal'
+                            break
+                        elif 'plastic' in material_lower and 'bottle' in material_lower:
                             label_mapping['recyclable'] = 'plastic_bottle'
                             break
                         elif 'plastic' in material_lower and 'container' in material_lower:
@@ -343,9 +393,6 @@ def register_routes(app):
                             break
                         elif 'glass' in material_lower:
                             label_mapping['recyclable'] = 'glass_bottle'
-                            break
-                        elif 'aluminum' in material_lower or 'metal' in material_lower and 'can' in material_lower:
-                            label_mapping['recyclable'] = 'aluminum_can'
                             break
                         elif 'paper' in material_lower:
                             label_mapping['recyclable'] = 'paper'
@@ -615,7 +662,10 @@ def register_routes(app):
                     materials = analysis_result.get('material_composition', [])
                     for material in materials:
                         material_lower = material.lower()
-                        if 'plastic' in material_lower and 'bottle' in material_lower:
+                        if 'aluminum' in material_lower or 'metal' in material_lower:
+                            label_mapping['recyclable'] = 'aluminum_can' if 'can' in material_lower else 'metal'
+                            break
+                        elif 'plastic' in material_lower and 'bottle' in material_lower:
                             label_mapping['recyclable'] = 'plastic_bottle'
                             break
                         elif 'plastic' in material_lower and 'container' in material_lower:
@@ -623,9 +673,6 @@ def register_routes(app):
                             break
                         elif 'glass' in material_lower:
                             label_mapping['recyclable'] = 'glass_bottle'
-                            break
-                        elif 'aluminum' in material_lower or 'metal' in material_lower and 'can' in material_lower:
-                            label_mapping['recyclable'] = 'aluminum_can'
                             break
                         elif 'paper' in material_lower:
                             label_mapping['recyclable'] = 'paper'
