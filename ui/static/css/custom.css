@@ -1,0 +1,196 @@
+/* All Cards Global Styling to prevent transparency */
+.card {
+    opacity: 1 !important;
+    background-color: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.125) !important;
+}
+
+/* Make sure text in cards is visible */
+.card-title, 
+.card-header,
+.card-body,
+.card-footer,
+.card h1,
+.card h2, 
+.card h3, 
+.card h4, 
+.card h5, 
+.card h6,
+.card p,
+.card span,
+.card div {
+    opacity: 1 !important;
+}
+
+/* Stats Card in Achievements */
+.card .card-header.bg-success {
+    background-color: #28a745 !important;
+    color: white !important;
+    opacity: 1 !important;
+}
+
+/* Achievement Card Styling */
+.achievement-card {
+    background-color: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.125) !important;
+    border-radius: 0.25rem;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    opacity: 1 !important;
+}
+
+.achievement-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.achievement-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(40, 167, 69, 0.1);
+    opacity: 1 !important;
+}
+
+/* Fixed Progress Bar Styling */
+.progress {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    height: 10px !important;
+    margin-top: 8px !important;
+    opacity: 1 !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+.progress .progress-bar {
+    border-radius: 10px !important;
+    opacity: 1 !important;
+    transition: width 0.6s ease !important;
+}
+
+/* Success progress bar */
+.progress .progress-bar.bg-success {
+    background-color: #28a745 !important;
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent) !important;
+    background-size: 1rem 1rem !important;
+    box-shadow: 0 0 5px rgba(40, 167, 69, 0.4) !important;
+}
+
+/* Warning progress bar */
+.progress .progress-bar.bg-warning {
+    background-color: #ffc107 !important;
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent) !important;
+    background-size: 1rem 1rem !important;
+    box-shadow: 0 0 5px rgba(255, 193, 7, 0.5) !important;
+}
+
+/* Pre-defined progress widths to avoid template calculation errors */
+.progress-width-0 { width: 0%; }
+.progress-width-5 { width: 5%; }
+.progress-width-10 { width: 10%; }
+.progress-width-15 { width: 15%; }
+.progress-width-20 { width: 20%; }
+.progress-width-25 { width: 25%; }
+.progress-width-30 { width: 30%; }
+.progress-width-35 { width: 35%; }
+.progress-width-40 { width: 40%; }
+.progress-width-45 { width: 45%; }
+.progress-width-50 { width: 50%; }
+.progress-width-55 { width: 55%; }
+.progress-width-60 { width: 60%; }
+.progress-width-65 { width: 65%; }
+.progress-width-70 { width: 70%; }
+.progress-width-75 { width: 75%; }
+.progress-width-80 { width: 80%; }
+.progress-width-85 { width: 85%; }
+.progress-width-90 { width: 90%; }
+.progress-width-95 { width: 95%; }
+.progress-width-100 { width: 100%; }
+
+/* User avatar styling */
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    background-color: #6c5ce7;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Dashboard stats card styling */
+.dashboard-card.stats-card {
+    background-color: #6c5ce7 !important; /* Rich purple background */
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 8px 15px rgba(108, 92, 231, 0.3) !important;
+    transition: all 0.3s ease;
+    opacity: 1 !important;
+}
+
+.dashboard-card.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(108, 92, 231, 0.4) !important;
+}
+
+.dashboard-card.stats-card .card-footer {
+    background-color: #5549c0 !important; /* Slightly darker purple for footer */
+    border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+    padding: 0.75rem;
+    opacity: 1 !important;
+}
+
+.dashboard-card.stats-card .card-footer .btn-warning {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #212529 !important;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    opacity: 1 !important;
+}
+
+.dashboard-card.stats-card .card-footer .btn-warning:hover {
+    background-color: #ffca2c !important;
+    transform: scale(1.02);
+}
+
+/* Make all text in stats card clearly visible */
+.dashboard-card.stats-card h1,
+.dashboard-card.stats-card h2,
+.dashboard-card.stats-card h3,
+.dashboard-card.stats-card h4,
+.dashboard-card.stats-card h5,
+.dashboard-card.stats-card h6,
+.dashboard-card.stats-card p,
+.dashboard-card.stats-card div,
+.dashboard-card.stats-card span {
+    color: #ffffff !important; /* White text for all elements */
+    opacity: 1 !important; /* Full opacity */
+    font-weight: 500 !important; /* Slightly bold */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle text shadow for better readability */
+}
+
+/* Dashboard stats progress bar special styling */
+.dashboard-card.stats-card .progress {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+    height: 10px !important;
+}
+
+.dashboard-card.stats-card .progress .progress-bar {
+    background-color: #ffc107 !important;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5) !important;
+}
+
+/* Highlight numbers */
+.dashboard-card.stats-card h3 {
+    font-size: 2rem !important;
+    font-weight: bold !important;
+    margin-bottom: 0.2rem;
+    color: #ffffff !important;
+} 

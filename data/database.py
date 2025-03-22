@@ -798,6 +798,9 @@ class Database:
             rank_cursor = self.db.users.count_documents({"points": {"$gt": user["points"]}})
             rank = rank_cursor + 1
             
+            # Count items scanned
+            items_scanned = self.count_user_scans(user_id)
+            
             # Get next level threshold
             level_thresholds = {
                 "Beginner": 0,
@@ -814,11 +817,18 @@ class Database:
             next_level = None
             next_level_threshold = None
             points_to_next_level = None
+            level_progress = 0
             
             if level_index < len(achievement_levels) - 1:
                 next_level = achievement_levels[level_index + 1]
                 next_level_threshold = level_thresholds[next_level]
                 points_to_next_level = next_level_threshold - user["points"]
+                
+                # Calculate level progress percentage
+                current_level_threshold = level_thresholds[user_level]
+                level_points_range = next_level_threshold - current_level_threshold
+                points_earned_in_level = user["points"] - current_level_threshold
+                level_progress = min(int((points_earned_in_level / level_points_range) * 100), 99)
             
             return {
                 "user_id": str(user["_id"]),
@@ -826,7 +836,9 @@ class Database:
                 "level": user["level"],
                 "rank": rank,
                 "next_level": next_level,
-                "points_to_next_level": points_to_next_level
+                "points_to_next_level": points_to_next_level,
+                "items_scanned": items_scanned,
+                "level_progress": level_progress
             }
         except Exception as e:
             logger.error(f"Error getting user stats: {e}", exc_info=True)
@@ -950,4 +962,26 @@ class Database:
         Returns:
             ObjectId: MongoDB ObjectId instance.
         """
-        return self._get_object_id(id_str) 
+        return self._get_object_id(id_str)
+
+    def count_user_scans(self, user_id):
+        """
+        Count the number of items a user has scanned.
+        
+        Args:
+            user_id (str): User ID.
+            
+        Returns:
+            int: Count of scanned items.
+        """
+        try:
+            self.ensure_connected()
+            
+            user_id_obj = self.get_object_id(user_id)
+            count = self.db.scans.count_documents({"user_id": user_id_obj})
+            
+            logger.debug(f"Retrieved scan count for user {user_id}: {count}")
+            return count
+        except Exception as e:
+            logger.error(f"Error counting user scans: {e}", exc_info=True)
+            return 0 

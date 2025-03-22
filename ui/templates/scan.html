@@ -436,26 +436,35 @@
             
             const file = fileInput.files[0];
             const formData = new FormData();
-            formData.append('image', file);
+            formData.append('file', file);
             
             showLoading();
             
-            fetch('/api/upload_image', {
+            fetch('/scan/upload', {
                 method: 'POST',
                 body: formData
             })
             .then(response => {
+                console.log("Upload response status:", response.status);
                 if (!response.ok) {
                     return response.json().then(data => {
+                        console.error("API error:", data);
                         throw new Error(data.error || 'Error analyzing image');
+                    }).catch(err => {
+                        console.error("JSON parse error:", err);
+                        throw new Error('Error analyzing image: Invalid response format');
                     });
                 }
-                return response.json();
+                return response.json().catch(err => {
+                    console.error("JSON parse error:", err);
+                    throw new Error('Error analyzing image: Invalid response format');
+                });
             })
             .then(data => {
                 if (data.success) {
                     displayResults(data);
                 } else {
+                    console.error("API call succeeded but returned error:", data);
                     showError(data.error || 'Error analyzing image');
                 }
             })
@@ -567,27 +576,6 @@
             videoElement.style.display = 'block';
         }
         
-        function dataURItoBlob(dataURI) {
-            // Convert base64/URLEncoded data component to raw binary data held in a string
-            let byteString;
-            if (dataURI.split(',')[0].indexOf('base64') >= 0) {
-                byteString = atob(dataURI.split(',')[1]);
-            } else {
-                byteString = unescape(dataURI.split(',')[1]);
-            }
-            
-            // Separate out the mime component
-            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-            
-            // Write the bytes of the string to a typed array
-            const ia = new Uint8Array(byteString.length);
-            for (let i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
-            
-            return new Blob([ia], {type: mimeString});
-        }
-        
         function analyzeCapturedImage() {
             if (!capturedImage) {
                 showError('Please capture an image first');
@@ -596,34 +584,38 @@
             
             showLoading();
             
-            // Convert the data URL to a blob
-            const blob = dataURItoBlob(capturedImage);
-            
-            // Create a file from the blob
-            const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
-            
-            // Create form data
-            const formData = new FormData();
-            formData.append('image', file);
-            
-            // Send to server
-            fetch('/api/upload_image', {
+            // Send image data as JSON
+            fetch('/scan/camera', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    image: capturedImage
+                })
             })
             .then(response => {
+                console.log("Camera upload response status:", response.status);
                 if (!response.ok) {
                     return response.json().then(data => {
+                        console.error("API error:", data);
                         throw new Error(data.error || 'Error analyzing image');
+                    }).catch(err => {
+                        console.error("JSON parse error:", err);
+                        throw new Error('Error analyzing image: Invalid response format');
                     });
                 }
-                return response.json();
+                return response.json().catch(err => {
+                    console.error("JSON parse error:", err);
+                    throw new Error('Error analyzing image: Invalid response format');
+                });
             })
             .then(data => {
                 if (data.success) {
                     displayResults(data);
                     stopCamera();
                 } else {
+                    console.error("API call succeeded but returned error:", data);
                     showError(data.error || 'Error analyzing image');
                 }
             })
@@ -638,90 +630,110 @@
         
         // Results handling
         function displayResults(data) {
+            // Debug: Log the data received
+            console.log("Received data:", data);
+            
             // Hide loading and show results
             loading.style.display = 'none';
             results.style.display = 'block';
             
             const prediction = data.top_prediction;
+            console.log("Top prediction:", prediction);
             
             if (!prediction) {
+                console.error("No prediction found in response");
                 errorMessage.style.display = 'block';
                 errorMessage.textContent = 'Could not identify the item. Please try again with a clearer image.';
                 return;
             }
             
-            // Parse the material type from the label
-            const itemLabel = prediction.label.replace(/_/g, ' ');
-            let materialType = 'Unknown';
-            
-            if (itemLabel.includes('plastic')) {
-                materialType = 'Plastic';
-            } else if (itemLabel.includes('glass')) {
-                materialType = 'Glass';
-            } else if (itemLabel.includes('paper') || itemLabel.includes('cardboard')) {
-                materialType = 'Paper/Cardboard';
-            } else if (itemLabel.includes('metal') || itemLabel.includes('aluminum') || itemLabel.includes('steel')) {
-                materialType = 'Metal';
-            } else if (itemLabel.includes('organic') || itemLabel.includes('food')) {
-                materialType = 'Organic';
-            } else if (itemLabel.includes('electronic') || itemLabel.includes('e_waste')) {
-                materialType = 'Electronic';
-            } else if (itemLabel.includes('textile') || itemLabel.includes('clothing')) {
-                materialType = 'Textile';
-            }
-            
-            // Display top prediction and material type
-            wasteType.textContent = itemLabel;
-            confidence.textContent = `${Math.round(prediction.confidence * 100)}% confidence`;
-            
-            // Display what item was scanned
-            document.getElementById('item-scanned').innerHTML = `<strong>Item Scanned:</strong> ${data.item_name || itemLabel}`;
-            
-            // Store scan_id and waste_type for confirmation
-            let scan_id = data.scan_id || null;
-            const wasteTypeValue = prediction.label;
-            
-            // Setup confirm disposal button
-            confirmDisposal.onclick = function() {
-                confirmWasteDisposal(wasteTypeValue, scan_id);
-            };
-            
-            // Fetch guidelines from API
-            fetch(`/api/guidelines/${wasteTypeValue}`)
-                .then(response => response.json())
-                .then(data => {
-                    const guidelines = data.guidelines;
-                    
-                    let guidelinesHTML = '';
-                    
-                    if (guidelines) {
-                        guidelinesHTML += `<div class="alert ${guidelines.recyclable ? 'alert-success' : 'alert-warning'}">
-                            <strong>${guidelines.recyclable ? 'Recyclable' : 'Not Recyclable'}</strong>
-                        </div>`;
+            try {
+                // Parse the material type from the label
+                const itemLabel = prediction.label.replace(/_/g, ' ');
+                console.log("Item label:", itemLabel);
+                let materialType = 'Unknown';
+                
+                if (itemLabel.includes('plastic')) {
+                    materialType = 'Plastic';
+                } else if (itemLabel.includes('glass')) {
+                    materialType = 'Glass';
+                } else if (itemLabel.includes('paper') || itemLabel.includes('cardboard')) {
+                    materialType = 'Paper/Cardboard';
+                } else if (itemLabel.includes('metal') || itemLabel.includes('aluminum') || itemLabel.includes('steel')) {
+                    materialType = 'Metal';
+                } else if (itemLabel.includes('organic') || itemLabel.includes('food')) {
+                    materialType = 'Organic';
+                } else if (itemLabel.includes('electronic') || itemLabel.includes('e_waste')) {
+                    materialType = 'Electronic';
+                } else if (itemLabel.includes('textile') || itemLabel.includes('clothing')) {
+                    materialType = 'Textile';
+                }
+                
+                console.log("Material type:", materialType);
+                
+                // Display top prediction and material type
+                wasteType.textContent = itemLabel;
+                confidence.textContent = `${Math.round(prediction.confidence * 100)}% confidence`;
+                
+                // Display what item was scanned
+                document.getElementById('item-scanned').innerHTML = `<strong>Item Scanned:</strong> ${data.item_name || itemLabel}`;
+                
+                // Store scan_id and waste_type for confirmation
+                let scan_id = data.scan_id || null;
+                console.log("Scan ID:", scan_id);
+                const wasteTypeValue = prediction.label;
+                
+                // Setup confirm disposal button
+                confirmDisposal.onclick = function() {
+                    confirmWasteDisposal(wasteTypeValue, scan_id);
+                };
+                
+                // Fetch guidelines from API
+                console.log("Fetching guidelines for waste type:", wasteTypeValue);
+                fetch(`/api/guidelines/${wasteTypeValue}`)
+                    .then(response => {
+                        console.log("Guidelines response status:", response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Guidelines data:", data);
+                        const guidelines = data.guidelines;
                         
-                        // Add material type information
-                        guidelinesHTML += `<p><strong>Material:</strong> ${materialType}</p>`;
-                        guidelinesHTML += `<p><strong>Preparation:</strong> ${guidelines.preparation}</p>`;
-                        guidelinesHTML += `<p><strong>Bin:</strong> ${guidelines.bin_color}</p>`;
+                        let guidelinesHTML = '';
                         
-                        if (guidelines.facts) {
-                            guidelinesHTML += `<div class="alert alert-info mt-2">
-                                <i class="fas fa-info-circle"></i> <strong>Did you know?</strong> ${guidelines.facts}
+                        if (guidelines) {
+                            guidelinesHTML += `<div class="alert ${guidelines.recyclable ? 'alert-success' : 'alert-warning'}">
+                                <strong>${guidelines.recyclable ? 'Recyclable' : 'Not Recyclable'}</strong>
                             </div>`;
+                            
+                            // Add material type information
+                            guidelinesHTML += `<p><strong>Material:</strong> ${materialType}</p>`;
+                            guidelinesHTML += `<p><strong>Preparation:</strong> ${guidelines.preparation}</p>`;
+                            guidelinesHTML += `<p><strong>Bin:</strong> ${guidelines.bin_color}</p>`;
+                            
+                            if (guidelines.facts) {
+                                guidelinesHTML += `<div class="alert alert-info mt-2">
+                                    <i class="fas fa-info-circle"></i> <strong>Did you know?</strong> ${guidelines.facts}
+                                </div>`;
+                            }
+                        } else {
+                            guidelinesHTML = '<p>No specific guidelines available for this item.</p>';
                         }
-                    } else {
-                        guidelinesHTML = '<p>No specific guidelines available for this item.</p>';
-                    }
-                    
-                    guidelinesContent.innerHTML = guidelinesHTML;
-                    
-                    // Also fetch nearby recycling centers
-                    fetchRecyclingCenters(wasteTypeValue);
-                })
-                .catch(error => {
-                    console.error('Error fetching guidelines:', error);
-                    guidelinesContent.innerHTML = '<p>Error loading recycling guidelines.</p>';
-                });
+                        
+                        guidelinesContent.innerHTML = guidelinesHTML;
+                        
+                        // Also fetch nearby recycling centers
+                        fetchRecyclingCenters(wasteTypeValue);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching guidelines:', error);
+                        guidelinesContent.innerHTML = '<p>Error loading recycling guidelines.</p>';
+                    });
+            } catch (error) {
+                console.error("Error displaying results:", error);
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'Error displaying results. Please try again.';
+            }
         }
         
         function confirmWasteDisposal(wasteType, scan_id) {

@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymongo.errors
 import logging
+from datetime import datetime, timedelta
 
 from data.database import get_db
 from models.waste_classifier import WasteClassifier
@@ -159,7 +160,9 @@ def register_routes(app):
                 
             # Get user stats
             stats = db.get_user_stats(session['user_id'])
+            app.logger.debug(f"Retrieved user stats: {stats}")
             if not stats:
+                app.logger.info("No stats found for user, creating default stats")
                 stats = {
                     "user_id": session['user_id'],
                     "points": user.get('points', 0),
@@ -168,9 +171,22 @@ def register_routes(app):
                     "next_level": "Intermediate",
                     "points_to_next_level": 100,
                     "level_progress": 0,
-                    "items_scanned": 0,
-                    "items_recycled": 0
+                    "items_scanned": 0
                 }
+            else:
+                # Ensure items_scanned is populated
+                if 'items_scanned' not in stats or stats['items_scanned'] is None:
+                    app.logger.debug("items_scanned not in stats, adding default value")
+                    stats['items_scanned'] = db.count_user_scans(session['user_id'])
+                    app.logger.debug(f"Set items_scanned to {stats['items_scanned']}")
+                
+                # Calculate level progress percentage if not already set
+                if 'level_progress' not in stats or stats['level_progress'] is None:
+                    current_points = stats.get('points', 0)
+                    points_to_next = stats.get('points_to_next_level', 100)
+                    total_level_points = points_to_next + current_points  # Assuming linear progression
+                    stats['level_progress'] = min(int((current_points / total_level_points) * 100), 99)
+                    app.logger.debug(f"Calculated level_progress: {stats['level_progress']}%")
             
             # Get active challenges
             challenges = db.get_user_active_challenges(session['user_id'])
@@ -246,120 +262,279 @@ def register_routes(app):
             
         return render_template('scan.html')
 
-    @app.route('/api/upload_image', methods=['POST'])
-    def upload_image():
-        """Handle image upload and classification."""
+    @app.route('/scan/upload', methods=['POST'])
+    def scan_upload():
+        """Handle image upload for scanning."""
         if 'user_id' not in session:
-            return jsonify({'error': 'Authentication required'}), 401
-            
-        try:
-            if 'image' not in request.files:
-                return jsonify({'error': 'No image uploaded'}), 400
-                
-            file = request.files['image']
-            if file.filename == '':
-                return jsonify({'error': 'No image selected'}), 400
-                
-            if not file or not allowed_file(file.filename):
-                return jsonify({'error': 'Invalid file type. Please upload a valid image.'}), 400
-            
-            # Save uploaded file
+            app.logger.warning("Scan upload without authentication")
+            return jsonify({'success': False, 'error': 'Authentication required'}), 401
+        
+        app.logger.info("Received scan upload request")
+        
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            app.logger.warning("No file part in scan upload request")
+            return jsonify({'success': False, 'error': 'No file part'}), 400
+        
+        file = request.files['file']
+        
+        app.logger.debug(f"Received scan file: {file.filename}, size: {file.content_length if hasattr(file, 'content_length') else 'unknown'}")
+        
+        # If user does not select file, browser also submits an empty part
+        if file.filename == '':
+            app.logger.warning("Empty filename in scan upload")
+            return jsonify({'success': False, 'error': 'No selected file'}), 400
+        
+        if file and allowed_file(file.filename):
+            # Create a unique filename
             filename = secure_filename(f"{uuid.uuid4()}_{file.filename}")
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            user_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(session['user_id']))
+            os.makedirs(user_folder, exist_ok=True)
+            filepath = os.path.join(user_folder, filename)
             
-            # Create directory if it doesn't exist
-            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-            file.save(file_path)
+            # Save the file
+            file.save(filepath)
+            app.logger.info(f"Saved scan image to {filepath}")
             
-            app.logger.info(f"Saved image to {file_path}")
-            
-            # Get the classifier from app config
+            # Get the classifier
             classifier = app.config.get('classifier')
+            
             if not classifier:
-                app.logger.error("Waste classifier not configured")
-                # Return a default prediction for plastic bottles with high confidence
+                app.logger.error("Waste classifier not configured for scan")
+                # Return mock predictions if classifier is not available
                 mock_predictions = [
                     {"label": "plastic_bottle", "confidence": 0.95},
                     {"label": "plastic_container", "confidence": 0.45},
                     {"label": "glass_bottle", "confidence": 0.35}
                 ]
-                app.logger.warning("Using mock predictions as fallback")
+                app.logger.warning("Using mock predictions for scan upload")
                 
-                # Create a mock scan ID
-                scan_id = str(uuid.uuid4())
-                
-                return jsonify({
+                response = {
                     'success': True,
-                    'file_path': file_path,
+                    'file_path': filepath,
                     'predictions': mock_predictions,
                     'top_prediction': mock_predictions[0],
                     'item_name': mock_predictions[0]['label'].replace('_', ' ').title(),
-                    'scan_id': scan_id,
+                    'scan_id': str(uuid.uuid4()),
                     'message': 'Using mock classification (classifier not available)'
-                }), 200
+                }
                 
-            # Get predictions from classifier
-            predictions = classifier.get_all_predictions(file_path)
-            top_prediction = predictions[0] if predictions else None
+                app.logger.debug(f"Returning mock scan response: {response}")
+                return jsonify(response), 200
             
-            # Initialize scan_id
-            scan_id = None
-            points_earned = 0
-            
-            # Award points for scanning and record scan
-            if 'user_id' in session and top_prediction:
-                try:
-                    points_system = app.config.get('points_system')
-                    user_id = session['user_id']
-                    
-                    # Get user location if available
+            # Process the image with the classifier
+            app.logger.info("Getting predictions from classifier for scan")
+            try:
+                # Get predictions
+                predictions = classifier.get_all_predictions(filepath)
+                top_prediction = predictions[0] if predictions else None
+                
+                # Record scan and award points if prediction was successful
+                scan_id = None
+                points_earned = 0
+                
+                if top_prediction and 'user_id' in session:
                     db = app.config.get('database')
+                    points_system = app.config.get('points_system')
+                    
+                    # Get user location
                     location = None
                     if db:
-                        user = db.get_user(user_id=user_id)
+                        user = db.get_user(user_id=session['user_id'])
                         if user and user.get('location_lat') and user.get('location_lon'):
                             location = (user['location_lat'], user['location_lon'])
                     
                     # Record scan in database
                     if db:
+                        app.logger.info("Recording scan in database")
                         scan_id = db.record_scan(
-                            user_id=user_id,
+                            user_id=session['user_id'],
                             waste_type=top_prediction['label'],
                             confidence=top_prediction['confidence'],
-                            image_path=file_path,
+                            image_path=filepath,
                             location=location
                         )
                     
                     # Award points
                     if points_system:
+                        app.logger.info(f"Awarding points for scan to user {session['user_id']}")
                         points_earned = points_system.award_scan_points(
-                            user_id=user_id,
+                            user_id=session['user_id'],
                             waste_type=top_prediction['label'],
-                            image_path=file_path,
+                            image_path=filepath,
                             scan_id=scan_id
                         )
-                        app.logger.info(f"Awarded {points_earned} points to user {user_id} for scanning {top_prediction['label']}")
-                    else:
-                        app.logger.warning("Points system not configured")
-                except Exception as e:
-                    app.logger.error(f"Error recording scan or awarding points: {e}", exc_info=True)
+                
+                # Prepare response
+                response = {
+                    'success': True,
+                    'file_path': filepath,
+                    'predictions': predictions,
+                    'top_prediction': top_prediction,
+                    'item_name': top_prediction['label'].replace('_', ' ').title() if top_prediction else 'Unknown Item',
+                    'scan_id': scan_id,
+                    'points_earned': points_earned
+                }
+                
+                app.logger.debug(f"Returning scan response: {response}")
+                return jsonify(response), 200
+                
+            except Exception as e:
+                app.logger.error(f"Error processing scan image: {e}", exc_info=True)
+                return jsonify({
+                    'success': False,
+                    'error': 'Error processing image. Please try again.'
+                }), 500
+        
+        app.logger.warning(f"Invalid file type in scan upload: {file.filename}")
+        return jsonify({'success': False, 'error': 'File type not allowed'}), 400
+    
+    @app.route('/scan/camera', methods=['POST'])
+    def scan_camera():
+        """Handle camera capture for scanning."""
+        if 'user_id' not in session:
+            app.logger.warning("Scan camera without authentication")
+            return jsonify({'success': False, 'error': 'Authentication required'}), 401
+        
+        app.logger.info("Received scan camera request")
+        
+        try:
+            # Get JSON data 
+            data = request.get_json()
             
-            # Return the predictions with scan_id
-            return jsonify({
-                'success': True,
-                'file_path': file_path,
-                'predictions': predictions,
-                'top_prediction': top_prediction,
-                'item_name': top_prediction['label'].replace('_', ' ').title() if top_prediction else 'Unknown Item',
-                'scan_id': scan_id,
-                'points_earned': points_earned
-            }), 200
+            if not data or 'image' not in data:
+                app.logger.warning("No image data in scan camera request")
+                return jsonify({'success': False, 'error': 'No image data'}), 400
             
+            app.logger.debug("Received camera image data")
+            
+            # Get base64 image data
+            image_b64 = data['image']
+            if image_b64.startswith('data:image'):
+                image_b64 = image_b64.split(',')[1]
+            
+            # Decode base64 data
+            import base64
+            import numpy as np
+            import cv2
+            from io import BytesIO
+            
+            image_data = base64.b64decode(image_b64)
+            
+            # Create unique filename and save
+            filename = f"{uuid.uuid4()}_camera.jpg"
+            user_folder = os.path.join(app.config['UPLOAD_FOLDER'], str(session['user_id']))
+            os.makedirs(user_folder, exist_ok=True)
+            filepath = os.path.join(user_folder, filename)
+            
+            with open(filepath, 'wb') as f:
+                f.write(image_data)
+            
+            app.logger.info(f"Saved camera image to {filepath}")
+            
+            # Convert to OpenCV format for processing
+            nparr = np.frombuffer(image_data, np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            
+            # Get the classifier
+            classifier = app.config.get('classifier')
+            
+            if not classifier or img is None:
+                app.logger.error(f"Classifier not configured or invalid image: classifier={classifier is not None}, image={'valid' if img is not None else 'invalid'}")
+                # Return mock predictions if classifier is not available
+                mock_predictions = [
+                    {"label": "plastic_bottle", "confidence": 0.95},
+                    {"label": "plastic_container", "confidence": 0.45},
+                    {"label": "glass_bottle", "confidence": 0.35}
+                ]
+                app.logger.warning("Using mock predictions for camera scan")
+                
+                response = {
+                    'success': True,
+                    'file_path': filepath,
+                    'predictions': mock_predictions,
+                    'top_prediction': mock_predictions[0],
+                    'item_name': mock_predictions[0]['label'].replace('_', ' ').title(),
+                    'scan_id': str(uuid.uuid4()),
+                    'message': 'Using mock classification (classifier not available)'
+                }
+                
+                app.logger.debug(f"Returning mock camera response: {response}")
+                return jsonify(response), 200
+            
+            # Process the image with the classifier
+            app.logger.info("Getting predictions from classifier for camera image")
+            try:
+                # Get predictions directly from the image object
+                predictions = classifier.get_predictions_from_array(img)
+                if not predictions:
+                    # Fall back to file-based prediction if the direct method fails
+                    predictions = classifier.get_all_predictions(filepath)
+                    
+                top_prediction = predictions[0] if predictions else None
+                
+                # Record scan and award points if prediction was successful
+                scan_id = None
+                points_earned = 0
+                
+                if top_prediction and 'user_id' in session:
+                    db = app.config.get('database')
+                    points_system = app.config.get('points_system')
+                    
+                    # Get user location
+                    location = None
+                    if db:
+                        user = db.get_user(user_id=session['user_id'])
+                        if user and user.get('location_lat') and user.get('location_lon'):
+                            location = (user['location_lat'], user['location_lon'])
+                    
+                    # Record scan in database
+                    if db:
+                        app.logger.info("Recording camera scan in database")
+                        scan_id = db.record_scan(
+                            user_id=session['user_id'],
+                            waste_type=top_prediction['label'],
+                            confidence=top_prediction['confidence'],
+                            image_path=filepath,
+                            location=location
+                        )
+                    
+                    # Award points
+                    if points_system:
+                        app.logger.info(f"Awarding points for camera scan to user {session['user_id']}")
+                        points_earned = points_system.award_scan_points(
+                            user_id=session['user_id'],
+                            waste_type=top_prediction['label'],
+                            image_path=filepath,
+                            scan_id=scan_id
+                        )
+                
+                # Prepare response
+                response = {
+                    'success': True,
+                    'file_path': filepath,
+                    'predictions': predictions,
+                    'top_prediction': top_prediction,
+                    'item_name': top_prediction['label'].replace('_', ' ').title() if top_prediction else 'Unknown Item',
+                    'scan_id': scan_id,
+                    'points_earned': points_earned
+                }
+                
+                app.logger.debug(f"Returning camera scan response: {response}")
+                return jsonify(response), 200
+                
+            except Exception as e:
+                app.logger.error(f"Error processing camera image: {e}", exc_info=True)
+                return jsonify({
+                    'success': False,
+                    'error': f'Error processing image: {str(e)}'
+                }), 500
+                
         except Exception as e:
-            app.logger.error(f"Error processing image upload: {e}", exc_info=True)
+            app.logger.error(f"Error in camera scan: {e}", exc_info=True)
             return jsonify({
                 'success': False,
-                'error': 'Error processing image. Please try again.'
+                'error': f'Error processing request: {str(e)}'
             }), 500
 
     @app.route('/leaderboard')
@@ -410,14 +585,21 @@ def register_routes(app):
     def confirm_disposal():
         """Handle waste disposal confirmation."""
         if 'user_id' not in session:
-            return jsonify({'error': 'Authentication required'}), 401
+            app.logger.warning("API call without authentication")
+            return jsonify({'success': False, 'error': 'Authentication required'}), 401
             
         try:
+            app.logger.info("Received disposal confirmation request")
             data = request.get_json()
+            app.logger.debug(f"Request data: {data}")
+            
             if not data or 'waste_type' not in data:
-                return jsonify({'error': 'Missing waste type information'}), 400
+                app.logger.warning("Missing waste_type in request")
+                return jsonify({'success': False, 'error': 'Missing waste type information'}), 400
                 
             waste_type = data['waste_type']
+            scan_id = data.get('scan_id')
+            app.logger.info(f"Confirming disposal of {waste_type} (scan_id: {scan_id})")
             
             # Award points for proper disposal
             points_earned = 0
@@ -426,23 +608,34 @@ def register_routes(app):
                 user_id = session['user_id']
                 
                 if points_system:
+                    app.logger.info(f"Awarding disposal points to user {user_id}")
                     points_earned = points_system.award_disposal_points(
                         user_id=user_id,
-                        waste_type=waste_type
+                        waste_type=waste_type,
+                        scan_id=scan_id
                     )
                     app.logger.info(f"Awarded {points_earned} points to user {user_id} for disposing {waste_type}")
+                else:
+                    app.logger.warning("Points system not configured")
             except Exception as e:
                 app.logger.error(f"Error awarding disposal points: {e}", exc_info=True)
                 
-            return jsonify({
+            response = {
                 'success': True,
                 'message': 'Thank you for recycling responsibly!',
                 'points_earned': points_earned
-            }), 200
+            }
+            app.logger.debug(f"Returning response: {response}")
+            return jsonify(response), 200
             
         except Exception as e:
             app.logger.error(f"Error confirming disposal: {e}", exc_info=True)
-            return jsonify({'error': 'Error processing your request. Please try again.'}), 500
+            error_response = {
+                'success': False,
+                'error': 'Error processing your request. Please try again.'
+            }
+            app.logger.debug(f"Returning error response: {error_response}")
+            return jsonify(error_response), 500
 
     @app.route('/centers', methods=['GET', 'POST'])
     def centers():
@@ -584,15 +777,21 @@ def register_routes(app):
     def get_recycling_guidelines(waste_type):
         """Get recycling guidelines for a specific waste type."""
         try:
+            app.logger.info(f"Getting recycling guidelines for waste type: {waste_type}")
+            
             # Get database from app config
             db = app.config.get('database')
             if not db:
                 app.logger.error("Database not configured")
-                return jsonify({'error': 'Service temporarily unavailable'}), 503
+                return jsonify({'success': False, 'error': 'Service temporarily unavailable'}), 503
                 
             # Get guidelines from database
+            app.logger.debug(f"Fetching guidelines from database for: {waste_type}")
             guidelines = db.get_recycling_guidelines(waste_type)
+            app.logger.debug(f"Guidelines from database: {guidelines}")
+            
             if not guidelines:
+                app.logger.info(f"No guidelines found for {waste_type}, using defaults")
                 # Define recyclable waste types
                 recyclable_types = [
                     'plastic_bottle', 'glass_bottle', 'aluminum_can', 'paper',
@@ -608,14 +807,21 @@ def register_routes(app):
                     'facts': 'Recycling helps reduce landfill waste and conserves natural resources.'
                 }
                 
-            return jsonify({
+            response = {
                 'success': True,
                 'guidelines': guidelines
-            }), 200
+            }
+            app.logger.debug(f"Returning guidelines response: {response}")
+            return jsonify(response), 200
             
         except Exception as e:
             app.logger.error(f"Error getting recycling guidelines: {e}", exc_info=True)
-            return jsonify({'error': 'Error retrieving guidelines. Please try again.'}), 500
+            error_response = {
+                'success': False,
+                'error': 'Error retrieving guidelines. Please try again.'
+            }
+            app.logger.debug(f"Returning error response: {error_response}")
+            return jsonify(error_response), 500
 
     @app.route('/achievements')
     def achievements():
@@ -633,6 +839,28 @@ def register_routes(app):
             if not user:
                 flash('User not found', 'error')
                 return redirect(url_for('logout'))
+            
+            # Get user stats with items_scanned and rank
+            stats = db.get_user_stats(session['user_id'])
+            app.logger.debug(f"Retrieved user stats for achievements: {stats}")
+            if not stats:
+                app.logger.info("No stats found for user achievements, creating default stats")
+                stats = {
+                    "user_id": session['user_id'],
+                    "points": user.get('points', 0),
+                    "level": user.get('level', 'Beginner'),
+                    "rank": 1,
+                    "next_level": "Intermediate",
+                    "points_to_next_level": 100,
+                    "level_progress": 0,
+                    "items_scanned": db.count_user_scans(session['user_id'])
+                }
+            else:
+                # Ensure items_scanned is populated
+                if 'items_scanned' not in stats or stats['items_scanned'] is None:
+                    app.logger.debug("items_scanned not in stats, adding from scan count")
+                    stats['items_scanned'] = db.count_user_scans(session['user_id'])
+                    app.logger.debug(f"Set items_scanned to {stats['items_scanned']}")
                 
             # Get achievements (mock data for now)
             achievements = [
@@ -640,7 +868,7 @@ def register_routes(app):
                     'title': 'Recycling Rookie',
                     'description': 'Recycle your first item',
                     'completed': True,
-                    'date_earned': '2023-01-15',
+                    'date_earned': datetime.now().strftime('%Y-%m-%d'),
                     'icon': 'fa-recycle'
                 },
                 {
@@ -658,10 +886,25 @@ def register_routes(app):
                     'progress': 6,
                     'goal': 50,
                     'icon': 'fa-globe'
+                },
+                {
+                    'title': 'Material Master',
+                    'description': 'Recycle 5 different types of materials',
+                    'completed': True,
+                    'date_earned': (datetime.now() - timedelta(days=5)).strftime('%Y-%m-%d'),
+                    'icon': 'fa-award'
+                },
+                {
+                    'title': 'Consistent Recycler',
+                    'description': 'Recycle items for 7 consecutive days',
+                    'completed': False,
+                    'progress': 3,
+                    'goal': 7,
+                    'icon': 'fa-calendar-check'
                 }
             ]
             
-            return render_template('achievements.html', user=user, achievements=achievements)
+            return render_template('achievements.html', user=user, achievements=achievements, stats=stats)
         except Exception as e:
             app.logger.error(f"Error loading achievements: {e}", exc_info=True)
             flash('Error loading achievements. Please try again later.', 'error')
@@ -689,7 +932,9 @@ def register_routes(app):
             # Update user's location in database if logged in
             if 'user_id' in session and db:
                 try:
-                    db.update_user_location(session['user_id'], data['lat'], data['lng'])
+                    # Fix the method call - it takes 3 args (self, user_id, location_dict)
+                    location_dict = {'lat': data['lat'], 'lng': data['lng']}
+                    db.update_user_location(session['user_id'], location_dict)
                 except Exception as e:
                     app.logger.error(f"Error updating user location: {e}", exc_info=True)
             
@@ -703,11 +948,15 @@ def register_routes(app):
     def api_recycling_centers():
         """API endpoint for finding recycling centers."""
         try:
+            app.logger.info("Received request for recycling centers")
             lat = request.args.get('lat', type=float)
             lon = request.args.get('lon', type=float)
             waste_type = request.args.get('waste_type')
             
+            app.logger.debug(f"Parameters: lat={lat}, lon={lon}, waste_type={waste_type}")
+            
             if not lat or not lon:
+                app.logger.warning("No coordinates provided, using defaults")
                 # Default to San Francisco if no coordinates provided
                 lat = 37.7749
                 lon = -122.4194
@@ -724,17 +973,26 @@ def register_routes(app):
                 }), 503
             
             # Find recycling centers
-            centers = geo_service.find_recycling_centers(
-                lat=lat,
-                lon=lon,
-                waste_type=waste_type,
-                radius=10
-            )
+            app.logger.info(f"Finding recycling centers near {lat}, {lon} for {waste_type or 'all waste types'}")
+            try:
+                centers = geo_service.find_recycling_centers(
+                    lat=lat,
+                    lon=lon,
+                    waste_type=waste_type,
+                    radius=10
+                )
+                app.logger.info(f"Found {len(centers)} recycling centers")
+                app.logger.debug(f"Centers: {centers[:2]}..." if centers and len(centers) > 2 else f"Centers: {centers}")
+            except Exception as e:
+                app.logger.error(f"Error in geo_service.find_recycling_centers: {e}", exc_info=True)
+                centers = []
             
-            return jsonify({
+            response = {
                 'success': True,
                 'centers': centers
-            }), 200
+            }
+            
+            return jsonify(response), 200
             
         except Exception as e:
             app.logger.error(f"Error finding recycling centers: {e}", exc_info=True)

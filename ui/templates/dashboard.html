@@ -8,111 +8,80 @@
     
     <!-- User Stats Row -->
     <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card dashboard-card stats-card h-100">
+        <div class="col-md-6 mb-3">
+            <div class="card dashboard-card stats-card h-100 shadow-lg" style="background-color: #6c5ce7 !important; opacity: 1 !important;">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-star me-2"></i>Your Stats</h5>
+                    <h5 class="card-title text-white fw-bold"><i class="fas fa-star me-2"></i>Your Stats</h5>
                     <div class="mt-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span>Level {{ stats.level }}</span>
-                            <span>{{ stats.points }} points</span>
+                            <span class="text-white fw-bold">Level {{ stats.level }}</span>
+                            <span class="text-white fw-bold">{{ stats.points }} points</span>
                         </div>
                         <div class="progress mb-3">
-                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ stats.level_progress|default(0) }}%" 
-                                aria-valuenow="{{ stats.level_progress|default(0) }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="progress-bar bg-warning" 
+                                role="progressbar" 
+                                aria-valuenow="{{ stats.level_progress|default(0) }}"
+                                aria-valuemin="0" 
+                                aria-valuemax="100"
+                                style="width: {{ stats.level_progress|default(0) }}%;"></div>
                         </div>
-                        <p class="small text-light">{{ stats.points_to_next_level|default(100) }} points to Level {{ stats.level|int + 1 }}</p>
+                        <p class="small text-white">{{ stats.points_to_next_level|default(100) }} points to Level {{ stats.level|int + 1 }}</p>
                         
-                        <hr class="bg-light">
+                        <hr class="bg-white">
                         
                         <div class="row text-center mt-4">
-                            <div class="col-4">
-                                <h3>{{ stats.items_scanned|default(0) }}</h3>
-                                <p class="small">Items Scanned</p>
+                            <div class="col-6">
+                                <h3 class="text-white">{{ stats.items_scanned|default(0) }}</h3>
+                                <p class="small text-white fw-bold">Items Scanned</p>
                             </div>
-                            <div class="col-4">
-                                <h3>{{ stats.items_recycled|default(0) }}</h3>
-                                <p class="small">Items Recycled</p>
-                            </div>
-                            <div class="col-4">
-                                <h3>{{ stats.rank|default(0) }}</h3>
-                                <p class="small">Rank</p>
+                            <div class="col-6">
+                                <h3 class="text-white">{{ stats.rank|default(0) }}</h3>
+                                <p class="small text-white fw-bold">Rank</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer">
+                <div class="card-footer" style="background-color: #5549c0 !important; opacity: 1 !important;">
                     <a href="{{ url_for('leaderboard') }}" class="btn btn-warning btn-sm w-100 fw-bold">
-                        <i class="fas fa-crown me-1"></i> View Leaderboard
+                        <i class="fas fa-crown me-1"></i> View Global Leaderboard
                     </a>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-4 mb-3">
-            <div class="card dashboard-card challenges-card h-100">
+        <div class="col-md-6 mb-3">
+            <div class="card dashboard-card challenges-card h-100" style="background-color: #5a67d8 !important; color: white !important; opacity: 1 !important;">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-tasks me-2"></i>Active Challenges</h5>
+                    <h5 class="card-title text-white fw-bold"><i class="fas fa-tasks me-2"></i>Active Challenges</h5>
                     {% if challenges %}
                         <ul class="list-group list-group-flush mt-3">
                             {% for challenge in challenges %}
                                 <li class="list-group-item bg-transparent border-light text-white">
-                                    <h6>{{ challenge.title }}</h6>
-                                    <p class="small mb-1">{{ challenge.description }}</p>
+                                    <h6 class="text-white">{{ challenge.title }}</h6>
+                                    <p class="small mb-1 text-white">{{ challenge.description }}</p>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="small">Progress: {{ challenge.progress }}/{{ challenge.goal }}</span>
-                                        <span class="badge bg-light text-dark">{{ challenge.points }} pts</span>
+                                        <span class="small text-white">Progress: {{ challenge.progress }}/{{ challenge.goal }}</span>
+                                        <span class="badge bg-warning text-dark">{{ challenge.points }} pts</span>
                                     </div>
-                                    <div class="progress mt-2" style="height: 5px;">
-                                        <div class="progress-bar bg-warning" role="progressbar" 
-                                            style="width: {{ (challenge.progress / challenge.goal) * 100 }}%" 
-                                            aria-valuenow="{{ (challenge.progress / challenge.goal) * 100 }}" 
-                                            aria-valuemin="0" aria-valuemax="100"></div>
+                                    <div class="progress mt-2">
+                                        <div class="progress-bar bg-warning" 
+                                            role="progressbar"
+                                            aria-valuenow="{{ (challenge.progress / challenge.goal * 100)|int }}"
+                                            aria-valuemin="0" 
+                                            aria-valuemax="100"
+                                            style="width: {{ (challenge.progress / challenge.goal * 100)|int }}%;"></div>
                                     </div>
                                 </li>
                             {% endfor %}
                         </ul>
                     {% else %}
-                        <p class="text-center mt-4">No active challenges.<br>Start scanning items to get challenges!</p>
+                        <p class="text-center mt-4 text-white">No active challenges.<br>Start scanning items to get challenges!</p>
                     {% endif %}
                 </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('achievements') }}" class="btn btn-light btn-sm w-100">View All Achievements</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-3">
-            <div class="card dashboard-card recycling-centers-card h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-dark"><i class="fas fa-recycle me-2"></i>Nearby Recycling Centers</h5>
-                    {% if recycling_centers %}
-                        <ul class="list-group list-group-flush mt-3">
-                            {% for center in recycling_centers %}
-                                <li class="list-group-item bg-transparent border-light text-dark">
-                                    <h6>{{ center.name }}</h6>
-                                    <p class="small mb-1">{{ center.address }}</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="small">{{ center.distance|round(1) }} km away</span>
-                                        <a href="https://maps.google.com/?q={{ center.lat }},{{ center.lon }}" 
-                                           class="btn btn-sm btn-outline-dark" target="_blank">
-                                           <i class="fas fa-map-marker-alt"></i>
-                                        </a>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <div class="text-center mt-4">
-                            <p>We need your location to find recycling centers near you.</p>
-                            <button id="get-location" class="btn btn-primary btn-sm mt-2">
-                                <i class="fas fa-map-marker-alt"></i> Update Location
-                            </button>
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('recycling_centers') }}" class="btn btn-dark btn-sm w-100">View All Centers</a>
+                <div class="card-footer" style="background-color: #4c51bf !important; opacity: 1 !important;">
+                    <a href="{{ url_for('achievements') }}" class="btn btn-warning btn-sm w-100 fw-bold">
+                        <i class="fas fa-trophy me-1"></i> View All Achievements
+                    </a>
                 </div>
             </div>
         </div>

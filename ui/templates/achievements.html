@@ -30,27 +30,28 @@
                     
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-1">
-                            <span>Total Points</span>
-                            <span>{{ user.points|default(0) }}</span>
+                            <span class="fw-bold">Total Points</span>
+                            <span class="fw-bold">{{ user.points|default(0) }}</span>
                         </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: 65%" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" 
+                                role="progressbar" 
+                                aria-valuenow="{{ (user.points / (user.points + stats.points_to_next_level|default(100)) * 100)|int }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100"
+                                style="width: {{ (user.points / (user.points + stats.points_to_next_level|default(100)) * 100)|int }}%;"></div>
                         </div>
-                        <small class="text-muted">100 more points to next level</small>
+                        <small class="text-muted">{{ stats.points_to_next_level|default(100) }} more points to next level</small>
                     </div>
                     
                     <div class="row text-center">
-                        <div class="col-4">
-                            <h3>{{ user.items_scanned|default(0) }}</h3>
-                            <small class="text-muted">Scanned</small>
+                        <div class="col-6">
+                            <h3 class="fw-bold">{{ stats.items_scanned|default(user.items_scanned|default(0)) }}</h3>
+                            <small class="text-muted fw-bold">Scanned</small>
                         </div>
-                        <div class="col-4">
-                            <h3>{{ user.items_recycled|default(0) }}</h3>
-                            <small class="text-muted">Recycled</small>
-                        </div>
-                        <div class="col-4">
-                            <h3>{{ user.rank|default(0) }}</h3>
-                            <small class="text-muted">Rank</small>
+                        <div class="col-6">
+                            <h3 class="fw-bold">{{ stats.rank|default(user.rank|default(0)) }}</h3>
+                            <small class="text-muted fw-bold">Rank</small>
                         </div>
                     </div>
                 </div>
@@ -88,7 +89,7 @@
                                                     <div>
                                                         <h5 class="mb-1">{{ achievement.title }}</h5>
                                                         <p class="mb-1 small">{{ achievement.description }}</p>
-                                                        <small class="text-muted">Earned on {{ achievement.date_earned }}</small>
+                                                        <small class="text-muted">Earned on {{ achievement.date_earned|default('Today') }}</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -119,11 +120,13 @@
                                                         <p class="mb-1 small">{{ achievement.description }}</p>
                                                     </div>
                                                 </div>
-                                                <div class="progress" style="height: 8px;">
-                                                    <div class="progress-bar bg-success" role="progressbar" 
-                                                         style="width: {{ (achievement.progress / achievement.goal) * 100 }}%" 
-                                                         aria-valuenow="{{ (achievement.progress / achievement.goal) * 100 }}" 
-                                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                                <div class="progress mt-2">
+                                                    <div class="progress-bar bg-success" 
+                                                        role="progressbar" 
+                                                        aria-valuenow="{{ (achievement.progress / achievement.goal * 100)|int }}" 
+                                                        aria-valuemin="0" 
+                                                        aria-valuemax="100"
+                                                        style="width: {{ (achievement.progress / achievement.goal * 100)|int }}%;"></div>
                                                 </div>
                                                 <small class="text-muted">{{ achievement.progress }} / {{ achievement.goal }}</small>
                                             </div>
@@ -152,16 +155,18 @@
                                                         <h5 class="mb-1">{{ achievement.title }}</h5>
                                                         <p class="mb-1 small">{{ achievement.description }}</p>
                                                         {% if achievement.completed %}
-                                                            <small class="text-muted">Earned on {{ achievement.date_earned }}</small>
+                                                            <small class="text-muted">Earned on {{ achievement.date_earned|default('Today') }}</small>
                                                         {% endif %}
                                                     </div>
                                                 </div>
                                                 {% if not achievement.completed and achievement.progress is defined %}
-                                                    <div class="progress" style="height: 8px;">
-                                                        <div class="progress-bar bg-success" role="progressbar" 
-                                                             style="width: {{ (achievement.progress / achievement.goal) * 100 }}%" 
-                                                             aria-valuenow="{{ (achievement.progress / achievement.goal) * 100 }}" 
-                                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                                    <div class="progress mt-2">
+                                                        <div class="progress-bar bg-success" 
+                                                            role="progressbar" 
+                                                            aria-valuenow="{{ (achievement.progress / achievement.goal * 100)|int }}" 
+                                                            aria-valuemin="0" 
+                                                            aria-valuemax="100"
+                                                            style="width: {{ (achievement.progress / achievement.goal * 100)|int }}%;"></div>
                                                     </div>
                                                     <small class="text-muted">{{ achievement.progress }} / {{ achievement.goal }}</small>
                                                 {% endif %}
