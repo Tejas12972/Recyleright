@@ -120,15 +120,26 @@
                         <i class="fas fa-map-marker-alt"></i> Showing results near: <strong>{{ address }}</strong>
                     </div>
                     {% endif %}
-                    <form id="locationForm">
-                        <div class="mb-3">
-                            <label for="address" class="form-label">Enter your address</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="address" name="address" placeholder="Enter address, city, or zip code">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search"></i> Find Centers
-                                </button>
+                    
+                    {% if search_error and "default" in search_error %}
+                        <div class="alert alert-warning mb-3">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>Notice:</strong> {{ search_error }}
+                            <p class="mb-0 mt-1">Showing recycling centers in Massachusetts by default.</p>
+                        </div>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('centers') }}" class="row g-3">
+                        <div class="col-md-8">
+                            <label for="address" class="form-label">Enter your address, city, or ZIP code</label>
+                            <input type="text" class="form-control" id="address" name="address" 
+                                   placeholder="Example: 12 River Road, Andover, MA 01810" value="{{ address or '' }}">
+                            <div class="form-text text-muted">
+                                For best results, include street, town, state, and ZIP code
                             </div>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Find Centers
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -139,7 +150,8 @@
     <div class="row">
         <div class="col-md-7 mb-4">
             <h3 class="section-header">Interactive Map</h3>
-            <div id="map" data-lat="{{ user_location.lat }}" data-lng="{{ user_location.lon }}">
+            <div id="map" data-lat="{{ user_location.lat }}" data-lng="{{ user_location.lon }}" 
+                 data-default-location="{{ 'true' if search_error and 'default' in search_error else 'false' }}">
                 <div class="alert alert-warning text-center p-5">
                     <i class="fas fa-map-marked-alt fa-3x mb-3"></i><br>
                     <h4>Map unavailable</h4>
@@ -312,7 +324,11 @@
                 lng: parseFloat(document.getElementById('map').getAttribute('data-lng'))
             };
             
+            // Check if we're using default location
+            const isDefaultLocation = document.getElementById('map').getAttribute('data-default-location') === 'true';
+            
             console.log("User location:", userLocation);
+            console.log("Using default location:", isDefaultLocation);
 
             // Create map centered on user location
             map = new google.maps.Map(document.getElementById('map'), {
@@ -328,29 +344,43 @@
             // Always include user location in bounds
             bounds.extend(userLocation);
             
-            // Add user location marker
+            // Add user location marker with appropriate styling based on default status
             const userMarker = new google.maps.Marker({
                 position: userLocation,
                 map: map,
                 icon: {
                     path: google.maps.SymbolPath.CIRCLE,
                     scale: 10,
-                    fillColor: "#4285F4",
+                    fillColor: isDefaultLocation ? "#FFA500" : "#4285F4", // Orange for default, blue for actual location
                     fillOpacity: 1,
                     strokeColor: "#FFFFFF",
                     strokeWeight: 2
                 },
-                title: "Your Location"
+                title: isDefaultLocation ? "Default Location (Massachusetts)" : "Your Location",
+                animation: google.maps.Animation.DROP
             });
+            
+            // Create appropriate info window content
+            const infoContent = isDefaultLocation
+                ? '<div class="info-window"><h5>Default Location</h5><p>We couldn\'t find your exact location, so we\'re showing recycling centers in Massachusetts.</p></div>'
+                : '<div class="info-window"><h5>Your Location</h5></div>';
             
             // Add info window for user location
             const userInfoWindow = new google.maps.InfoWindow({
-                content: "<div><strong>Your Location</strong></div>"
+                content: infoContent
             });
             
+            // Add click listener for user marker
             userMarker.addListener('click', function() {
                 userInfoWindow.open(map, userMarker);
             });
+
+            // Automatically open info window if using default location
+            if (isDefaultLocation) {
+                setTimeout(function() {
+                    userInfoWindow.open(map, userMarker);
+                }, 1000);
+            }
 
             // Get centers data
             let centers = [];

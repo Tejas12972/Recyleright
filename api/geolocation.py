@@ -50,8 +50,32 @@ class GeolocationService:
             # Try to normalize the address - strip extra spaces, add country if not specified
             normalized_address = address.strip()
             
+            # Common address abbreviations to expand
+            abbrev_map = {
+                'rd': 'road',
+                'st': 'street', 
+                'ave': 'avenue',
+                'blvd': 'boulevard',
+                'dr': 'drive',
+                'ln': 'lane',
+                'ct': 'court',
+                'pl': 'place',
+                'cir': 'circle',
+                'pkwy': 'parkway',
+                'hwy': 'highway'
+            }
+            
+            # Expand common abbreviations in address (e.g., "rd" to "road")
+            words = normalized_address.split()
+            for i, word in enumerate(words):
+                word_lower = word.lower().rstrip(',.')
+                if word_lower in abbrev_map:
+                    words[i] = word.replace(word_lower, abbrev_map[word_lower])
+            normalized_address = ' '.join(words)
+            
             # For Massachusetts towns and cities, add MA if not present
-            ma_cities = ["andover", "lawrence", "haverhill", "lowell", "methuen", "north reading", "reading", "sudbury"]
+            ma_cities = ["andover", "lawrence", "haverhill", "lowell", "methuen", "north reading", "reading", "sudbury", 
+                         "boston", "cambridge", "worcester", "springfield", "framingham", "marlborough", "somerville"]
             address_lower = normalized_address.lower()
             
             # Check if this is a Massachusetts city without state specification
@@ -83,6 +107,17 @@ class GeolocationService:
                 if coords:
                     logger.info(f"Successfully geocoded zip code: {zip_code} -> {coords}")
                     return coords
+            
+            # Try with just the city and state if address has multiple parts
+            if len(normalized_address.split(',')) > 1:
+                parts = normalized_address.split(',')
+                city_state = ', '.join(parts[1:]).strip()
+                if city_state:
+                    logger.info(f"Trying with just city and state: {city_state}")
+                    coords = self._try_nominatim_geocoding(city_state)
+                    if coords:
+                        logger.info(f"Successfully geocoded with city/state: {city_state} -> {coords}")
+                        return coords
             
             # Last attempt: If it looks like a Massachusetts town, try adding Massachusetts explicitly
             if any(city in address_lower for city in ma_cities) and "massachusetts" not in address_lower:

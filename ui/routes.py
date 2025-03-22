@@ -442,8 +442,10 @@ def register_routes(app):
                 else:
                     # Failed to geocode address
                     logger.warning(f"Failed to geocode address: {address}")
-                    flash("Could not find that location. Please try a different address or ZIP code.", "warning")
-                    search_error = "Could not find that location"
+                    flash("Could not find the location you entered. Showing recycling centers in Massachusetts instead. Please use this format: street address, town, state, zip code (example: '12 River Road, Andover, MA 01810')", "warning")
+                    search_error = "Using default Massachusetts location - your location could not be found"
+                    # Use the default location
+                    user_location = {"lat": 42.4072, "lon": -71.3824}  # Massachusetts
             except Exception as e:
                 logger.error(f"Error in address search: {e}", exc_info=True)
                 flash("An error occurred while searching. Please try again.", "danger")
@@ -476,8 +478,10 @@ def register_routes(app):
                 else:
                     # Failed to geocode address
                     logger.warning(f"Failed to geocode address: {address}")
-                    flash("Could not find that location. Please try a different address or ZIP code.", "warning")
-                    search_error = "Could not find that location"
+                    flash("Could not find the location you entered. Showing recycling centers in Massachusetts instead. Please use this format: street address, town, state, zip code (example: '12 River Road, Andover, MA 01810')", "warning")
+                    search_error = "Using default Massachusetts location - your location could not be found"
+                    # Use the default location
+                    user_location = {"lat": 42.4072, "lon": -71.3824}  # Massachusetts
             except Exception as e:
                 logger.error(f"Error in address search: {e}", exc_info=True)
                 flash("An error occurred while searching. Please try again.", "danger")
