@@ -39,12 +39,14 @@ class PointsSystem:
             "Master": 5000
         }
     
-    def award_scan_points(self, user_id):
+    def award_scan_points(self, user_id, waste_type=None, image_path=None):
         """
         Award points to a user for scanning an item.
         
         Args:
             user_id (str): The user ID.
+            waste_type (str, optional): The waste type identified.
+            image_path (str, optional): Path to the scanned image.
             
         Returns:
             dict: Dictionary with points earned and updated user data, or None if failed.
@@ -66,6 +68,26 @@ class PointsSystem:
             
             # Update points in the database
             updated_user = self.db.update_user_points(user_id, points_earned)
+            
+            # Record scan in database if waste_type is provided
+            if waste_type and self.db:
+                try:
+                    # Default confidence score
+                    confidence = 0.9
+                    
+                    # Record scan with points information
+                    scan_id = self.db.record_scan(
+                        user_id=user_id,
+                        waste_type=waste_type,
+                        confidence=confidence,
+                        image_path=image_path
+                    )
+                    
+                    if scan_id:
+                        # Update scan with points information if needed
+                        logger.info(f"Recorded scan {scan_id} for user {user_id}")
+                except Exception as e:
+                    logger.error(f"Error recording scan: {e}", exc_info=True)
             
             if updated_user:
                 logger.info(f"Awarded {points_earned} points to user {user_id} for scanning waste")

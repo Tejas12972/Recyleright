@@ -33,20 +33,23 @@ def get_db():
 class Database:
     """Database class for storing and retrieving application data using MongoDB."""
     
-    def __init__(self, uri):
+    def __init__(self, uri=None, db_name=None):
         """
         Initialize the database connection.
         
         Args:
-            uri (str): MongoDB connection URI.
+            uri (str, optional): MongoDB connection URI.
+            db_name (str, optional): Name of the database.
         """
-        self.uri = uri
+        self.uri = uri or config.DB_URI
+        self.db_name = db_name or config.DB_NAME
         self.client = None
         self.db = None
+        self.logger = logger
         self.connected = False
         self.mock_mode = False
         
-        # Connect to the database
+        # Try to connect immediately
         self.connect()
     
     def connect(self):
@@ -65,12 +68,12 @@ class Database:
                 )
                 
                 # Get database instance
-                self.db = self.client[config.DB_NAME]
+                self.db = self.client[self.db_name]
                 
                 # Test connection
                 self.client.server_info()
                 self.connected = True
-                logger.info(f"Connected to MongoDB database {config.DB_NAME}")
+                logger.info(f"Connected to MongoDB database {self.db_name}")
                 
                 # Set up collections after successful connection
                 self.setup_collections()
@@ -853,7 +856,26 @@ class Database:
             logger.error(f"Error getting leaderboard: {e}", exc_info=True)
             return []
 
-    def get_object_id(self, id_str):
+    def _check_connection(self):
+        """
+        Check if database connection is available.
+        
+        Returns:
+            bool: True if connection is available, False otherwise.
+        """
+        try:
+            if self.client is None or self.db is None:
+                self.logger.warning("Database connection not established")
+                return False
+                
+            # Check if the connection is alive
+            self.client.admin.command('ping')
+            return True
+        except Exception as e:
+            self.logger.error(f"Database connection check failed: {e}", exc_info=True)
+            return False
+            
+    def _get_object_id(self, id_str):
         """
         Convert string ID to MongoDB ObjectId.
         
@@ -866,7 +888,7 @@ class Database:
         try:
             return ObjectId(id_str)
         except Exception as e:
-            logger.error(f"Error converting string ID to ObjectId: {e}", exc_info=True)
+            self.logger.error(f"Error converting string ID to ObjectId: {e}", exc_info=True)
             return None
 
     def get_user_rank(self, user_id):
@@ -898,6 +920,7 @@ class Database:
             
             # Find the user's position
             current_user = None
+            rank = 0
             for i, user in enumerate(users):
                 if str(user['_id']) == str(user_obj_id):
                     current_user = user
@@ -915,4 +938,16 @@ class Database:
             
         except Exception as e:
             self.logger.error(f"Error getting user rank: {e}", exc_info=True)
-            return {'rank': 0, 'points': 0, 'total_users': 0} 
+            return {'rank': 0, 'points': 0, 'total_users': 0}
+
+    def get_object_id(self, id_str):
+        """
+        Convert string ID to MongoDB ObjectId.
+        
+        Args:
+            id_str (str): String ID.
+            
+        Returns:
+            ObjectId: MongoDB ObjectId instance.
+        """
+        return self._get_object_id(id_str) 

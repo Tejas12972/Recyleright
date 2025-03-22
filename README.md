@@ -100,7 +100,7 @@ If you prefer to set up the environment manually:
    python app.py
    ```
 
-4. Open your browser and navigate to:
+4. Open your browser and navigate to: 
    ```
    http://localhost:5001
    ```

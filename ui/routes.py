@@ -169,6 +169,12 @@ def register_routes(app):
                         user_location.get('lng', -122.4194),
                         radius=10
                     )
+                    
+                    # Convert distance from km to miles
+                    for center in recycling_centers:
+                        if 'distance' in center:
+                            # Convert km to miles (1 km = 0.621371 miles)
+                            center['distance'] = center['distance'] * 0.621371
                 except Exception as e:
                     app.logger.error(f"Error finding recycling centers: {e}", exc_info=True)
             
@@ -177,7 +183,7 @@ def register_routes(app):
             try:
                 # Get recent scans
                 scans = db.db.scans.find(
-                    {"user_id": db._get_object_id(session['user_id'])},
+                    {"user_id": db.get_object_id(session['user_id'])},
                     sort=[("timestamp", -1)],
                     limit=5
                 )
@@ -387,17 +393,57 @@ def register_routes(app):
         if 'user_id' not in session:
             return redirect(url_for('login'))
             
-        # Default location (San Francisco)
+        # Default location (Massachusetts)
         default_location = {
-            'lat': 37.7749,
-            'lng': -122.4194
+            'lat': 42.4072,  # Massachusetts coordinates
+            'lng': -71.3824
         }
-        
-        # Get user's location if available
-        user_location = session.get('location', default_location)
         
         # Get geo_service from app config
         geo_service = app.config.get('geo_service')
+        
+        # Get user's location from various sources, with priority:
+        # 1. Address from request parameters (highest priority)
+        # 2. Session stored location
+        # 3. Default location (lowest priority)
+        user_location = session.get('location', default_location)
+        
+        # Check if address is provided in the request
+        address = request.args.get('address')
+        address_geocoded = False
+        
+        if address and geo_service:
+            try:
+                app.logger.info(f"Attempting to geocode address: {address}")
+                
+                # Convert address to coordinates
+                coords = geo_service.get_location_from_address(address)
+                if coords and coords[0] != default_location['lat'] and coords[1] != default_location['lng']:
+                    # Update location with new coordinates
+                    user_location = {
+                        'lat': coords[0],
+                        'lng': coords[1]
+                    }
+                    # Store in session for future use
+                    session['location'] = user_location
+                    # Also store the address text
+                    session['address'] = address
+                    address_geocoded = True
+                    app.logger.info(f"Successfully geocoded address: {address} -> {coords}")
+                else:
+                    # If we got the default location back, the geocoding failed
+                    if coords:
+                        app.logger.warning(f"Address geocoding returned default location: {address}")
+                        flash(f'Could not find precise location for "{address}". Showing recycling centers in Massachusetts.', 'warning')
+                    else:
+                        app.logger.warning(f"Failed to geocode address: {address}")
+                        flash(f'Could not find location "{address}". Showing nearby centers instead.', 'warning')
+            except Exception as e:
+                app.logger.error(f"Error geocoding address: {e}", exc_info=True)
+                flash('Error finding that location. Showing nearby centers instead.', 'warning')
+        
+        # Log the location being used to find centers
+        app.logger.info(f"Using location for centers: {user_location}")
         
         # Get nearby recycling centers
         try:
@@ -405,8 +451,25 @@ def register_routes(app):
                 centers = geo_service.find_recycling_centers(
                     user_location.get('lat', default_location['lat']),
                     user_location.get('lng', default_location['lng']),
-                    radius=10
+                    radius=15  # Increased radius to find more centers
                 )
+                
+                # Convert distance from km to miles
+                for center in centers:
+                    if 'distance' in center:
+                        # Convert km to miles (1 km = 0.621371 miles)
+                        center['distance'] = center['distance'] * 0.621371
+                
+                if centers:
+                    app.logger.info(f"Found {len(centers)} recycling centers")
+                    if address and address_geocoded:
+                        flash(f'Showing recycling centers near {address}', 'success')
+                else:
+                    app.logger.warning("No recycling centers found")
+                    if address:
+                        flash(f'No recycling centers found near {address}. Try a different location.', 'info')
+                    else:
+                        flash('No recycling centers found in this area. Try searching for a different location.', 'info')
             else:
                 logger.warning("Geolocation service not available")
                 centers = []
@@ -416,7 +479,20 @@ def register_routes(app):
             centers = []
             flash('Error loading recycling centers. Please try again later.', 'error')
         
-        return render_template('centers.html', centers=centers, location=user_location)
+        # Get Google Maps API key
+        google_maps_api_key = app.config.get('GOOGLE_MAPS_API_KEY', '')
+        
+        # Log whether we have an API key
+        if google_maps_api_key:
+            app.logger.info(f"Using Google Maps API key (length: {len(google_maps_api_key)})")
+        else:
+            app.logger.warning("No Google Maps API key configured")
+            
+        return render_template('centers.html', 
+                              centers=centers, 
+                              location=user_location,
+                              google_maps_api_key=google_maps_api_key,
+                              address=session.get('address'))
 
     @app.route('/api/guidelines/<waste_type>', methods=['GET'])
     def get_recycling_guidelines(waste_type):
@@ -530,6 +606,51 @@ def register_routes(app):
         except Exception as e:
             app.logger.error(f"Error setting location: {e}", exc_info=True)
             return jsonify({'error': 'Error setting location. Please try again.'}), 500
+
+    @app.route('/api/recycling-centers')
+    def api_recycling_centers():
+        """API endpoint for finding recycling centers."""
+        try:
+            lat = request.args.get('lat', type=float)
+            lon = request.args.get('lon', type=float)
+            waste_type = request.args.get('waste_type')
+            
+            if not lat or not lon:
+                # Default to San Francisco if no coordinates provided
+                lat = 37.7749
+                lon = -122.4194
+            
+            # Get geolocation service
+            geo_service = app.config.get('geo_service')
+            
+            if not geo_service:
+                app.logger.error("Geolocation service not configured")
+                return jsonify({
+                    'success': False,
+                    'message': 'Geolocation service unavailable',
+                    'centers': []
+                }), 503
+            
+            # Find recycling centers
+            centers = geo_service.find_recycling_centers(
+                lat=lat,
+                lon=lon,
+                waste_type=waste_type,
+                radius=10
+            )
+            
+            return jsonify({
+                'success': True,
+                'centers': centers
+            }), 200
+            
+        except Exception as e:
+            app.logger.error(f"Error finding recycling centers: {e}", exc_info=True)
+            return jsonify({
+                'success': False,
+                'message': 'Error finding recycling centers',
+                'centers': []
+            }), 500
 
     @app.errorhandler(404)
     def not_found_error(error):

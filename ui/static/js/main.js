@@ -166,6 +166,7 @@ function setupCamera() {
     const video = document.getElementById('camera-preview');
     const canvas = document.getElementById('capture-canvas');
     const imagePreview = document.getElementById('camera-image-preview');
+    const cameraContainer = document.querySelector('.camera-container');
     
     startCameraBtn.addEventListener('click', async function() {
         try {
@@ -176,6 +177,8 @@ function setupCamera() {
             video.srcObject = stream;
             startCameraBtn.classList.add('d-none');
             captureBtnContainer.classList.remove('d-none');
+            // Set initial camera mode class
+            cameraContainer.classList.toggle('using-front-camera', facingMode === 'user');
         } catch (err) {
             console.error('Error accessing camera:', err);
             alert('Failed to access the camera. Please ensure camera permissions are granted and try again.');
@@ -189,6 +192,9 @@ function setupCamera() {
             
             // Toggle facing mode
             facingMode = facingMode === 'environment' ? 'user' : 'environment';
+            
+            // Toggle the front camera class
+            cameraContainer.classList.toggle('using-front-camera', facingMode === 'user');
             
             // Start new stream
             navigator.mediaDevices.getUserMedia({

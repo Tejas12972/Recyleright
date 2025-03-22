@@ -27,7 +27,7 @@ class GeolocationService:
     def __init__(self):
         """Initialize the geolocation service."""
         self.api_url = "https://nominatim.openstreetmap.org/search"
-        self.default_location = {"lat": 37.7749, "lon": -122.4194}  # San Francisco
+        self.default_location = {"lat": 42.4072, "lon": -71.3824}  # Massachusetts
         self.recycling_centers_radius = 10  # km
         
         logger.info("GeolocationService initialized")
@@ -35,6 +35,56 @@ class GeolocationService:
     def get_location_from_address(self, address):
         """
         Convert an address to coordinates.
+        
+        Args:
+            address (str): The address to geocode
+            
+        Returns:
+            tuple: (latitude, longitude) or None if not found
+        """
+        if not address or address.strip() == "":
+            logger.warning("Empty address provided to geocoder")
+            return None
+            
+        try:
+            # Try to normalize the address - strip extra spaces, add country if not specified
+            normalized_address = address.strip()
+            if "USA" not in normalized_address.upper() and "US" not in normalized_address.upper():
+                if "," in normalized_address:
+                    normalized_address += ", USA"
+                else:
+                    normalized_address += ", USA"
+            
+            logger.info(f"Geocoding address: {normalized_address}")
+            
+            # First attempt with OpenStreetMap Nominatim
+            coords = self._try_nominatim_geocoding(normalized_address)
+            if coords:
+                logger.info(f"Successfully geocoded address: {normalized_address} -> {coords}")
+                return coords
+                
+            # If first attempt failed and it might be a zip code, try a zip code specific format
+            if normalized_address.replace(", USA", "").strip().isdigit() or \
+               (len(normalized_address) >= 5 and normalized_address[:5].isdigit()):
+                zip_code = normalized_address.split(",")[0].strip()
+                logger.info(f"Trying zip code specific format: {zip_code}")
+                coords = self._try_nominatim_geocoding(f"zipcode {zip_code}, USA")
+                if coords:
+                    logger.info(f"Successfully geocoded zip code: {zip_code} -> {coords}")
+                    return coords
+            
+            # If all attempts failed, return default Massachusetts location
+            logger.warning(f"Could not get coordinates for address: {address}. Using default location.")
+            return (self.default_location['lat'], self.default_location['lon'])
+            
+        except Exception as e:
+            logger.error(f"Error geocoding address: {e}", exc_info=True)
+            # Return default location instead of None to prevent map failures
+            return (self.default_location['lat'], self.default_location['lon'])
+            
+    def _try_nominatim_geocoding(self, address):
+        """
+        Helper method to try geocoding with Nominatim.
         
         Args:
             address (str): The address to geocode
@@ -53,18 +103,25 @@ class GeolocationService:
                 'User-Agent': 'RecycleRight/1.0'
             }
             
+            # Add a delay to respect Nominatim's usage policy
+            import time
+            time.sleep(1)
+            
             response = requests.get(self.api_url, params=params, headers=headers)
             
             if response.status_code == 200:
                 data = response.json()
                 if data and len(data) > 0:
                     return (float(data[0]['lat']), float(data[0]['lon']))
-            
-            logger.warning(f"Could not get coordinates for address: {address}")
+            elif response.status_code == 429:
+                logger.warning("Rate limit exceeded for geocoding service")
+            else:
+                logger.warning(f"Geocoding service returned status code: {response.status_code}")
+                
             return None
             
         except Exception as e:
-            logger.error(f"Error geocoding address: {e}")
+            logger.error(f"Error in Nominatim geocoding: {e}", exc_info=True)
             return None
     
     def get_region_from_location(self, lat, lon):
@@ -130,39 +187,98 @@ class GeolocationService:
             # Since we don't have a real database of recycling centers,
             # let's create some mock data based on the provided location
             
+            # Check if we're closer to Massachusetts than California
+            is_massachusetts = abs(lat - 42.4072) + abs(lon - (-71.3824)) < abs(lat - 37.7749) + abs(lon - (-122.4194))
+            
             # Generate synthetic centers at varying distances
-            centers = [
-                {
-                    "name": "City Recycling Center",
-                    "address": "123 Green St, San Francisco, CA",
-                    "phone": "555-123-4567",
-                    "website": "https://example.com/city-recycling",
-                    "lat": lat + 0.01,
-                    "lon": lon + 0.01,
-                    "distance": self.haversine_distance(lat, lon, lat + 0.01, lon + 0.01),
-                    "accepts": ["plastic", "paper", "glass", "metal"]
-                },
-                {
-                    "name": "EcoWaste Processing",
-                    "address": "456 Recycle Ave, San Francisco, CA",
-                    "phone": "555-234-5678",
-                    "website": "https://example.com/ecowaste",
-                    "lat": lat - 0.015,
-                    "lon": lon - 0.01,
-                    "distance": self.haversine_distance(lat, lon, lat - 0.015, lon - 0.01),
-                    "accepts": ["electronics", "batteries", "hazardous"]
-                },
-                {
-                    "name": "Green Future Recycling",
-                    "address": "789 Earth Blvd, San Francisco, CA",
-                    "phone": "555-345-6789",
-                    "website": "https://example.com/green-future",
-                    "lat": lat + 0.02,
-                    "lon": lon - 0.02,
-                    "distance": self.haversine_distance(lat, lon, lat + 0.02, lon - 0.02),
-                    "accepts": ["plastic", "paper", "glass", "metal", "compost"]
-                }
-            ]
+            if is_massachusetts:
+                # Massachusetts recycling centers
+                centers = [
+                    {
+                        "name": "Boston Recycling Center",
+                        "address": "123 Green St, Boston, MA",
+                        "phone": "555-123-4567",
+                        "website": "https://example.com/boston-recycling",
+                        "lat": lat + 0.01,
+                        "lon": lon + 0.01,
+                        "distance": self.haversine_distance(lat, lon, lat + 0.01, lon + 0.01),
+                        "accepts": ["plastic", "paper", "glass", "metal"]
+                    },
+                    {
+                        "name": "Cambridge EcoWaste",
+                        "address": "456 Recycle Ave, Cambridge, MA",
+                        "phone": "555-234-5678",
+                        "website": "https://example.com/cambridge-ecowaste",
+                        "lat": lat - 0.015,
+                        "lon": lon - 0.01,
+                        "distance": self.haversine_distance(lat, lon, lat - 0.015, lon - 0.01),
+                        "accepts": ["electronics", "batteries", "hazardous"]
+                    },
+                    {
+                        "name": "Massachusetts Green Future",
+                        "address": "789 Earth Blvd, Worcester, MA",
+                        "phone": "555-345-6789",
+                        "website": "https://example.com/ma-green-future",
+                        "lat": lat + 0.02,
+                        "lon": lon - 0.02,
+                        "distance": self.haversine_distance(lat, lon, lat + 0.02, lon - 0.02),
+                        "accepts": ["plastic", "paper", "glass", "metal", "compost"]
+                    },
+                    {
+                        "name": "Newton Recycling Depot",
+                        "address": "101 Eco Street, Newton, MA",
+                        "phone": "555-456-7890",
+                        "website": "https://example.com/newton-recycling",
+                        "lat": lat + 0.03,
+                        "lon": lon + 0.02,
+                        "distance": self.haversine_distance(lat, lon, lat + 0.03, lon + 0.02),
+                        "accepts": ["plastic", "paper", "glass", "metal", "electronics"]
+                    },
+                    {
+                        "name": "Springfield Materials Recovery",
+                        "address": "222 Conservation Way, Springfield, MA",
+                        "phone": "555-567-8901",
+                        "website": "https://example.com/springfield-recycling",
+                        "lat": lat - 0.03,
+                        "lon": lon + 0.03,
+                        "distance": self.haversine_distance(lat, lon, lat - 0.03, lon + 0.03),
+                        "accepts": ["cardboard", "paper", "metal", "plastic"]
+                    }
+                ]
+            else:
+                # Default centers (San Francisco based)
+                centers = [
+                    {
+                        "name": "City Recycling Center",
+                        "address": "123 Green St, San Francisco, CA",
+                        "phone": "555-123-4567",
+                        "website": "https://example.com/city-recycling",
+                        "lat": lat + 0.01,
+                        "lon": lon + 0.01,
+                        "distance": self.haversine_distance(lat, lon, lat + 0.01, lon + 0.01),
+                        "accepts": ["plastic", "paper", "glass", "metal"]
+                    },
+                    {
+                        "name": "EcoWaste Processing",
+                        "address": "456 Recycle Ave, San Francisco, CA",
+                        "phone": "555-234-5678",
+                        "website": "https://example.com/ecowaste",
+                        "lat": lat - 0.015,
+                        "lon": lon - 0.01,
+                        "distance": self.haversine_distance(lat, lon, lat - 0.015, lon - 0.01),
+                        "accepts": ["electronics", "batteries", "hazardous"]
+                    },
+                    {
+                        "name": "Green Future Recycling",
+                        "address": "789 Earth Blvd, San Francisco, CA",
+                        "phone": "555-345-6789",
+                        "website": "https://example.com/green-future",
+                        "lat": lat + 0.02,
+                        "lon": lon - 0.02,
+                        "distance": self.haversine_distance(lat, lon, lat + 0.02, lon - 0.02),
+                        "accepts": ["plastic", "paper", "glass", "metal", "compost"]
+                    }
+                ]
             
             # Filter by distance
             centers = [center for center in centers if center["distance"] <= radius]

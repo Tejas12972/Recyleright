@@ -11,7 +11,7 @@ import logging
 import json
 import uuid
 from werkzeug.utils import secure_filename
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, send_from_directory
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -61,6 +61,15 @@ def create_app():
     app.config['ALLOWED_EXTENSIONS'] = config.ALLOWED_EXTENSIONS
     app.config['MONGODB_URI'] = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/recycleright')
 
+    # Configure static files
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+    app.config['STATIC_FOLDER'] = 'ui/static'
+
+    # Add MIME type for SVG
+    app.config['MIME_TYPES'] = {
+        '.svg': 'image/svg+xml'
+    }
+
     # Register error handlers
     @app.errorhandler(404)
     def not_found_error(error):
@@ -102,6 +111,9 @@ def create_app():
     app.config['waste_classifier'] = classifier
     app.config['geo_service'] = geo_service
     app.config['points_system'] = points_system
+    
+    # Add Google Maps API key to app config
+    app.config['GOOGLE_MAPS_API_KEY'] = config.GOOGLE_MAPS_API_KEY
 
     return app
 

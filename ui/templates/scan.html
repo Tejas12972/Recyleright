@@ -70,6 +70,13 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
     
+    /* Fix for upside down text in camera controls */
+    .camera-controls button {
+        transform: rotate(0deg);
+        text-orientation: upright;
+        writing-mode: horizontal-tb;
+    }
+    
     .camera-controls {
         margin-top: 20px;
         display: flex;
@@ -249,7 +256,7 @@
                 </button>
                 
                 <button class="btn btn-secondary" id="switch-camera" disabled>
-                    <i class="fas fa-sync-alt"></i> Switch Camera
+                    <i class="fas fa-sync-alt"></i> Switch to Front Camera
                 </button>
             </div>
             
@@ -493,6 +500,11 @@
                 startCameraBtn.removeEventListener('click', startCamera);
                 startCameraBtn.addEventListener('click', stopCamera);
                 
+                // Update switch camera button text based on current mode
+                switchCameraBtn.innerHTML = currentFacingMode === 'environment' 
+                    ? '<i class="fas fa-sync-alt"></i> Switch to Front Camera' 
+                    : '<i class="fas fa-sync-alt"></i> Switch to Back Camera';
+                
             } catch (err) {
                 console.error('Error accessing camera:', err);
                 showError('Could not access camera. Make sure it\'s connected and you\'ve given permission.');
@@ -518,6 +530,10 @@
         
         function switchCamera() {
             currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            // Update button text to indicate which camera will be activated next time
+            switchCameraBtn.innerHTML = currentFacingMode === 'environment' 
+                ? '<i class="fas fa-sync-alt"></i> Switch to Front Camera' 
+                : '<i class="fas fa-sync-alt"></i> Switch to Back Camera';
             stopCamera();
             startCamera();
         }
@@ -675,7 +691,91 @@
             
             guidelinesContent.innerHTML = guidelinesHTML;
             
-            // Display mock recycling centers
+            // Fetch recycling centers
+            fetchRecyclingCenters(prediction.label);
+            
+            // Show results container
+            results.style.display = 'block';
+        }
+        
+        function fetchRecyclingCenters(wasteType) {
+            // Show loading state for centers
+            centersList.innerHTML = '<div class="text-center"><div class="spinner-border text-success" role="status"></div><p>Finding recycling centers...</p></div>';
+            
+            // Get user's location if available
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    // Success - user allowed location access
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    // Make API request with coordinates and waste type
+                    fetch(`/api/recycling-centers?lat=${lat}&lon=${lon}&waste_type=${wasteType}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success && data.centers && data.centers.length > 0) {
+                                displayRecyclingCenters(data.centers);
+                            } else {
+                                // Fall back to mock data if no results
+                                displayMockRecyclingCenters();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching recycling centers:', error);
+                            displayMockRecyclingCenters();
+                        });
+                },
+                function(error) {
+                    // Error or user denied location access - use mock data
+                    console.warn('Geolocation error:', error);
+                    displayMockRecyclingCenters();
+                },
+                {
+                    enableHighAccuracy: false,
+                    timeout: 5000,
+                    maximumAge: 0
+                }
+            );
+        }
+        
+        function displayRecyclingCenters(centers) {
+            let centersHTML = '';
+            
+            if (centers && centers.length > 0) {
+                centers.forEach(center => {
+                    // Convert distance from km to miles if needed
+                    let distanceText = center.distance;
+                    if (typeof distanceText === 'number') {
+                        // Convert to miles if it's in km (backend might not have converted)
+                        const distanceInMiles = center.distance_unit === 'km' ? 
+                            (center.distance * 0.621371).toFixed(1) : 
+                            center.distance.toFixed(1);
+                        distanceText = `${distanceInMiles} miles`;
+                    }
+                    
+                    centersHTML += `<div class="center-card">
+                        <h5>${center.name}</h5>
+                        <p><i class="fas fa-map-marker-alt"></i> ${center.address} (${distanceText})</p>
+                        <p><strong>Accepts:</strong> ${center.accepts.join(', ')}</p>
+                        <a href="https://maps.google.com/?q=${encodeURIComponent(center.address)}" 
+                           target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-directions"></i> Get Directions
+                        </a>
+                    </div>`;
+                });
+            } else {
+                centersHTML = '<p>No recycling centers found nearby.</p>';
+            }
+            
+            centersList.innerHTML = centersHTML;
+        }
+        
+        function displayMockRecyclingCenters() {
             const centers = [
                 {
                     name: 'City Recycling Center',
@@ -705,16 +805,23 @@
                         <h5>${center.name}</h5>
                         <p><i class="fas fa-map-marker-alt"></i> ${center.address} (${center.distance})</p>
                         <p><strong>Accepts:</strong> ${center.accepts.join(', ')}</p>
+                        <a href="https://maps.google.com/?q=${encodeURIComponent(center.address)}" 
+                           target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-directions"></i> Get Directions
+                        </a>
                     </div>`;
                 });
+                
+                centersHTML += `<div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle"></i> These are example recycling centers. 
+                    <a href="/centers" class="alert-link">Find real centers near you</a>.
+                </div>`;
             } else {
-                centersHTML = '<p>No recycling centers found nearby.</p>';
+                centersHTML = `<p>No recycling centers found nearby. 
+                              <a href="/centers">Search for centers</a> in your area.</p>`;
             }
             
             centersList.innerHTML = centersHTML;
-            
-            // Show results container
-            results.style.display = 'block';
         }
         
         // Helpers

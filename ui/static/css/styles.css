@@ -9,6 +9,7 @@
   --warning-color: #ffc107;
   --success-color: #28a745;
   --info-color: #17a2b8;
+  --camera-mirror: 1;
 }
 
 body {
@@ -41,7 +42,7 @@ h1, h2, h3, h4, h5, h6 {
 .navbar {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background-color: var(--primary-color) !important;
-  padding: 0.8rem 1rem;
+  padding: 0.5rem 1rem;
 }
 
 .navbar-brand {
@@ -49,11 +50,40 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 1.5rem;
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+  padding: 0;
+  cursor: pointer;
 }
 
 .navbar-brand img {
-  margin-right: 10px;
+  height: 40px;
+  width: auto;
   transition: transform 0.3s;
+  display: block;
+  pointer-events: none; /* Ensures clicks go through to the parent link */
+}
+
+.navbar-brand:hover img {
+  transform: scale(1.05);
+}
+
+/* Hide the text on small screens but keep it for screen readers */
+@media (max-width: 768px) {
+  .navbar-brand span.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
+  .navbar-brand img {
+    height: 32px;
+  }
 }
 
 .navbar-dark .navbar-nav .nav-link {
@@ -463,7 +493,7 @@ h1, h2, h3, h4, h5, h6 {
 .navbar {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     background-color: var(--primary-color) !important;
-    padding: 0.8rem 1rem;
+    padding: 0.5rem 1rem;
 }
 
 .navbar-brand {
@@ -471,11 +501,40 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 1.5rem;
     display: flex;
     align-items: center;
+    gap: 0.75rem;
+    padding: 0;
+    cursor: pointer;
 }
 
 .navbar-brand img {
-    margin-right: 10px;
+    height: 40px;
+    width: auto;
     transition: transform 0.3s;
+    display: block;
+    pointer-events: none; /* Ensures clicks go through to the parent link */
+}
+
+.navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+/* Hide the text on small screens but keep it for screen readers */
+@media (max-width: 768px) {
+    .navbar-brand span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+    
+    .navbar-brand img {
+        height: 32px;
+    }
 }
 
 .navbar-dark .navbar-nav .nav-link {
@@ -727,22 +786,22 @@ section h2:after {
 
 .camera-container {
     position: relative;
-    margin-bottom: 1.5rem;
-    border-radius: 8px;
-    overflow: hidden;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
 }
 
-#camera {
+#camera-preview {
     width: 100%;
-    border-radius: 8px;
-    transform: scaleX(-1); /* Mirror effect */
+    transform: scaleX(var(--camera-mirror));
 }
 
 .camera-controls {
+    position: relative;
     margin-top: 1rem;
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
+    text-align: center;
+    /* Ensure buttons and text are not mirrored */
+    transform: scaleX(var(--camera-mirror));
 }
 
 /* Results section */
@@ -1009,4 +1068,14 @@ section h2:after {
 @keyframes slideUp {
     from { transform: translateY(30px); opacity: 0; }
     to   { transform: translateY(0); opacity: 1; }
+}
+
+/* Apply mirroring only when using front camera */
+.using-front-camera {
+    --camera-mirror: -1;
+}
+
+/* Ensure text within buttons is not mirrored when camera is mirrored */
+.using-front-camera .camera-controls {
+    transform: scaleX(-1);
 } 
