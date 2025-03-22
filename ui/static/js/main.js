@@ -483,18 +483,23 @@ function setupGeolocation(locationBtn) {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
-                    // Send location to server
-                    fetch('/update_location', {
+                    // Send location to server - use correct API endpoint
+                    fetch('/api/set_location', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            latitude: lat,
-                            longitude: lon
+                            lat: lat,
+                            lng: lon
                         })
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Server returned ' + response.status);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
                             locationBtn.innerHTML = '<i class="fas fa-check-circle"></i> Location updated';
@@ -502,20 +507,21 @@ function setupGeolocation(locationBtn) {
                             locationBtn.classList.add('btn-success');
                             
                             // Reload recycling centers if on that page
-                            if (window.location.pathname === '/recycling_centers') {
+                            if (window.location.pathname === '/recycling_centers' || 
+                                window.location.pathname === '/centers') {
                                 window.location.reload();
                             }
                         } else {
                             locationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Update Location';
                             locationBtn.disabled = false;
-                            alert('Failed to update location. Please try again.');
+                            alert('Failed to update location: ' + (data.error || 'Unknown error'));
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                         locationBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Update Location';
                         locationBtn.disabled = false;
-                        alert('An error occurred while updating your location. Please try again.');
+                        alert('An error occurred while updating your location: ' + error.message);
                     });
                 },
                 function(error) {

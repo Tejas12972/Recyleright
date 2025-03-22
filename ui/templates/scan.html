@@ -677,9 +677,16 @@
             // Display what item was scanned
             document.getElementById('item-scanned').innerHTML = `<strong>Item Scanned:</strong> ${data.item_name || itemLabel}`;
             
-            // Fetch guidelines from API
+            // Store scan_id and waste_type for confirmation
+            let scan_id = data.scan_id || null;
             const wasteTypeValue = prediction.label;
             
+            // Setup confirm disposal button
+            confirmDisposal.onclick = function() {
+                confirmWasteDisposal(wasteTypeValue, scan_id);
+            };
+            
+            // Fetch guidelines from API
             fetch(`/api/guidelines/${wasteTypeValue}`)
                 .then(response => response.json())
                 .then(data => {
@@ -715,6 +722,64 @@
                     console.error('Error fetching guidelines:', error);
                     guidelinesContent.innerHTML = '<p>Error loading recycling guidelines.</p>';
                 });
+        }
+        
+        function confirmWasteDisposal(wasteType, scan_id) {
+            const requestBody = {
+                waste_type: wasteType
+            };
+            
+            // Add scan_id if available
+            if (scan_id) {
+                requestBody.scan_id = scan_id;
+            }
+            
+            fetch('/api/confirm_disposal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Error confirming disposal');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    const message = data.message || 'Disposal confirmed! Thank you for recycling responsibly.';
+                    
+                    // Create a success alert
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success mt-3';
+                    alertDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+                    if (data.points_earned) {
+                        alertDiv.innerHTML += ` You earned <strong>${data.points_earned} points</strong>!`;
+                    }
+                    
+                    // Insert the alert at the top of the results
+                    const resultsHeader = document.querySelector('.results-header');
+                    if (resultsHeader && resultsHeader.nextElementSibling) {
+                        results.insertBefore(alertDiv, resultsHeader.nextElementSibling);
+                    } else {
+                        guidelinesContent.prepend(alertDiv);
+                    }
+                    
+                    // Disable the confirm button
+                    confirmDisposal.disabled = true;
+                    confirmDisposal.innerHTML = '<i class="fas fa-check"></i> Disposal Confirmed';
+                } else {
+                    showError(data.error || 'Error confirming disposal');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError(error.message || 'Error confirming disposal. Please try again.');
+            });
         }
         
         function fetchRecyclingCenters(wasteType) {
@@ -877,60 +942,6 @@
             if (cameraPreviewContainer.style.display !== 'none') {
                 retakePicture();
             }
-        });
-        
-        // Confirm disposal
-        confirmDisposal.addEventListener('click', function() {
-            const wasteTypeValue = wasteType.textContent;
-            
-            fetch('/api/confirm_disposal', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    waste_type: wasteTypeValue.replace(/\s+/g, '_')
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(data => {
-                        throw new Error(data.error || 'Error confirming disposal');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    const message = data.message || 'Disposal confirmed! Thank you for recycling responsibly.';
-                    
-                    // Create a success alert
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert alert-success mt-3';
-                    alertDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-                    if (data.points_earned) {
-                        alertDiv.innerHTML += ` You earned <strong>${data.points_earned} points</strong>!`;
-                    }
-                    
-                    // Insert the alert at the top of the results
-                    const resultsHeader = document.querySelector('.results-header');
-                    if (resultsHeader && resultsHeader.nextElementSibling) {
-                        results.insertBefore(alertDiv, resultsHeader.nextElementSibling);
-                    } else {
-                        guidelinesContent.prepend(alertDiv);
-                    }
-                    
-                    // Disable the confirm button
-                    confirmDisposal.disabled = true;
-                    confirmDisposal.innerHTML = '<i class="fas fa-check"></i> Disposal Confirmed';
-                } else {
-                    showError(data.error || 'Error confirming disposal');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showError(error.message || 'Error confirming disposal. Please try again.');
-            });
         });
         
         // Tab switching

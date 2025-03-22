@@ -42,7 +42,9 @@
                     </div>
                 </div>
                 <div class="card-footer">
-                    <a href="{{ url_for('leaderboard') }}" class="btn btn-light btn-sm w-100">View Leaderboard</a>
+                    <a href="{{ url_for('leaderboard') }}" class="btn btn-warning btn-sm w-100 fw-bold">
+                        <i class="fas fa-crown me-1"></i> View Leaderboard
+                    </a>
                 </div>
             </div>
         </div>
@@ -151,10 +153,10 @@
                         </div>
                         <div class="col-md-3 col-6 mb-3">
                             <a href="{{ url_for('leaderboard') }}" class="text-decoration-none">
-                                <div class="p-3 rounded bg-info text-white mb-2">
+                                <div class="p-3 rounded bg-warning text-dark mb-2 quick-action-icon pulse-animation">
                                     <i class="fas fa-crown fa-2x"></i>
                                 </div>
-                                <h6>Leaderboard</h6>
+                                <h6 class="fw-bold">Leaderboard</h6>
                             </a>
                         </div>
                     </div>

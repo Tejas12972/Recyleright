@@ -273,7 +273,7 @@ def register_routes(app):
             
             app.logger.info(f"Saved image to {file_path}")
             
-            # Get the classifier from app config - FIXED: use correct config key
+            # Get the classifier from app config
             classifier = app.config.get('classifier')
             if not classifier:
                 app.logger.error("Waste classifier not configured")
@@ -284,48 +284,83 @@ def register_routes(app):
                     {"label": "glass_bottle", "confidence": 0.35}
                 ]
                 app.logger.warning("Using mock predictions as fallback")
+                
+                # Create a mock scan ID
+                scan_id = str(uuid.uuid4())
+                
                 return jsonify({
                     'success': True,
                     'file_path': file_path,
                     'predictions': mock_predictions,
                     'top_prediction': mock_predictions[0],
                     'item_name': mock_predictions[0]['label'].replace('_', ' ').title(),
+                    'scan_id': scan_id,
                     'message': 'Using mock classification (classifier not available)'
                 }), 200
                 
+            # Get predictions from classifier
             predictions = classifier.get_all_predictions(file_path)
             top_prediction = predictions[0] if predictions else None
             
-            # Award points for scanning
+            # Initialize scan_id
+            scan_id = None
+            points_earned = 0
+            
+            # Award points for scanning and record scan
             if 'user_id' in session and top_prediction:
                 try:
                     points_system = app.config.get('points_system')
                     user_id = session['user_id']
                     
+                    # Get user location if available
+                    db = app.config.get('database')
+                    location = None
+                    if db:
+                        user = db.get_user(user_id=user_id)
+                        if user and user.get('location_lat') and user.get('location_lon'):
+                            location = (user['location_lat'], user['location_lon'])
+                    
+                    # Record scan in database
+                    if db:
+                        scan_id = db.record_scan(
+                            user_id=user_id,
+                            waste_type=top_prediction['label'],
+                            confidence=top_prediction['confidence'],
+                            image_path=file_path,
+                            location=location
+                        )
+                    
+                    # Award points
                     if points_system:
                         points_earned = points_system.award_scan_points(
                             user_id=user_id,
                             waste_type=top_prediction['label'],
-                            image_path=file_path
+                            image_path=file_path,
+                            scan_id=scan_id
                         )
                         app.logger.info(f"Awarded {points_earned} points to user {user_id} for scanning {top_prediction['label']}")
                     else:
                         app.logger.warning("Points system not configured")
                 except Exception as e:
-                    app.logger.error(f"Error awarding points: {e}", exc_info=True)
+                    app.logger.error(f"Error recording scan or awarding points: {e}", exc_info=True)
             
-            # Return the predictions
+            # Return the predictions with scan_id
             return jsonify({
                 'success': True,
                 'file_path': file_path,
                 'predictions': predictions,
                 'top_prediction': top_prediction,
-                'item_name': top_prediction['label'].replace('_', ' ').title() if top_prediction else 'Unknown Item'
+                'item_name': top_prediction['label'].replace('_', ' ').title() if top_prediction else 'Unknown Item',
+                'scan_id': scan_id,
+                'points_earned': points_earned
             }), 200
             
         except Exception as e:
             app.logger.error(f"Error processing image upload: {e}", exc_info=True)
-            return jsonify({'error': 'Error processing image. Please try again.'}), 500
+            return jsonify({
+                'success': False,
+                'error': 'Error processing image. Please try again.'
+            }), 500
 
     @app.route('/leaderboard')
     def leaderboard():

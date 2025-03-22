@@ -1,25 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 200 40">
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
   <style>
-    .logo-text { font-family: Arial, sans-serif; font-weight: bold; }
-    .recycle-arrow { fill: none; stroke: rgb(255, 255, 255); stroke-width: 2; }
+    .recycle-symbol {
+      fill: currentColor;
+    }
   </style>
   
-  <!-- Recycling Symbol -->
-  <g transform="translate(5,5) scale(0.8)">
-    <!-- Three arrows forming a triangle -->
-    <path class="recycle-arrow" d="M 20,25 L 10,25 L 15,35 Z"/>
-    <path class="recycle-arrow" d="M 25,10 L 25,0 L 35,5 Z"/>
-    <path class="recycle-arrow" d="M 30,27 L 40,27 L 35,17 Z"/>
-    
-    <!-- Connecting lines -->
-    <path class="recycle-arrow" d="M 15,35 L 25,10"/>
-    <path class="recycle-arrow" d="M 35,5 L 40,27"/>
-    <path class="recycle-arrow" d="M 35,17 L 10,25"/>
-  </g>
-  
-  <!-- Text -->
-  <text x="60" y="25" fill="rgb(255, 255, 255)" class="logo-text" font-size="20">
-    RecycleRight
-  </text>
+  <!-- Standard Recycling Symbol -->
+  <path class="recycle-symbol" d="M32.2 12.3c1.3 2.3 2.1 4.9 2.1 7.7 0 8.5-6.9 15.4-15.4 15.4S3.5 28.5 3.5 20 10.4 4.6 18.9 4.6c2.8 0 5.4 0.8 7.7 2.1l1.5-2.6C25.4 2.7 22.3 2 18.9 2 8.9 2 0.9 10 0.9 20s8 18 18 18 18-8 18-18c0-3.4-0.7-6.5-2.1-9.3l-2.6 1.6z"/>
+  <path class="recycle-symbol" d="M18.9 11.4l-7.7 13.3h15.4l-7.7-13.3zm0 3.8l4.4 7.7h-8.8l4.4-7.7z"/>
+  <path class="recycle-symbol" d="M18.9 28.6l7.7-13.3H11.2l7.7 13.3zm0-3.8l-4.4-7.7h8.8l-4.4 7.7z"/>
 </svg> 
