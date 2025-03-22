@@ -128,7 +128,7 @@
                         </div>
                     {% endif %}
                     <form method="POST" action="{{ url_for('centers') }}" class="row g-3">
-                        <div class="col-md-8">
+                        <div class="col-md-6">
                             <label for="address" class="form-label">Enter your address, city, or ZIP code</label>
                             <input type="text" class="form-control" id="address" name="address" 
                                    placeholder="Example: 12 River Road, Andover, MA 01810" value="{{ address or '' }}">
@@ -136,12 +136,24 @@
                                 For best results, include street, town, state, and ZIP code
                             </div>
                         </div>
-                        <div class="col-md-4 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary">
+                        <div class="col-md-3">
+                            <label for="radius" class="form-label">Search Radius</label>
+                            <select class="form-select" id="radius" name="radius">
+                                <option value="10" {% if radius == 10 %}selected{% endif %}>10 miles</option>
+                                <option value="25" {% if radius == 25 %}selected{% endif %}>25 miles</option>
+                                <option value="50" {% if radius == 50 %}selected{% endif %}>50 miles</option>
+                                <option value="100" {% if radius == 100 %}selected{% endif %}>100 miles</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
                                 <i class="fas fa-search"></i> Find Centers
                             </button>
                         </div>
                     </form>
+                    <div class="form-text text-muted mt-3">
+                        <small><i class="fas fa-globe-americas me-1"></i> Note: This service is available only for locations within the United States.</small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -189,8 +201,18 @@
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> No recycling centers found in your area. Try adjusting your search.
+                    <div class="alert alert-warning py-5 text-center">
+                        <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                        <h4 class="alert-heading mb-3">No Recycling Centers Found</h4>
+                        <p class="mb-2">We couldn't find any recycling centers within the current search radius.</p>
+                        <p class="mt-3">
+                            <strong>Suggestions:</strong>
+                            <ul class="text-start mt-2">
+                                <li>Try searching with a different address or location</li>
+                                <li>Increase your search radius using the dropdown above</li>
+                                <li>Check that your address includes city, state, and ZIP code</li>
+                            </ul>
+                        </p>
                     </div>
                 {% endif %}
             </div>
@@ -203,6 +225,10 @@
                 <div class="card-body">
                     <h5 class="card-title">Recycling Tips</h5>
                     <p>Remember to clean and sort your recyclables before taking them to a recycling center. Many centers have specific requirements for the items they accept.</p>
+                    <div class="alert alert-info mt-2 mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Disclaimer:</strong> The recycling center information provided is valid only for locations within the United States.
+                    </div>
                     <div class="row mt-3">
                         <div class="col-md-4">
                             <div class="d-flex align-items-center mb-2">
@@ -528,12 +554,6 @@
                 // Just center on user location
                 map.setCenter(userLocation);
                 map.setZoom(10);
-                
-                // Add a message to the map
-                const noCentersDiv = document.createElement('div');
-                noCentersDiv.className = 'no-centers-message';
-                noCentersDiv.innerHTML = '<p>No recycling centers found nearby.</p><p>Try searching with a different location or increasing the search radius.</p>';
-                map.controls[google.maps.ControlPosition.TOP_CENTER].push(noCentersDiv);
             }
 
         } catch (e) {

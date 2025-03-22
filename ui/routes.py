@@ -289,6 +289,7 @@ def register_routes(app):
                     'file_path': file_path,
                     'predictions': mock_predictions,
                     'top_prediction': mock_predictions[0],
+                    'item_name': mock_predictions[0]['label'].replace('_', ' ').title(),
                     'message': 'Using mock classification (classifier not available)'
                 }), 200
                 
@@ -318,7 +319,8 @@ def register_routes(app):
                 'success': True,
                 'file_path': file_path,
                 'predictions': predictions,
-                'top_prediction': top_prediction
+                'top_prediction': top_prediction,
+                'item_name': top_prediction['label'].replace('_', ' ').title() if top_prediction else 'Unknown Item'
             }), 200
             
         except Exception as e:
@@ -414,11 +416,25 @@ def register_routes(app):
         user_location = {"lat": 42.4072, "lon": -71.3824}
         address = None  # Initialize address variable
         search_error = None
+        radius = request.form.get('radius', '25')  # Default radius 25 miles if not specified
+        
+        # Also check for radius in URL parameters
+        if request.args.get('radius'):
+            radius = request.args.get('radius')
+        
+        # Convert radius to integer (default to 25 if conversion fails)
+        try:
+            radius_miles = int(radius)
+        except (ValueError, TypeError):
+            radius_miles = 25
+        
+        # Convert miles to kilometers for the API
+        radius_km = radius_miles * 1.60934
         
         # Check if we're coming from a POST request (address search)
         if request.method == 'POST' and request.form.get('address'):
             address = request.form.get('address')
-            logger.info(f"Searching for recycling centers near address: {address}")
+            logger.info(f"Searching for recycling centers near address: {address} within {radius_miles} miles")
             
             try:
                 # Convert address to coordinates
@@ -439,6 +455,7 @@ def register_routes(app):
                     # Store address in session for future reference
                     session['last_address'] = address
                     session['user_location'] = user_location
+                    session['radius'] = radius  # Store radius in session
                 else:
                     # Failed to geocode address
                     logger.warning(f"Failed to geocode address: {address}")
@@ -454,7 +471,7 @@ def register_routes(app):
         # Get address from URL parameter if present
         elif request.args.get('address'):
             address = request.args.get('address')
-            logger.info(f"Searching for recycling centers near address from URL: {address}")
+            logger.info(f"Searching for recycling centers near address from URL: {address} within {radius_miles} miles")
             
             try:
                 # Convert address to coordinates
@@ -475,6 +492,7 @@ def register_routes(app):
                     # Store address in session for future reference
                     session['last_address'] = address
                     session['user_location'] = user_location
+                    session['radius'] = radius  # Store radius in session
                 else:
                     # Failed to geocode address
                     logger.warning(f"Failed to geocode address: {address}")
@@ -491,16 +509,31 @@ def register_routes(app):
         elif session.get('user_location'):
             user_location = session.get('user_location')
             address = session.get('last_address')
-            logger.info(f"Using session location: {user_location}")
+            # Get radius from session if available
+            if session.get('radius'):
+                radius = session.get('radius')
+                try:
+                    radius_miles = int(radius)
+                    radius_km = radius_miles * 1.60934
+                except (ValueError, TypeError):
+                    pass
+            logger.info(f"Using session location: {user_location} with radius: {radius_miles} miles")
         
         # Find recycling centers near the user's location
         geo_service = GeolocationService()
         centers = geo_service.find_recycling_centers(
             user_location['lat'], 
-            user_location['lon']
+            user_location['lon'],
+            radius=radius_km  # Pass the radius in kilometers
         )
         
-        logger.info(f"Found {len(centers)} recycling centers")
+        logger.info(f"Found {len(centers)} recycling centers within {radius_miles} miles")
+        
+        # Convert km distances to miles for display
+        for center in centers:
+            if 'distance' in center:
+                # Convert kilometers to miles (1 km = 0.621371 miles)
+                center['distance'] = center['distance'] * 0.621371
         
         return render_template(
             'centers.html', 
@@ -508,6 +541,7 @@ def register_routes(app):
             address=address,
             user_location=user_location,
             search_error=search_error,
+            radius=radius_miles,
             config=config
         )
 

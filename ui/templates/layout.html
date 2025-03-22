@@ -22,7 +22,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="RecycleRight Logo" width="32" height="32" class="d-inline-block me-2" style="filter: brightness(0) invert(1);">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="RecycleRight Logo" width="32" height="32" class="d-inline-block me-2" style="filter: brightness(0) invert(1);">
                 <span class="text-white" style="font-size: 1.4rem; font-weight: 600;">RecycleRight</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
@@ -38,7 +38,7 @@
                         <a class="nav-link" href="{{ url_for('centers') }}">Recycling Centers</a>
                         <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                     {% else %}
-                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                        <a class="nav-link" href="{{ url_for('home') }}">Login</a>
                         <a class="nav-link" href="{{ url_for('register') }}">Register</a>
                     {% endif %}
                 </div>

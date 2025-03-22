@@ -28,7 +28,7 @@ class GeolocationService:
         """Initialize the geolocation service."""
         self.api_url = "https://nominatim.openstreetmap.org/search"
         self.default_location = {"lat": 42.4072, "lon": -71.3824}  # Massachusetts
-        self.recycling_centers_radius = 30  # km - increased from 10 to 30 for wider coverage
+        self.recycling_centers_radius = 100  # km - increased from 30 to 100 for much wider coverage
         
         logger.info("GeolocationService initialized")
     
@@ -242,9 +242,10 @@ class GeolocationService:
             if radius is None:
                 radius = self.recycling_centers_radius
                 
-            # Real recycling centers across New England
+            # Real recycling centers across the USA
             # Data sourced from public recycling center information
             real_centers = {
+                # Massachusetts
                 'MA': [
                     {
                         "name": "Andover Recycling Center",
@@ -274,42 +275,6 @@ class GeolocationService:
                         "accepts": ["cardboard", "paper", "metal", "glass", "yard waste", "electronics"]
                     },
                     {
-                        "name": "Lowell Regional Waste & Recycling",
-                        "address": "1 Armory St, Lowell, MA 01850",
-                        "phone": "(978) 674-4309",
-                        "website": "https://www.lowellma.gov/390/Recycling-Trash",
-                        "lat": 42.6389,
-                        "lon": -71.3221,
-                        "accepts": ["plastic", "paper", "glass", "metal", "electronics", "hazardous"]
-                    },
-                    {
-                        "name": "Methuen Recycling Center",
-                        "address": "15 Lindberg Ave, Methuen, MA 01844",
-                        "phone": "(978) 983-8545",
-                        "website": "https://www.cityofmethuen.net/recycling-enforcement",
-                        "lat": 42.7289,
-                        "lon": -71.1912,
-                        "accepts": ["paper", "plastic", "glass", "metal", "electronics", "yard waste"]
-                    },
-                    {
-                        "name": "North Reading Recycling Center",
-                        "address": "40 Winter St, North Reading, MA 01864",
-                        "phone": "(978) 664-6043",
-                        "website": "https://www.northreadingma.gov/trash-recycling",
-                        "lat": 42.5834,
-                        "lon": -71.0728,
-                        "accepts": ["paper", "plastic", "glass", "metal", "yard waste"]
-                    },
-                    {
-                        "name": "Reading Recycling Center",
-                        "address": "75 New Crossing Rd, Reading, MA 01867",
-                        "phone": "(781) 942-9077",
-                        "website": "https://www.readingma.gov/public-works-department/pages/recycling-information",
-                        "lat": 42.5197,
-                        "lon": -71.0950,
-                        "accepts": ["cardboard", "paper", "plastic", "electronics", "hazardous", "yard waste"]
-                    },
-                    {
                         "name": "Boston Zero Waste Recycling Center",
                         "address": "815 Albany St, Boston, MA 02119",
                         "phone": "(617) 635-4500",
@@ -317,17 +282,174 @@ class GeolocationService:
                         "lat": 42.3345,
                         "lon": -71.0726,
                         "accepts": ["paper", "plastic", "glass", "metal", "electronics", "hazardous"]
+                    }
+                ],
+                # Texas
+                'TX': [
+                    {
+                        "name": "Dallas Recycling Center",
+                        "address": "4610 S Westmoreland Rd, Dallas, TX 75237",
+                        "phone": "(214) 670-4475",
+                        "website": "https://dallascityhall.com/departments/sanitation/Pages/recycling.aspx",
+                        "lat": 32.6871,
+                        "lon": -96.8724,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics"]
                     },
                     {
-                        "name": "Sudbury Transfer Station",
-                        "address": "20 Boston Post Rd, Sudbury, MA 01776",
-                        "phone": "(978) 440-5421",
-                        "website": "https://sudbury.ma.us/transfer/",
-                        "lat": 42.3563,
-                        "lon": -71.4372,
+                        "name": "McCommas Bluff Recycling Center",
+                        "address": "5555 Youngblood Rd, Dallas, TX 75241",
+                        "phone": "(214) 670-0977",
+                        "website": "https://dallascityhall.com/departments/sanitation/Pages/landfill.aspx",
+                        "lat": 32.6667,
+                        "lon": -96.7478,
+                        "accepts": ["paper", "plastic", "metal", "yard waste", "hazardous", "electronics"]
+                    },
+                    {
+                        "name": "Houston Environmental Service Center - South",
+                        "address": "11500 S Post Oak Rd, Houston, TX 77035",
+                        "phone": "(713) 837-1310",
+                        "website": "https://www.houstontx.gov/solidwaste/recycling.html",
+                        "lat": 29.6575,
+                        "lon": -95.4758,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics", "hazardous"]
+                    },
+                    {
+                        "name": "San Antonio Recycling Center",
+                        "address": "1800 Wurzbach Pkwy, San Antonio, TX 78216",
+                        "phone": "(210) 207-6428",
+                        "website": "https://www.sanantonio.gov/swmd/Recycling",
+                        "lat": 29.5265,
+                        "lon": -98.5137,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics"]
+                    },
+                    {
+                        "name": "Austin Recycle & Reuse Drop-off Center",
+                        "address": "2514 Business Center Dr, Austin, TX 78744",
+                        "phone": "(512) 974-4343",
+                        "website": "https://www.austintexas.gov/department/recycle-reuse-drop-center",
+                        "lat": 30.2058,
+                        "lon": -97.7471,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics", "hazardous", "textiles"]
+                    },
+                    {
+                        "name": "Fort Worth Environmental Collection Center",
+                        "address": "6400 Bridge St, Fort Worth, TX 76112",
+                        "phone": "(817) 392-1234",
+                        "website": "https://www.fortworthtexas.gov/departments/code-compliance/environmental-quality/drop-off",
+                        "lat": 32.7666,
+                        "lon": -97.2382,
+                        "accepts": ["paper", "plastic", "electronics", "hazardous", "chemicals"]
+                    }
+                ],
+                # California
+                'CA': [
+                    {
+                        "name": "San Francisco Recology Recycling Center",
+                        "address": "501 Tunnel Ave, San Francisco, CA 94134",
+                        "phone": "(415) 330-1400",
+                        "website": "https://www.recology.com/recology-san-francisco/",
+                        "lat": 37.7128,
+                        "lon": -122.3984,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics", "compost"]
+                    },
+                    {
+                        "name": "LA Recycling Center",
+                        "address": "2475 E Olympic Blvd, Los Angeles, CA 90021",
+                        "phone": "(323) 901-2605",
+                        "website": "https://www.lacitysan.org/san/faces/home",
+                        "lat": 34.0313,
+                        "lon": -118.2279,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics"]
+                    },
+                    {
+                        "name": "San Diego Miramar Recycling Center",
+                        "address": "5165 Convoy St, San Diego, CA 92111",
+                        "phone": "(858) 694-7000",
+                        "website": "https://www.sandiego.gov/environmental-services/recycling",
+                        "lat": 32.8339,
+                        "lon": -117.1541,
                         "accepts": ["paper", "plastic", "glass", "metal", "yard waste", "electronics"]
                     }
                 ],
+                # Florida
+                'FL': [
+                    {
+                        "name": "Miami-Dade Recycling Center",
+                        "address": "8831 NW 58th St, Doral, FL 33178",
+                        "phone": "(305) 594-1420",
+                        "website": "https://www.miamidade.gov/global/service.page?Mduid_service=ser1467835326826406",
+                        "lat": 25.8277,
+                        "lon": -80.3349,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics"]
+                    },
+                    {
+                        "name": "Orlando Recycling Center",
+                        "address": "5901 Young Pine Rd, Orlando, FL 32829",
+                        "phone": "(407) 246-2314",
+                        "website": "https://www.orlando.gov/Trash-Recycling",
+                        "lat": 28.5629,
+                        "lon": -81.2471,
+                        "accepts": ["paper", "plastic", "glass", "metal", "yard waste", "electronics"]
+                    }
+                ],
+                # New York
+                'NY': [
+                    {
+                        "name": "NYC Department of Sanitation Recycling Center",
+                        "address": "400 E 59th St, New York, NY 10022",
+                        "phone": "(212) 669-7560",
+                        "website": "https://www1.nyc.gov/assets/dsny/site/services/recycling",
+                        "lat": 40.7588,
+                        "lon": -73.9626,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics"]
+                    },
+                    {
+                        "name": "Brooklyn Recycling Center",
+                        "address": "130 Nostrand Ave, Brooklyn, NY 11205",
+                        "phone": "(718) 935-1122",
+                        "website": "https://www1.nyc.gov/assets/dsny/site/services/recycling",
+                        "lat": 40.6953,
+                        "lon": -73.9511,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics", "textiles"]
+                    }
+                ],
+                # Illinois
+                'IL': [
+                    {
+                        "name": "Chicago Recycling Center",
+                        "address": "2700 W 34th St, Chicago, IL 60632",
+                        "phone": "(312) 744-1614",
+                        "website": "https://www.chicago.gov/city/en/depts/streets/supp_info/recycling1.html",
+                        "lat": 41.8310,
+                        "lon": -87.6874,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics"]
+                    }
+                ],
+                # Georgia
+                'GA': [
+                    {
+                        "name": "Atlanta Recycling Center",
+                        "address": "1540 Jonesboro Rd SE, Atlanta, GA 30315",
+                        "phone": "(404) 330-6333",
+                        "website": "https://www.atlantaga.gov/government/departments/public-works/recycling-program",
+                        "lat": 33.7224,
+                        "lon": -84.3807,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics"]
+                    }
+                ],
+                # Washington
+                'WA': [
+                    {
+                        "name": "Seattle Recycling Center",
+                        "address": "1350 N 34th St, Seattle, WA 98103",
+                        "phone": "(206) 684-3000",
+                        "website": "https://www.seattle.gov/utilities/your-services/collection-and-disposal/recycling",
+                        "lat": 47.6492,
+                        "lon": -122.3512,
+                        "accepts": ["paper", "plastic", "glass", "metal", "electronics", "yard waste"]
+                    }
+                ],
+                # Continue with more states if needed
                 'CT': [
                     {
                         "name": "New Haven Transfer Station",
@@ -337,42 +459,6 @@ class GeolocationService:
                         "lat": 41.3272,
                         "lon": -72.8877,
                         "accepts": ["paper", "plastic", "glass", "metal", "electronics"]
-                    },
-                    {
-                        "name": "Waterbury Recycling Center",
-                        "address": "155 Captain Neville Dr, Waterbury, CT 06705",
-                        "phone": "(203) 574-6857",
-                        "website": "https://www.waterburyct.org/public-works/solid-waste",
-                        "lat": 41.5713,
-                        "lon": -73.0380,
-                        "accepts": ["paper", "cardboard", "plastic", "glass", "metal"]
-                    },
-                    {
-                        "name": "Hartford Transfer Station",
-                        "address": "180 Leibert Rd, Hartford, CT 06120",
-                        "phone": "(860) 757-9311",
-                        "website": "https://www.hartfordct.gov/Government/Departments/Public-Works/Recycling",
-                        "lat": 41.7958,
-                        "lon": -72.6567,
-                        "accepts": ["paper", "plastic", "glass", "metal", "electronics", "yard waste"]
-                    },
-                    {
-                        "name": "Bridgeport Transfer Station",
-                        "address": "475 Asylum St, Bridgeport, CT 06610",
-                        "phone": "(203) 576-7751",
-                        "website": "https://www.bridgeportct.gov/recycling",
-                        "lat": 41.1865,
-                        "lon": -73.1812,
-                        "accepts": ["cardboard", "paper", "plastic", "metal", "electronics"]
-                    },
-                    {
-                        "name": "Stamford Recycling Center",
-                        "address": "101 Harborview Ave, Stamford, CT 06902",
-                        "phone": "(203) 977-4140",
-                        "website": "https://www.stamfordct.gov/recycling-sanitation",
-                        "lat": 41.0397,
-                        "lon": -73.5393,
-                        "accepts": ["paper", "plastic", "glass", "metal", "electronics", "hazardous"]
                     }
                 ],
                 'NH': [
@@ -384,24 +470,6 @@ class GeolocationService:
                         "lat": 42.9849,
                         "lon": -71.4697,
                         "accepts": ["paper", "plastic", "glass", "metal", "electronics", "yard waste"]
-                    },
-                    {
-                        "name": "Nashua Recycling Center",
-                        "address": "840 W Hollis St, Nashua, NH 03062",
-                        "phone": "(603) 589-3410",
-                        "website": "https://www.nashuanh.gov/190/Solid-Waste-Department",
-                        "lat": 42.7550,
-                        "lon": -71.5126,
-                        "accepts": ["paper", "plastic", "glass", "metal", "electronics", "yard waste"]
-                    },
-                    {
-                        "name": "Salem Transfer Station",
-                        "address": "12 Shannon Rd, Salem, NH 03079",
-                        "phone": "(603) 890-2164",
-                        "website": "https://www.townofsalemnh.org/transfer-station",
-                        "lat": 42.7915,
-                        "lon": -71.2307,
-                        "accepts": ["paper", "plastic", "glass", "metal", "electronics"]
                     }
                 ],
                 'RI': [
@@ -413,53 +481,67 @@ class GeolocationService:
                         "lat": 41.8053,
                         "lon": -71.4001,
                         "accepts": ["paper", "plastic", "glass", "metal", "electronics"]
-                    },
-                    {
-                        "name": "Warwick Recycling Facility",
-                        "address": "111 Range Rd, Warwick, RI 02886",
-                        "phone": "(401) 738-2000",
-                        "website": "https://www.warwickri.gov/public-works/recycling",
-                        "lat": 41.7258,
-                        "lon": -71.4523,
-                        "accepts": ["paper", "plastic", "glass", "metal", "yard waste", "electronics"]
                     }
                 ]
             }
             
-            # Determine which state we're closest to
-            state_centers = {
-                'MA': (42.4072, -71.3824),  # Massachusetts center
-                'CT': (41.6032, -73.0877),  # Connecticut center
-                'NH': (43.1939, -71.5724),  # New Hampshire center
-                'RI': (41.6772, -71.5101)   # Rhode Island center
+            # Define major US regions by state
+            us_regions = {
+                'Northeast': ['MA', 'CT', 'NH', 'RI', 'ME', 'VT', 'NY', 'NJ', 'PA'],
+                'South': ['TX', 'FL', 'GA', 'NC', 'SC', 'VA', 'WV', 'KY', 'TN', 'AR', 'LA', 'MS', 'AL'],
+                'Midwest': ['IL', 'IN', 'OH', 'MI', 'WI', 'MN', 'IA', 'MO', 'ND', 'SD', 'NE', 'KS'],
+                'West': ['CA', 'WA', 'OR', 'NV', 'ID', 'MT', 'WY', 'UT', 'CO', 'AZ', 'NM', 'HI', 'AK']
             }
             
-            # Find closest state
-            closest_state = 'MA'  # Default to MA
+            # State centers for major states
+            state_centers = {
+                'MA': (42.4072, -71.3824),  # Massachusetts
+                'TX': (31.9686, -99.9018),  # Texas
+                'CA': (36.7783, -119.4179), # California
+                'FL': (27.6648, -81.5158),  # Florida
+                'NY': (42.1657, -74.9481),  # New York
+                'IL': (40.6331, -89.3985),  # Illinois
+                'GA': (32.1656, -82.9001),  # Georgia
+                'WA': (47.7511, -120.7401), # Washington
+                'CT': (41.6032, -73.0877),  # Connecticut
+                'NH': (43.1939, -71.5724),  # New Hampshire
+                'RI': (41.6772, -71.5101)   # Rhode Island
+                # Add more states as needed
+            }
+            
+            # Get region based on lat/lon
+            # Default to Northeast, but try to determine the correct region
+            user_region = 'Northeast'
+            closest_state = None
             closest_dist = float('inf')
             
+            # Find the closest state
             for state, center in state_centers.items():
                 dist = self.haversine_distance(lat, lon, center[0], center[1])
                 if dist < closest_dist:
                     closest_dist = dist
                     closest_state = state
             
-            logger.info(f"Determined closest state to coordinates ({lat}, {lon}) is {closest_state}")
+            if closest_state:
+                # Determine region from the closest state
+                for region, states in us_regions.items():
+                    if closest_state in states:
+                        user_region = region
+                        break
             
-            # Get centers from closest state and adjacent states
-            adjacent_states = {
-                'MA': ['CT', 'NH', 'RI'],
-                'CT': ['MA', 'RI'],
-                'NH': ['MA'],
-                'RI': ['MA', 'CT']
-            }
+            logger.info(f"Determined user is in region: {user_region}, closest state: {closest_state}")
             
-            # Start with centers from the closest state
-            centers_to_check = real_centers.get(closest_state, [])
+            # Get all centers in the user's region
+            centers_to_check = []
+            for state in us_regions.get(user_region, []):
+                if state in real_centers:
+                    centers_to_check.extend(real_centers[state])
             
-            # Add centers from adjacent states
-            for adj_state in adjacent_states.get(closest_state, []):
-                centers_to_check.extend(real_centers.get(adj_state, []))
+            # If we didn't find any centers in the region, check all centers
+            if not centers_to_check:
+                logger.warning(f"No centers found in region {user_region}, checking all centers")
+                for state_centers in real_centers.values():
+                    centers_to_check.extend(state_centers)
             
             # Calculate distance for each center
             centers = []

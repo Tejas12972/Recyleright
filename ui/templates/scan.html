@@ -295,6 +295,7 @@
         <div class="alert alert-success">
             <p>This item is a <span class="waste-type" id="waste-type"></span> 
                <span class="confidence" id="confidence"></span></p>
+            <p id="item-scanned"></p>
         </div>
         
         <div class="guidelines">
@@ -649,9 +650,32 @@
                 return;
             }
             
-            // Display top prediction
-            wasteType.textContent = prediction.label.replace(/_/g, ' ');
+            // Parse the material type from the label
+            const itemLabel = prediction.label.replace(/_/g, ' ');
+            let materialType = 'Unknown';
+            
+            if (itemLabel.includes('plastic')) {
+                materialType = 'Plastic';
+            } else if (itemLabel.includes('glass')) {
+                materialType = 'Glass';
+            } else if (itemLabel.includes('paper') || itemLabel.includes('cardboard')) {
+                materialType = 'Paper/Cardboard';
+            } else if (itemLabel.includes('metal') || itemLabel.includes('aluminum') || itemLabel.includes('steel')) {
+                materialType = 'Metal';
+            } else if (itemLabel.includes('organic') || itemLabel.includes('food')) {
+                materialType = 'Organic';
+            } else if (itemLabel.includes('electronic') || itemLabel.includes('e_waste')) {
+                materialType = 'Electronic';
+            } else if (itemLabel.includes('textile') || itemLabel.includes('clothing')) {
+                materialType = 'Textile';
+            }
+            
+            // Display top prediction and material type
+            wasteType.textContent = itemLabel;
             confidence.textContent = `${Math.round(prediction.confidence * 100)}% confidence`;
+            
+            // Display what item was scanned
+            document.getElementById('item-scanned').innerHTML = `<strong>Item Scanned:</strong> ${data.item_name || itemLabel}`;
             
             // Fetch guidelines from API
             const wasteTypeValue = prediction.label;
@@ -668,6 +692,8 @@
                             <strong>${guidelines.recyclable ? 'Recyclable' : 'Not Recyclable'}</strong>
                         </div>`;
                         
+                        // Add material type information
+                        guidelinesHTML += `<p><strong>Material:</strong> ${materialType}</p>`;
                         guidelinesHTML += `<p><strong>Preparation:</strong> ${guidelines.preparation}</p>`;
                         guidelinesHTML += `<p><strong>Bin:</strong> ${guidelines.bin_color}</p>`;
                         

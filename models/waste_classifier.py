@@ -124,6 +124,65 @@ class WasteClassifier:
             logger.error(f"Error preprocessing image: {e}", exc_info=True)
             return None
     
+    def _detect_metallic_surface(self, img):
+        """
+        Detect if an image contains metallic surfaces like aluminum cans.
+        
+        Args:
+            img (numpy.ndarray): Input image.
+            
+        Returns:
+            float: Metallic score between 0 and 1.
+        """
+        try:
+            # Convert to grayscale for texture analysis
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            
+            # Calculate gradient for edge detection
+            sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
+            sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
+            gradient_magnitude = np.sqrt(sobelx**2 + sobely**2)
+            
+            # Normalize gradient
+            if np.max(gradient_magnitude) > 0:
+                gradient_magnitude = gradient_magnitude / np.max(gradient_magnitude)
+            
+            # Metallic surfaces often have:
+            # 1. High brightness variations (reflections)
+            # 2. Distinct texture patterns
+            brightness_std = np.std(gray) / 255.0  # Normalize to 0-1
+            
+            # Calculate texture energy using gradient magnitude
+            texture_energy = np.mean(gradient_magnitude)
+            
+            # Check for reflection patterns (alternating bright and dark regions)
+            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            
+            # Calculate contour density (metallic objects often have many small contours from reflections)
+            contour_density = len(contours) / (img.shape[0] * img.shape[1]) * 10000  # Normalize
+            contour_density = min(contour_density, 1.0)  # Cap at 1.0
+            
+            # Check for metallic colors (silver, gray)
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            h, s, v = cv2.split(hsv)
+            
+            # Silver/metallic has low saturation and medium-high value
+            metallic_color_mask = (s < 50) & (v > 150)
+            metallic_color_ratio = np.sum(metallic_color_mask) / (img.shape[0] * img.shape[1])
+            
+            # Calculate final metallic score
+            metallic_score = (brightness_std * 0.3 + 
+                             texture_energy * 0.3 + 
+                             contour_density * 0.2 + 
+                             metallic_color_ratio * 0.2)
+            
+            return min(metallic_score * 1.5, 1.0)  # Scale and cap at 1.0
+            
+        except Exception as e:
+            logger.error(f"Error in metallic detection: {e}", exc_info=True)
+            return 0.0
+    
     def get_top_prediction(self, image_path):
         """
         Get the top waste classification prediction for an image.
@@ -153,6 +212,9 @@ class WasteClassifier:
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             brightness_std = np.std(gray)
             
+            # Log key features for debugging
+            logger.debug(f"Image features - hue: {avg_hue:.2f}, saturation: {avg_saturation:.2f}, value: {avg_value:.2f}, brightness_std: {brightness_std:.2f}")
+            
             # Detect edges for shape analysis
             edges = cv2.Canny(gray, 50, 150)
             contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -166,11 +228,23 @@ class WasteClassifier:
                 # Characteristics of a typical bottle
                 is_bottle_shape = 1.5 < aspect_ratio < 4.0
                 
+                # Detect metallic properties
+                metallic_score = self._detect_metallic_surface(img)
+                
+                # Check for aluminum can characteristics - prioritize this check before others
+                # Cans typically have a characteristic aspect ratio and metallic appearance
+                if ((aspect_ratio < 2.0 or (0.8 < aspect_ratio < 2.5)) and  # Can shapes vary
+                    (metallic_score > 0.6 or (avg_value > 160 and brightness_std > 25)) and  # Metallic surface
+                    cv2.contourArea(largest_contour) / (w * h) > 0.65):  # Rectangular/cylindrical shape
+                    waste_type = "aluminum_can"
+                    confidence = 0.88 + random.uniform(-0.05, 0.05)
+                    logger.debug(f"Detected aluminum can with metallic_score: {metallic_score}")
+                
                 # Check for plastic bottle characteristics:
                 # - Typically translucent/transparent (high brightness std)
                 # - Often has slight blue/clear tint
                 # - Bottle-like aspect ratio
-                if (brightness_std > 40 and  # Indicates translucency
+                elif (brightness_std > 40 and  # Indicates translucency
                     avg_saturation < 50 and  # Low color saturation
                     is_bottle_shape):  # Bottle-like shape
                     waste_type = "plastic_bottle"
@@ -184,21 +258,22 @@ class WasteClassifier:
                     waste_type = "glass_bottle"
                     confidence = 0.82 + random.uniform(-0.05, 0.05)
                     
-                # Check for aluminum can characteristics
-                elif (avg_saturation < 30 and  # Metallic appearance
-                      aspect_ratio < 2.0 and  # Shorter than bottles
-                      avg_value > 180):  # Reflective surface
-                    waste_type = "aluminum_can"
-                    confidence = 0.80 + random.uniform(-0.05, 0.05)
-                    
                 else:
-                    # Default to other common recyclables based on color
-                    if avg_hue < 30:  # Brownish
+                    # Default to other common recyclables based on color and texture
+                    # First check for metallic_score to catch aluminum cans that didn't match the primary pattern
+                    if metallic_score > 0.5:
+                        waste_type = "aluminum_can"
+                        confidence = 0.70 + random.uniform(-0.1, 0.1)
+                        logger.debug(f"Detected aluminum can in fallback with metallic_score: {metallic_score}")
+                    # Then check for brown cardboard
+                    elif avg_hue < 30 and avg_value < 150 and avg_saturation > 20:  # Brownish, darker, some saturation
                         waste_type = "cardboard"
                         confidence = 0.75 + random.uniform(-0.1, 0.1)
-                    elif avg_hue < 60:  # Yellowish
+                    # Then check for bright paper
+                    elif avg_hue < 60 and avg_value > 170 and brightness_std < 50:  # Yellowish, bright, uniform
                         waste_type = "paper"
                         confidence = 0.72 + random.uniform(-0.1, 0.1)
+                    # Default to plastic container for other cases
                     else:
                         waste_type = "plastic_container"
                         confidence = 0.70 + random.uniform(-0.1, 0.1)

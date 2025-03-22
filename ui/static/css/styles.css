@@ -625,9 +625,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Hero section */
 .hero-section {
-    background: linear-gradient(rgba(40, 167, 69, 0.8), rgba(40, 167, 69, 0.9)), url('../images/hero-bg.jpg');
-    background-size: cover;
-    background-position: center;
+    background: linear-gradient(rgba(40, 167, 69, 0.8), rgba(40, 167, 69, 0.9));
     color: white;
     padding: 5rem 0;
     margin-bottom: 2rem;
