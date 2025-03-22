@@ -8,14 +8,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <style>
+        .navbar-brand img {
+            transition: transform 0.2s ease;
+        }
+        .navbar-brand:hover img {
+            transform: rotate(180deg);
+        }
+    </style>
     {% block head %}{% endblock %}
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('home') }}">
-                <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="RecycleRight" width="200" height="40" class="d-inline-block">
-                <span class="visually-hidden">RecycleRight</span>
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="RecycleRight Logo" width="32" height="32" class="d-inline-block me-2" style="filter: brightness(0) invert(1);">
+                <span class="text-white" style="font-size: 1.4rem; font-weight: 600;">RecycleRight</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
                 <span class="navbar-toggler-icon"></span>

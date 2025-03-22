@@ -13,6 +13,7 @@ import logging
 from data.database import get_db
 from models.waste_classifier import WasteClassifier
 from api.geolocation import GeolocationService
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ def register_routes(app):
 
     try:
         classifier = WasteClassifier(app.config['MODEL_PATH'], app.config['LABELS_PATH'])
+        app.config['classifier'] = classifier  # Store with correct key
     except Exception as e:
         classifier = None
         app.logger.error(f"Error initializing waste classifier: {e}")
@@ -37,6 +39,23 @@ def register_routes(app):
     except Exception as e:
         geo_service = None
         app.logger.error(f"Error initializing geolocation service: {e}")
+        
+    # Initialize points system if db is available
+    points_system = None
+    if db:
+        try:
+            from gamification.points_system import PointsSystem
+            points_system = PointsSystem(db)
+        except Exception as e:
+            app.logger.error(f"Error initializing points system: {e}")
+
+    # Make services available to the routes
+    app.config['database'] = db
+    app.config['geo_service'] = geo_service
+    app.config['points_system'] = points_system
+    
+    # Add Google Maps API key to app config
+    app.config['GOOGLE_MAPS_API_KEY'] = config.GOOGLE_MAPS_API_KEY
 
     def check_db():
         """Check if database is available and reconnect if necessary."""
@@ -254,14 +273,15 @@ def register_routes(app):
             
             app.logger.info(f"Saved image to {file_path}")
             
-            # Get the classifier from app config and classify the image
-            classifier = app.config.get('waste_classifier')
+            # Get the classifier from app config - FIXED: use correct config key
+            classifier = app.config.get('classifier')
             if not classifier:
-                app.logger.error("Waste classifier not configured in app.config. Check MODEL_PATH and LABELS_PATH in config.py")
+                app.logger.error("Waste classifier not configured")
+                # Return a default prediction for plastic bottles with high confidence
                 mock_predictions = [
-                    {"label": "plastic_bottle", "confidence": 0.85},
-                    {"label": "glass_bottle", "confidence": 0.65},
-                    {"label": "aluminum_can", "confidence": 0.45}
+                    {"label": "plastic_bottle", "confidence": 0.95},
+                    {"label": "plastic_container", "confidence": 0.45},
+                    {"label": "glass_bottle", "confidence": 0.35}
                 ]
                 app.logger.warning("Using mock predictions as fallback")
                 return jsonify({
@@ -387,112 +407,91 @@ def register_routes(app):
             app.logger.error(f"Error confirming disposal: {e}", exc_info=True)
             return jsonify({'error': 'Error processing your request. Please try again.'}), 500
 
-    @app.route('/centers')
+    @app.route('/centers', methods=['GET', 'POST'])
     def centers():
-        """Render recycling centers page."""
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
+        """Show recycling centers page"""
+        user_location = {"lat": 42.4072, "lon": -71.3824}
+        address = None  # Initialize address variable
+        search_error = None
+        
+        # Check if we're coming from a POST request (address search)
+        if request.method == 'POST' and request.form.get('address'):
+            address = request.form.get('address')
+            logger.info(f"Searching for recycling centers near address: {address}")
             
-        # Default location (Massachusetts)
-        default_location = {
-            'lat': 42.4072,  # Massachusetts coordinates
-            'lng': -71.3824
-        }
-        
-        # Get geo_service from app config
-        geo_service = app.config.get('geo_service')
-        
-        # Get user's location from various sources, with priority:
-        # 1. Address from request parameters (highest priority)
-        # 2. Session stored location
-        # 3. Default location (lowest priority)
-        user_location = session.get('location', default_location)
-        
-        # Check if address is provided in the request
-        address = request.args.get('address')
-        address_geocoded = False
-        
-        if address and geo_service:
             try:
-                app.logger.info(f"Attempting to geocode address: {address}")
-                
                 # Convert address to coordinates
-                coords = geo_service.get_location_from_address(address)
-                if coords and coords[0] != default_location['lat'] and coords[1] != default_location['lng']:
-                    # Update location with new coordinates
-                    user_location = {
-                        'lat': coords[0],
-                        'lng': coords[1]
-                    }
-                    # Store in session for future use
-                    session['location'] = user_location
-                    # Also store the address text
-                    session['address'] = address
-                    address_geocoded = True
-                    app.logger.info(f"Successfully geocoded address: {address} -> {coords}")
+                geo_service = GeolocationService()
+                location_result = geo_service.get_location_from_address(address)
+                
+                if location_result:
+                    # Update user location
+                    user_location = location_result
+                    logger.info(f"Address converted to coordinates: {user_location}")
+                    
+                    # Store address in session for future reference
+                    session['last_address'] = address
+                    session['user_location'] = user_location
                 else:
-                    # If we got the default location back, the geocoding failed
-                    if coords:
-                        app.logger.warning(f"Address geocoding returned default location: {address}")
-                        flash(f'Could not find precise location for "{address}". Showing recycling centers in Massachusetts.', 'warning')
-                    else:
-                        app.logger.warning(f"Failed to geocode address: {address}")
-                        flash(f'Could not find location "{address}". Showing nearby centers instead.', 'warning')
+                    # Failed to geocode address
+                    logger.warning(f"Failed to geocode address: {address}")
+                    flash("Could not find that location. Please try a different address or ZIP code.", "warning")
+                    search_error = "Could not find that location"
             except Exception as e:
-                app.logger.error(f"Error geocoding address: {e}", exc_info=True)
-                flash('Error finding that location. Showing nearby centers instead.', 'warning')
+                logger.error(f"Error in address search: {e}", exc_info=True)
+                flash("An error occurred while searching. Please try again.", "danger")
+                search_error = str(e)
         
-        # Log the location being used to find centers
-        app.logger.info(f"Using location for centers: {user_location}")
-        
-        # Get nearby recycling centers
-        try:
-            if geo_service:
-                centers = geo_service.find_recycling_centers(
-                    user_location.get('lat', default_location['lat']),
-                    user_location.get('lng', default_location['lng']),
-                    radius=15  # Increased radius to find more centers
-                )
-                
-                # Convert distance from km to miles
-                for center in centers:
-                    if 'distance' in center:
-                        # Convert km to miles (1 km = 0.621371 miles)
-                        center['distance'] = center['distance'] * 0.621371
-                
-                if centers:
-                    app.logger.info(f"Found {len(centers)} recycling centers")
-                    if address and address_geocoded:
-                        flash(f'Showing recycling centers near {address}', 'success')
-                else:
-                    app.logger.warning("No recycling centers found")
-                    if address:
-                        flash(f'No recycling centers found near {address}. Try a different location.', 'info')
-                    else:
-                        flash('No recycling centers found in this area. Try searching for a different location.', 'info')
-            else:
-                logger.warning("Geolocation service not available")
-                centers = []
-                flash('Recycling center search service is currently unavailable.', 'warning')
-        except Exception as e:
-            app.logger.error(f"Error finding recycling centers: {e}", exc_info=True)
-            centers = []
-            flash('Error loading recycling centers. Please try again later.', 'error')
-        
-        # Get Google Maps API key
-        google_maps_api_key = app.config.get('GOOGLE_MAPS_API_KEY', '')
-        
-        # Log whether we have an API key
-        if google_maps_api_key:
-            app.logger.info(f"Using Google Maps API key (length: {len(google_maps_api_key)})")
-        else:
-            app.logger.warning("No Google Maps API key configured")
+        # Get address from URL parameter if present
+        elif request.args.get('address'):
+            address = request.args.get('address')
+            logger.info(f"Searching for recycling centers near address from URL: {address}")
             
-        return render_template('centers.html', 
-                              centers=centers, 
-                              location=user_location,
-                              google_maps_api_key=google_maps_api_key,
-                              address=session.get('address'))
+            try:
+                # Convert address to coordinates
+                geo_service = GeolocationService()
+                location_result = geo_service.get_location_from_address(address)
+                
+                if location_result:
+                    # Update user location
+                    user_location = location_result
+                    logger.info(f"Address converted to coordinates: {user_location}")
+                    
+                    # Store address in session for future reference
+                    session['last_address'] = address
+                    session['user_location'] = user_location
+                else:
+                    # Failed to geocode address
+                    logger.warning(f"Failed to geocode address: {address}")
+                    flash("Could not find that location. Please try a different address or ZIP code.", "warning")
+                    search_error = "Could not find that location"
+            except Exception as e:
+                logger.error(f"Error in address search: {e}", exc_info=True)
+                flash("An error occurred while searching. Please try again.", "danger")
+                search_error = str(e)
+        
+        # If not searching by address, use last known location if available
+        elif session.get('user_location'):
+            user_location = session.get('user_location')
+            address = session.get('last_address')
+            logger.info(f"Using session location: {user_location}")
+        
+        # Find recycling centers near the user's location
+        geo_service = GeolocationService()
+        centers = geo_service.find_recycling_centers(
+            user_location['lat'], 
+            user_location['lon']
+        )
+        
+        logger.info(f"Found {len(centers)} recycling centers")
+        
+        return render_template(
+            'centers.html', 
+            centers=centers, 
+            address=address,
+            user_location=user_location,
+            search_error=search_error
+        )
 
     @app.route('/api/guidelines/<waste_type>', methods=['GET'])
     def get_recycling_guidelines(waste_type):
@@ -507,12 +506,18 @@ def register_routes(app):
             # Get guidelines from database
             guidelines = db.get_recycling_guidelines(waste_type)
             if not guidelines:
+                # Define recyclable waste types
+                recyclable_types = [
+                    'plastic_bottle', 'glass_bottle', 'aluminum_can', 'paper',
+                    'cardboard', 'plastic_container', 'metal', 'tetra_pak'
+                ]
+                
                 # Provide basic guidelines if none found
                 guidelines = {
                     'waste_type': waste_type,
-                    'recyclable': waste_type in ['plastic', 'paper', 'glass', 'metal', 'cardboard'],
-                    'preparation': 'Clean and remove labels if possible.',
-                    'bin_color': 'blue' if waste_type in ['plastic', 'paper', 'glass', 'metal', 'cardboard'] else 'black',
+                    'recyclable': waste_type in recyclable_types,
+                    'preparation': 'Clean and remove labels if possible. Ensure item is empty and dry.',
+                    'bin_color': 'blue' if waste_type in recyclable_types else 'black',
                     'facts': 'Recycling helps reduce landfill waste and conserves natural resources.'
                 }
                 

@@ -139,7 +139,7 @@
     <div class="row">
         <div class="col-md-7 mb-4">
             <h3 class="section-header">Interactive Map</h3>
-            <div id="map">
+            <div id="map" data-lat="{{ user_location.lat }}" data-lng="{{ user_location.lon }}">
                 <div class="alert alert-warning text-center p-5">
                     <i class="fas fa-map-marked-alt fa-3x mb-3"></i><br>
                     <h4>Map unavailable</h4>
@@ -232,13 +232,48 @@
             window.location.href = "{{ url_for('centers') }}?address=" + encodeURIComponent(address);
         }
     });
+    
+    // Ensure map and button functionality is ready once page is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM content loaded, setting up click handlers");
+        setupViewOnMapButtons();
+    });
+    
+    function setupViewOnMapButtons() {
+        // Add click handler to "View on Map" buttons (they exist before map loads)
+        const viewButtons = document.querySelectorAll('.view-on-map');
+        console.log("Found", viewButtons.length, "view-on-map buttons");
+        
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                console.log("View on map clicked for index:", index);
+                
+                if (map && markers && markers[index]) {
+                    console.log("Centering map on marker position");
+                    map.setCenter(markers[index].getPosition());
+                    map.setZoom(14);
+                    
+                    // Trigger marker click
+                    google.maps.event.trigger(markers[index], 'click');
+                } else {
+                    console.error("Cannot find marker for index:", index);
+                    console.log("Map exists:", !!map);
+                    console.log("Markers array exists:", !!markers);
+                    console.log("Markers length:", markers ? markers.length : 0);
+                }
+            });
+        });
+    }
 </script>
 
-{% if google_maps_api_key %}
+<!-- Load Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config.GOOGLE_MAPS_API_KEY }}&callback=initMap" async defer></script>
+
 <!-- Generate centers data with Jinja2 -->
 <script id="centers-data" type="application/json">
 {
-    "location": {{ location|default('{"lat": 42.4072, "lng": -71.3824}')|safe }},
+    "location": {{ user_location|tojson|safe }},
     "centers": [
     {% if centers %}
         {% for center in centers %}
@@ -248,15 +283,15 @@
                     "lat": {{ center.lat }}, 
                     "lng": {{ center.lon }}
                 },
-                "title": "{{ center.name|safe }}",
+                "title": {{ center.name|tojson|safe }},
                 "centerData": {
                     "index": {{ loop.index0 }},
-                    "name": "{{ center.name|safe }}",
-                    "address": "{{ center.address|safe }}",
-                    "distance": "{{ "%.1f"|format(center.distance) }} miles",
-                    "phone": "{{ center.phone|default('Not available')|safe }}",
-                    "website": "{{ center.website|default('#')|safe }}",
-                    "accepts": [{% for item in center.accepts %}"{{ item }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+                    "name": {{ center.name|tojson|safe }},
+                    "address": {{ center.address|tojson|safe }},
+                    "distance": {{ "%.1f"|format(center.distance) + " miles"|tojson|safe }},
+                    "phone": {{ center.phone|default('Not available')|tojson|safe }},
+                    "website": {{ center.website|default('#')|tojson|safe }},
+                    "accepts": [{% for item in center.accepts %}{{ item|tojson|safe }}{% if not loop.last %}, {% endif %}{% endfor %}]
                 }
             }{% if not loop.last %},{% endif %}
             {% endif %}
@@ -267,154 +302,203 @@
 </script>
 
 <script>
-    // Pure JavaScript with no Jinja2 template syntax
+    // Initialize the map with user's location
     function initMap() {
         try {
             console.log("Initializing map...");
-            // Get centers data from JSON
-            const centersDataElement = document.getElementById('centers-data');
-            let centersData;
-            
-            try {
-                centersData = JSON.parse(centersDataElement.textContent);
-                console.log("Centers data parsed:", centersData);
-            } catch (e) {
-                console.error("Error parsing centers data:", e);
-                console.log("Raw centers data:", centersDataElement.textContent);
-                // Use default data if parsing fails
-                centersData = {
-                    location: {"lat": 42.4072, "lng": -71.3824},
-                    centers: []
-                };
-            }
-            
-            const locationData = centersData.location;
-            const mapCenter = {
-                lat: parseFloat(locationData.lat),
-                lng: parseFloat(locationData.lng)
+            // Get user location from data attribute
+            const userLocation = {
+                lat: parseFloat(document.getElementById('map').getAttribute('data-lat')),
+                lng: parseFloat(document.getElementById('map').getAttribute('data-lng'))
             };
             
-            console.log("Map center:", mapCenter);
-            
-            // Create the map with improved styling
+            console.log("User location:", userLocation);
+
+            // Create map centered on user location
             map = new google.maps.Map(document.getElementById('map'), {
-                center: mapCenter,
                 zoom: 10,
-                mapTypeControl: true,
-                fullscreenControl: true,
-                streetViewControl: false,
-                mapTypeId: google.maps.MapTypeId.ROADMAP,
-                styles: [
-                    {
-                        "featureType": "poi.business",
-                        "stylers": [{ "visibility": "off" }]
-                    },
-                    {
-                        "featureType": "poi.park",
-                        "elementType": "labels.text",
-                        "stylers": [{ "visibility": "off" }]
-                    }
-                ]
+                center: userLocation
             });
             
-            console.log("Map created");
+            console.log("Map created with center:", map.getCenter().toString());
+
+            // Create bounds object to fit all markers
+            const bounds = new google.maps.LatLngBounds();
             
-            // Add markers for each center
-            if (centersData.centers && centersData.centers.length > 0) {
-                console.log("Adding markers for", centersData.centers.length, "centers");
-                centersData.centers.forEach((center, index) => {
-                    if (center && center.position) {
-                        console.log("Adding marker for center:", center.title);
-                        addMarker(center);
-                    }
+            // Always include user location in bounds
+            bounds.extend(userLocation);
+            
+            // Add user location marker
+            const userMarker = new google.maps.Marker({
+                position: userLocation,
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: "#4285F4",
+                    fillOpacity: 1,
+                    strokeColor: "#FFFFFF",
+                    strokeWeight: 2
+                },
+                title: "Your Location"
+            });
+            
+            // Add info window for user location
+            const userInfoWindow = new google.maps.InfoWindow({
+                content: "<div><strong>Your Location</strong></div>"
+            });
+            
+            userMarker.addListener('click', function() {
+                userInfoWindow.open(map, userMarker);
+            });
+
+            // Get centers data
+            let centers = [];
+            try {
+                const centersDataElem = document.getElementById('centers-data');
+                if (centersDataElem) {
+                    console.log("Getting centers from JSON");
+                    const centersData = JSON.parse(centersDataElem.textContent);
+                    centers = centersData.centers || [];
+                    console.log(`Found ${centers.length} centers in JSON data`);
+                } else {
+                    console.error("centers-data element not found");
+                }
+            } catch (e) {
+                console.error("Error parsing centers data:", e);
+                console.log("Raw data length:", document.getElementById('centers-data')?.textContent?.length);
+                console.log("Raw data excerpt:", document.getElementById('centers-data')?.textContent?.substring(0, 100) + "...");
+            }
+            
+            // Add markers for recycling centers
+            const markers = [];
+            const infoWindows = [];
+            
+            if (centers && centers.length > 0) {
+                console.log(`Adding ${centers.length} markers to map`);
+                
+                for (let i = 0; i < centers.length; i++) {
+                    const center = centers[i];
+                    console.log(`Adding marker for ${center.name} at ${center.lat},${center.lon}`);
+                    
+                    const position = {lat: center.lat, lng: center.lon};
+                    const marker = new google.maps.Marker({
+                        position: position,
+                        map: map,
+                        title: center.name,
+                        animation: google.maps.Animation.DROP
+                    });
+                    
+                    // Add marker position to bounds
+                    bounds.extend(position);
+                    
+                    // Create info window content
+                    const contentString = `
+                        <div class="info-window">
+                            <h5>${center.name}</h5>
+                            <p><strong>Address:</strong> ${center.address}</p>
+                            <p><strong>Distance:</strong> ${center.distance.toFixed(1)} km</p>
+                            ${center.phone ? `<p><strong>Phone:</strong> ${center.phone}</p>` : ''}
+                            ${center.website ? `<p><a href="${center.website}" target="_blank">Website</a></p>` : ''}
+                            <p><strong>Accepts:</strong> ${center.accepts.join(', ')}</p>
+                        </div>
+                    `;
+                    
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: contentString
+                    });
+                    
+                    marker.addListener('click', function() {
+                        // Close all open info windows
+                        infoWindows.forEach(function(infoWindow) {
+                            infoWindow.close();
+                        });
+                        
+                        // Open this info window
+                        infoWindow.open(map, marker);
+                        
+                        // Highlight corresponding center in list
+                        highlightCenter(i);
+                    });
+                    
+                    markers.push(marker);
+                    infoWindows.push(infoWindow);
+                }
+                
+                // Fit map to bounds with all markers
+                console.log("Fitting map to bounds:", bounds.toString());
+                map.fitBounds(bounds);
+                
+                // If there's only one center (plus user location), zoom out a bit
+                if (centers.length === 1) {
+                    google.maps.event.addListenerOnce(map, 'bounds_changed', function() {
+                        map.setZoom(Math.min(12, map.getZoom()));
+                    });
+                }
+                
+                // If there are many centers, don't zoom out too far
+                if (centers.length > 10) {
+                    google.maps.event.addListenerOnce(map, 'bounds_changed', function() {
+                        if (map.getZoom() < 8) map.setZoom(8);
+                    });
+                }
+                
+                // Add view-on-map button functionality
+                const viewButtons = document.querySelectorAll('.view-on-map');
+                console.log(`Found ${viewButtons.length} view-on-map buttons`);
+                
+                viewButtons.forEach(function(button, index) {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        // Get center from the data attribute
+                        const centerId = parseInt(this.getAttribute('data-center-id'));
+                        
+                        if (centerId >= 0 && centerId < markers.length) {
+                            // Close all info windows
+                            infoWindows.forEach(function(infoWindow) {
+                                infoWindow.close();
+                            });
+                            
+                            // Center map on marker
+                            map.setCenter(markers[centerId].getPosition());
+                            map.setZoom(13);
+                            
+                            // Open info window
+                            infoWindows[centerId].open(map, markers[centerId]);
+                            
+                            // Highlight center in list
+                            highlightCenter(centerId);
+                        }
+                    });
+                });
+                
+                // Highlight center in list when hovering over marker
+                markers.forEach(function(marker, index) {
+                    marker.addListener('mouseover', function() {
+                        highlightCenter(index);
+                    });
                 });
             } else {
                 console.log("No centers found in data");
+                
+                // Just center on user location
+                map.setCenter(userLocation);
+                map.setZoom(10);
+                
+                // Add a message to the map
+                const noCentersDiv = document.createElement('div');
+                noCentersDiv.className = 'no-centers-message';
+                noCentersDiv.innerHTML = '<p>No recycling centers found nearby.</p><p>Try searching with a different location or increasing the search radius.</p>';
+                map.controls[google.maps.ControlPosition.TOP_CENTER].push(noCentersDiv);
             }
+
         } catch (e) {
-            console.error("Error in initMap:", e);
+            console.error("Error initializing map:", e);
         }
     }
     
-    function addMarker(props) {
-        // Create custom marker icon for better visibility
-        const markerIcon = {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: '#2D6A4F',
-            fillOpacity: 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 2,
-            scale: 10
-        };
-        
-        // Create marker with animation
-        const marker = new google.maps.Marker({
-            position: props.position,
-            map: map,
-            title: props.title,
-            icon: markerIcon,
-            animation: google.maps.Animation.DROP
-        });
-        
-        markers.push(marker);
-        
-        // Create info window with center details
-        if (props.centerData) {
-            // Create badges for accepted items
-            const acceptsHtml = props.centerData.accepts.map(item => 
-                `<span class="badge bg-success">${item}</span>`
-            ).join(' ');
-            
-            // Create info window content
-            const contentString = `
-                <div class="info-window">
-                    <h5>${props.centerData.name}</h5>
-                    <p>
-                        <i class="fas fa-map-marker-alt text-danger"></i> ${props.centerData.address}<br>
-                        <i class="fas fa-route text-info"></i> ${props.centerData.distance}<br>
-                        <i class="fas fa-phone text-success"></i> ${props.centerData.phone}
-                    </p>
-                    <p><strong>Accepts:</strong><br> ${acceptsHtml}</p>
-                    <div class="d-flex justify-content-between mt-3">
-                        <a href="https://maps.google.com/?q=${encodeURIComponent(props.centerData.address)}" 
-                           target="_blank" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-directions"></i> Directions
-                        </a>
-                        ${props.centerData.website !== '#' ? 
-                            `<a href="${props.centerData.website}" target="_blank" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-globe"></i> Website
-                            </a>` : ''
-                        }
-                    </div>
-                </div>
-            `;
-            
-            const infoWindow = new google.maps.InfoWindow({
-                content: contentString,
-                maxWidth: 320
-            });
-            
-            infoWindows.push(infoWindow);
-            
-            // Add click listener to marker
-            marker.addListener('click', () => {
-                // Close all open info windows
-                infoWindows.forEach(window => window.close());
-                
-                // Open this info window
-                infoWindow.open(map, marker);
-                
-                // Highlight corresponding card
-                highlightCard(props.centerData.index);
-                
-                // Animate marker
-                marker.setAnimation(google.maps.Animation.BOUNCE);
-                setTimeout(() => marker.setAnimation(null), 750);
-            });
-        }
-    }
-    
-    function highlightCard(index) {
+    function highlightCenter(index) {
         // Remove highlight from all cards
         document.querySelectorAll('.center-card').forEach(card => {
             card.classList.remove('highlight-card');
@@ -427,52 +511,5 @@
             card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }
-    
-    // Connect list view buttons to the map
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add click handler to "View on Map" buttons
-        document.querySelectorAll('.view-on-map').forEach(button => {
-            button.addEventListener('click', function() {
-                const index = parseInt(this.getAttribute('data-index'));
-                
-                if (markers[index]) {
-                    // Center map on the marker
-                    map.setCenter(markers[index].getPosition());
-                    map.setZoom(14);
-                    
-                    // Trigger marker click
-                    google.maps.event.trigger(markers[index], 'click');
-                }
-            });
-        });
-    });
 </script>
-
-<script>
-    // Load Google Maps API when the page is fully loaded
-    window.onload = function() {
-        console.log("Window loaded, setting up map");
-        
-        if (typeof google === 'undefined') {
-            console.log("Loading Google Maps API");
-            // Clear the warning message
-            const mapElement = document.getElementById('map');
-            mapElement.innerHTML = '';
-            
-            // Load the script
-            const script = document.createElement('script');
-            script.src = "https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap";
-            script.async = true;
-            script.defer = true;
-            document.head.appendChild(script);
-            
-            // Verify API key is present
-            console.log("API Key length:", "{{ google_maps_api_key }}".length);
-        } else {
-            console.log("Google Maps API already loaded");
-            initMap();
-        }
-    };
-</script>
-{% endif %}
 {% endblock %} 
