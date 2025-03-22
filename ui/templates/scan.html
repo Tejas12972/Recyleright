@@ -191,6 +191,67 @@
         border-radius: 8px;
         display: none;
     }
+    
+    /* GPT Analysis Section Styles */
+    .gpt-analysis {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: rgba(76, 175, 80, 0.05);
+        border-radius: 8px;
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .gpt-analysis h4 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .gpt-analysis h4 i {
+        margin-right: 10px;
+    }
+    
+    .gpt-analysis-section {
+        margin-bottom: 15px;
+    }
+    
+    .gpt-analysis-section h5 {
+        font-size: 1rem;
+        color: #2E7D32;
+        margin-bottom: 8px;
+        border-bottom: 1px solid rgba(76, 175, 80, 0.2);
+        padding-bottom: 5px;
+    }
+    
+    .gpt-analysis-section ul {
+        padding-left: 20px;
+    }
+    
+    .gpt-analysis-section li {
+        margin-bottom: 5px;
+    }
+    
+    /* Badge styles for waste type */
+    .badge-recyclable {
+        background-color: #4CAF50;
+        color: white;
+    }
+    
+    .badge-compostable {
+        background-color: #8BC34A;
+        color: white;
+    }
+    
+    .badge-trash {
+        background-color: #F44336;
+        color: white;
+    }
+    
+    .badge-mixed {
+        background-color: #FF9800;
+        color: white;
+    }
 </style>
 {% endblock %}
 
@@ -630,12 +691,10 @@
         
         // Results handling
         function displayResults(data) {
-            // Debug: Log the data received
-            console.log("Received data:", data);
+            console.log("Scan results data:", data);
             
-            // Hide loading and show results
-            loading.style.display = 'none';
             results.style.display = 'block';
+            errorMessage.style.display = 'none';
             
             const prediction = data.top_prediction;
             console.log("Top prediction:", prediction);
@@ -677,6 +736,82 @@
                 
                 // Display what item was scanned
                 document.getElementById('item-scanned').innerHTML = `<strong>Item Scanned:</strong> ${data.item_name || itemLabel}`;
+                
+                // Check for GPT-4o analysis results
+                if (data.gpt_analysis) {
+                    console.log("GPT analysis data:", data.gpt_analysis);
+                    
+                    // Get the analysis results container
+                    let gptAnalysisContainer = document.getElementById('gpt-analysis-container');
+                    
+                    // If the container doesn't exist, create it
+                    if (!gptAnalysisContainer) {
+                        gptAnalysisContainer = document.createElement('div');
+                        gptAnalysisContainer.id = 'gpt-analysis-container';
+                        gptAnalysisContainer.className = 'gpt-analysis';
+                        
+                        // Insert it after the guidelines section
+                        const guidelinesSection = document.querySelector('.guidelines');
+                        if (guidelinesSection && guidelinesSection.nextElementSibling) {
+                            results.insertBefore(gptAnalysisContainer, guidelinesSection.nextElementSibling);
+                        } else {
+                            // Append to results if guidelines section not found
+                            results.appendChild(gptAnalysisContainer);
+                        }
+                    }
+                    
+                    // Determine badge class based on waste type
+                    const wasteTypeBadgeClass = `badge-${data.gpt_analysis.waste_type || 'mixed'}`;
+                    
+                    // Create HTML content for GPT analysis
+                    let gptAnalysisHtml = `
+                        <h4><i class="fas fa-brain"></i> AI Analysis Results</h4>
+                        <div class="mb-3">
+                            <span class="badge ${wasteTypeBadgeClass} p-2">
+                                ${(data.gpt_analysis.waste_type || 'Unknown').toUpperCase()}
+                            </span>
+                        </div>
+                    `;
+                    
+                    // Material Composition Section
+                    if (data.gpt_analysis.material_composition && data.gpt_analysis.material_composition.length > 0) {
+                        gptAnalysisHtml += `
+                            <div class="gpt-analysis-section">
+                                <h5><i class="fas fa-atom"></i> Material Composition</h5>
+                                <ul>
+                                    ${data.gpt_analysis.material_composition.map(item => `<li>${item}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    
+                    // Recyclability Section
+                    if (data.gpt_analysis.recyclability && data.gpt_analysis.recyclability.length > 0) {
+                        gptAnalysisHtml += `
+                            <div class="gpt-analysis-section">
+                                <h5><i class="fas fa-recycle"></i> Recyclability</h5>
+                                <ul>
+                                    ${data.gpt_analysis.recyclability.map(item => `<li>${item}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    
+                    // Disposal Suggestions Section
+                    if (data.gpt_analysis.disposal_suggestions && data.gpt_analysis.disposal_suggestions.length > 0) {
+                        gptAnalysisHtml += `
+                            <div class="gpt-analysis-section">
+                                <h5><i class="fas fa-trash-alt"></i> Disposal Suggestions</h5>
+                                <ul>
+                                    ${data.gpt_analysis.disposal_suggestions.map(item => `<li>${item}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    
+                    // Set the HTML content
+                    gptAnalysisContainer.innerHTML = gptAnalysisHtml;
+                }
                 
                 // Store scan_id and waste_type for confirmation
                 let scan_id = data.scan_id || null;

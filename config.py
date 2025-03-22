@@ -53,6 +53,15 @@ GEOLOCATION_API_KEY = os.getenv('GEOLOCATION_API_KEY', '')
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
 LOG_FILE = os.path.join(BASE_DIR, os.getenv('LOG_FILE', 'logs/recycleright.log'))
 
+# OpenAI API configuration
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+GPT_MODEL = "gpt-4o"  # The model to use for image analysis
+
+# If no API key is provided, show a warning
+if not OPENAI_API_KEY:
+    print("WARNING: OPENAI_API_KEY is not set. GPT-4o integration will not work.")
+    print("Please set the OPENAI_API_KEY environment variable to use ChatGPT for recycling analysis.")
+
 # Create required directories
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True) 

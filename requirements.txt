@@ -24,3 +24,6 @@ pytest>=6.0.0
 # Utilities
 Pillow>=8.0.0
 tqdm>=4.50.0
+
+# OpenAI API for GPT-4o integration
+openai>=1.0.0

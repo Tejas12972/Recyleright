@@ -94,6 +94,16 @@ def create_app():
         labels_path=app.config.get('LABELS_PATH', 'models/labels/waste_labels.txt')
     )
     points_system = PointsSystem(db)
+    
+    # Initialize GPT analyzer if key is configured
+    gpt_analyzer = None
+    if hasattr(config, 'OPENAI_API_KEY') and config.OPENAI_API_KEY:
+        try:
+            from api.gpt_analyzer import GPTImageAnalyzer
+            gpt_analyzer = GPTImageAnalyzer()
+            app.logger.info("GPT-4o Image Analyzer initialized")
+        except Exception as e:
+            app.logger.warning(f"Could not initialize GPT-4o Image Analyzer: {e}")
 
     # Create upload directory if it doesn't exist
     UPLOAD_FOLDER = 'ui/static/uploads'
@@ -111,6 +121,7 @@ def create_app():
     app.config['waste_classifier'] = classifier
     app.config['geo_service'] = geo_service
     app.config['points_system'] = points_system
+    app.config['gpt_analyzer'] = gpt_analyzer
     
     # Add Google Maps API key to app config
     app.config['GOOGLE_MAPS_API_KEY'] = config.GOOGLE_MAPS_API_KEY
