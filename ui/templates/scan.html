@@ -813,28 +813,42 @@
         font-size: 0.85rem;
     }
     
-    .badge-compostable {
-        background-color: #8BC34A;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 0.85rem;
-    }
-    
-    .badge-trash {
+    .badge-non-recyclable {
         background-color: #F44336;
-        color: white;
+        color: #FFFFFF;
+        font-weight: 700;
         padding: 5px 10px;
         border-radius: 4px;
         font-size: 0.85rem;
     }
     
-    .badge-mixed {
+    .badge-special {
         background-color: #FF9800;
-        color: #11222a;
+        color: #000000;
+        font-weight: 700;
         padding: 5px 10px;
         border-radius: 4px;
         font-size: 0.85rem;
+    }
+    
+    /* Add styles for non-recyclable guidance */
+    .non-recyclable-guidance {
+        background-color: rgba(244, 67, 54, 0.1);
+        border-left: 3px solid #F44336;
+        padding: 12px 15px;
+        margin-top: 15px;
+        border-radius: 4px;
+    }
+    
+    .non-recyclable-guidance h5 {
+        color: #F44336;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    
+    .non-recyclable-guidance p {
+        color: #333333;
+        margin-bottom: 5px;
     }
     
     .button-animation {
@@ -1337,7 +1351,7 @@
                 if (typeof data.gpt_analysis.material_composition === 'string') {
                     material = data.gpt_analysis.material_composition;
                 } else if (Array.isArray(data.gpt_analysis.material_composition) && 
-                          data.gpt_analysis.material_composition.length > 0) {
+                           data.gpt_analysis.material_composition.length > 0) {
                     material = data.gpt_analysis.material_composition[0];
                 }
             }
@@ -1350,19 +1364,20 @@
             // Get recyclability from gpt_analysis if available
             if (data.gpt_analysis.recyclability) {
                 if (typeof data.gpt_analysis.recyclability === 'string') {
-                    if (data.gpt_analysis.recyclability.toLowerCase().includes('recyclable')) {
+                    const recyclabilityLower = data.gpt_analysis.recyclability.toLowerCase();
+                    if (recyclabilityLower.includes('recyclable') && !recyclabilityLower.includes('not recyclable')) {
                         recyclable = true;
-                    } else if (data.gpt_analysis.recyclability.toLowerCase().includes('not')) {
+                    } else if (recyclabilityLower.includes('not recyclable') || recyclabilityLower.includes('non-recyclable')) {
                         recyclable = false;
-                    } else if (data.gpt_analysis.recyclability.toLowerCase().includes('special')) {
+                    } else if (recyclabilityLower.includes('special')) {
                         recyclable = 'special';
                     }
                 } else if (Array.isArray(data.gpt_analysis.recyclability) && 
-                          data.gpt_analysis.recyclability.length > 0) {
+                           data.gpt_analysis.recyclability.length > 0) {
                     const recyclabilityStr = data.gpt_analysis.recyclability[0].toLowerCase();
-                    if (recyclabilityStr.includes('recyclable')) {
+                    if (recyclabilityStr.includes('recyclable') && !recyclabilityStr.includes('not recyclable')) {
                         recyclable = true;
-                    } else if (recyclabilityStr.includes('not')) {
+                    } else if (recyclabilityStr.includes('not recyclable') || recyclabilityStr.includes('non-recyclable')) {
                         recyclable = false;
                     } else if (recyclabilityStr.includes('special')) {
                         recyclable = 'special';
@@ -1382,16 +1397,28 @@
             badgeText = 'SPECIAL DISPOSAL';
         }
         
+        let nonRecyclableGuidance = '';
+        if (recyclable === false) {
+            nonRecyclableGuidance = `
+                <div class="non-recyclable-guidance mt-3">
+                    <h5><i class="fas fa-info-circle me-2"></i>Non-Recyclable Item</h5>
+                    <p>This item should be disposed of in the regular trash. It cannot be processed through standard recycling facilities.</p>
+                    <p>Consider alternatives like reusing, repurposing, or finding specialized recycling programs for this material.</p>
+                </div>
+            `;
+        }
+        
         return `
-                        <div class="mb-3">
+            <div class="mb-3">
                 <span class="badge ${badgeClass} mb-2">${badgeText}</span>
                 <p><strong>Material:</strong> ${parseMarkdown(material)}</p>
                 <p><strong>Waste Type:</strong> ${parseMarkdown(wastetype)}</p>
                 <p><strong>Confidence:</strong> ${data.confidence ? Math.round(data.confidence * 100) + '%' : 'N/A'}</p>
-                            </div>
-                        `;
-                    }
-                    
+                ${nonRecyclableGuidance}
+            </div>
+        `;
+    }
+    
     function formatDisposalInstructions(data) {
         let instructions = data.disposal_instructions || 'No specific disposal instructions available.';
         
@@ -1407,10 +1434,10 @@
         return `
             <div class="mb-3">
                 ${parseMarkdown(instructions)}
-                            </div>
-                        `;
-                    }
-                    
+            </div>
+        `;
+    }
+    
     function formatRecyclingOptions(data) {
         const suggestions = data.recycling_suggestions || [];
         let centersSuggested = false;
@@ -1550,7 +1577,7 @@
                         <div class="analysis-section">
                             <h5><i class="fas fa-atom me-2"></i>Material Composition</h5>
                             <p>${analysis.material_composition}</p>
-                </div>`;
+                        </div>`;
                 }
                 
                 // Display recyclability info
@@ -1631,4 +1658,4 @@
     }
     });
 </script>
-{% endblock %} 
+{% endblock %}

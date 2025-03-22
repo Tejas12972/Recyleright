@@ -40,6 +40,11 @@ class GPTImageAnalyzer:
             str: Base64 encoded image
         """
         try:
+            # Check if file exists
+            if not os.path.exists(image_path):
+                logger.error(f"Image file not found: {image_path}")
+                raise FileNotFoundError(f"Image file not found: {image_path}")
+                
             with open(image_path, "rb") as image_file:
                 return base64.b64encode(image_file.read()).decode('utf-8')
         except Exception as e:
@@ -57,40 +62,37 @@ class GPTImageAnalyzer:
             dict: Analysis results including material composition, recyclability, and disposal suggestions
         """
         try:
+            # Check if file exists and is readable
+            if not os.path.isfile(image_path):
+                logger.error(f"Image file not found or not accessible: {image_path}")
+                return {
+                    "error": f"Image file not found or not accessible: {image_path}",
+                    "material_composition": [],
+                    "recyclability": [],
+                    "disposal_suggestions": [],
+                    "waste_type": "unknown"
+                }
+            
             # Encode image to base64
             base64_image = self._encode_image(image_path)
             
             # System prompt for recycling analysis
-            system_prompt = """As a recycling expert for Recycleright, analyze an image to determine its composition and recyclability, then provide suggestions for proper disposal.
+            system_prompt = """Analyze the uploaded image and identify the waste material shown. Focus on visual characteristics, textures, labels, and shapes to determine:
 
-First, analyze the image to identify materials, considering common categories such as glass, metal, plastic, and paper. Evaluate the identified materials for their recyclability based on the standard recycling guidelines.
+1. Material Composition: Provide specific, detailed identification of materials present (e.g., "HDPE plastic milk jug" rather than just "plastic" or "PET plastic water bottle with paper label" rather than just "bottle").
 
-# Steps
+2. Recyclability Assessment: For each identified material, clearly state whether it is:
+   - RECYCLABLE (in most standard municipal programs)
+   - CONDITIONALLY RECYCLABLE (requires special handling/facilities)
+   - NOT RECYCLABLE
 
-1. **Analyze the Image**: 
-   - Identify the items and materials present in the image.
-   - Categorize items into common material groups: plastic, paper, metal, glass, or mixed materials.
+3. Disposal Suggestions: Provide actionable, specific instructions for proper disposal of each material component.
 
-2. **Determine Recyclability**:
-   - Use standard recycling guidelines to determine the recyclability of each material found.
-   - Consider any contaminants that may affect recyclability, such as food residue on paper.
+4. Confidence Level: Indicate your confidence in the analysis (High/Medium/Low).
 
-3. **Provide Suggestions for Disposal**:
-   - Suggest appropriate recycling methods for the recyclable materials identified.
-   - Offer alternatives for materials that cannot be recycled, e.g., upcycling or proper waste disposal methods.
+If multiple materials are present, analyze each component separately. If the image is unclear or the material cannot be confidently identified, acknowledge this limitation and provide best recommendations based on visual cues.
 
-# Output Format
-
-Respond in a structured format:
-- Material Composition: List of identified materials.
-- Recyclability: Status of each material (e.g., recyclable, not recyclable).
-- Disposal Suggestions: Recommendations for each material's disposal.
-
-# Notes
-
-- Always consider local recycling guidelines, as they may vary.
-- Contaminants can affect the recyclability, so items should be clean and dry before recycling.
-- Dont give a reply in markdown format, just give a plain text reply."""
+Return results in a structured format without markdown formatting that can be directly parsed into my website fields."""
             
             # Call OpenAI API
             response = self.client.chat.completions.create(
@@ -103,7 +105,7 @@ Respond in a structured format:
                     {
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": "Analyze this image and tell me if it's recyclable and how I should dispose of it:"},
+                            {"type": "text", "text": "Analyze this waste material for recyclability:"},
                             {
                                 "type": "image_url",
                                 "image_url": {
@@ -114,7 +116,9 @@ Respond in a structured format:
                         ]
                     }
                 ],
-                max_tokens=1000
+                max_tokens=2048,
+                temperature=0.3,  # Lower temperature for more deterministic results
+                top_p=1.0  # Control nucleus sampling
             )
             
             # Extract the response text
@@ -156,6 +160,7 @@ Respond in a structured format:
             sections = {
                 "Material Composition": "material_composition",
                 "Recyclability": "recyclability",
+                "Recyclability Assessment": "recyclability",
                 "Disposal Suggestions": "disposal_suggestions"
             }
             
@@ -169,38 +174,56 @@ Respond in a structured format:
                     continue
                 
                 # Check if this is a section header
+                section_found = False
                 for header, key in sections.items():
-                    if line.lower().startswith(header.lower()) or line == f"**{header}**:" or line == f"- **{header}**:":
+                    if line.lower().startswith(header.lower()) or ":" in line and line.split(":")[0].strip().lower() == header.lower():
                         current_section = key
+                        section_found = True
+                        # Extract the value if it's on the same line (like "Material Composition: PET plastic")
+                        if ":" in line:
+                            value = line.split(":", 1)[1].strip()
+                            if value:
+                                result[key].append(value)
                         break
                 
-                # If we're in a section and this is a bullet point, add it to the result
-                if current_section and (line.startswith('-') or line.startswith('*')):
-                    # Clean up the line
-                    clean_line = line.lstrip('-* ').strip()
+                # Skip processing this line if it was a section header
+                if section_found:
+                    continue
+                
+                # If we're in a section and this is a bullet point or content line, add it to the result
+                if current_section:
+                    # Clean up the line - remove bullet points and list markers
+                    clean_line = line
+                    if line.startswith('-') or line.startswith('*'):
+                        clean_line = line.lstrip('-* ').strip()
+                    elif line.startswith(('•', '○', '▪', '▫', '◦')):
+                        clean_line = line[1:].strip()
+                    
+                    # Only add non-empty lines that don't contain section headers
                     if clean_line and not any(header.lower() in clean_line.lower() for header in sections.keys()):
                         result[current_section].append(clean_line)
             
-            # If we couldn't parse structured data, return the whole response
+            # If we couldn't parse structured data, try a more aggressive approach
             if not any(result.values()):
-                # Just split by the headers as best we can
                 for header, key in sections.items():
-                    # Find the header in the text
                     start_idx = response_text.lower().find(header.lower())
                     if start_idx >= 0:
                         # Find the next header or the end of the text
-                        next_headers = [h.lower() for h in sections.keys() if h.lower() != header.lower()]
-                        next_indices = [response_text.lower().find(h, start_idx + len(header)) for h in next_headers]
-                        next_indices = [i for i in next_indices if i >= 0]
+                        next_headers = [(h.lower(), response_text.lower().find(h.lower(), start_idx + len(header))) 
+                                       for h in sections.keys() if h.lower() != header.lower()]
+                        next_headers = [(h, i) for h, i in next_headers if i > 0]
                         
-                        end_idx = min(next_indices) if next_indices else len(response_text)
-                        section_text = response_text[start_idx + len(header):end_idx].strip()
+                        end_idx = min([i for _, i in next_headers]) if next_headers else len(response_text)
+                        section_text = response_text[start_idx + len(header):end_idx].strip().lstrip(':-').strip()
                         
-                        # Split by lines or bullet points
+                        # Split by newlines and add each line
                         for line in section_text.split('\n'):
                             line = line.strip()
-                            if line and line.startswith(('-', '*')) and not any(h.lower() in line.lower() for h in sections.keys()):
-                                result[key].append(line.lstrip('-* ').strip())
+                            if line and not any(h.lower() in line.lower() for h in sections.keys()):
+                                # Remove bullet points
+                                if line.startswith(('-', '*', '•', '○', '▪', '▫', '◦')):
+                                    line = line[1:].strip()
+                                result[key].append(line)
             
             # Determine waste type (recyclable, compostable, trash)
             waste_type = self._determine_waste_type(result)
@@ -241,7 +264,7 @@ Respond in a structured format:
         trash_count = sum(1 for keyword in trash_keywords if keyword in recyclability)
         
         # If there are multiple types, consider it mixed
-        if recyclable_count > 0 and (compostable_count > 0 or trash_count > 0):
+        if (recyclable_count > 0 and trash_count > 0) or (compostable_count > 0 and trash_count > 0):
             return "mixed"
         elif recyclable_count > 0:
             return "recyclable"
@@ -261,4 +284,4 @@ Respond in a structured format:
                 return "trash"
             
             # Default to mixed if we can't determine
-            return "mixed" 
+            return "mixed"
