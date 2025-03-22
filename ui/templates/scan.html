@@ -187,7 +187,7 @@
     #select-file-btn:hover:after {
         left: 100%;
     }
-
+    
     #drop-area.highlight {
         border-color: #5CDB95;
         background-color: rgba(92, 219, 149, 0.1);
@@ -552,26 +552,50 @@
         margin-left: 10px;
     }
     
-    .guidelines {
-        margin: 0;
-        padding: 25px;
-        background-color: rgba(255, 255, 255, 0.08);
+    .guidelines, .recycling-centers, .gpt-analysis {
+        background-color: white;
         border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
     }
     
-    .guidelines h4 {
-        color: #4CAF50;
-        margin-top: 0;
-        margin-bottom: 18px;
+    .guidelines h4, .recycling-centers h4, .gpt-analysis h4 {
+        color: #000000;
+        margin-bottom: 1rem;
         display: flex;
         align-items: center;
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         font-weight: 600;
     }
     
-    .guidelines h4 i {
-        margin-right: 12px;
+    .guidelines h4 i, .recycling-centers h4 i, .gpt-analysis h4 i {
+        margin-right: 0.75rem;
+        color: var(--primary);
+        font-size: 1.3rem;
+    }
+    
+    /* Improve Material Composition text visibility */
+    #material-composition p,
+    #disposal-instructions p,
+    #environmental-impact p,
+    #recycling-options p,
+    .analysis-section p, 
+    .analysis-section li {
+        color: #343a40;
+        font-size: 1.05rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.5em 0.75em;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.375rem;
     }
     
     .alert {
@@ -673,83 +697,116 @@
     
     /* GPT Analysis Section Styles */
     .gpt-analysis {
-        margin: 0;
-        padding: 25px;
-        background-color: rgba(76, 175, 80, 0.08);
+        background-color: white;
+        padding: 1.75rem;
         border-radius: 12px;
-        border-left: 4px solid #4CAF50;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-top: 1.5rem;
     }
     
     .gpt-analysis h4 {
-        color: #4CAF50;
-        margin-top: 0;
-        margin-bottom: 18px;
+        color: var(--primary-dark);
+        font-weight: 600;
+        font-size: 1.3rem;
+        margin-bottom: 1.25rem;
         display: flex;
         align-items: center;
-        font-size: 1.3rem;
-        font-weight: 600;
     }
     
     .gpt-analysis h4 i {
-        margin-right: 12px;
+        margin-right: 0.75rem;
+        color: var(--primary);
     }
     
     .gpt-analysis-section {
-        margin-bottom: 20px;
-        background-color: rgba(255, 255, 255, 0.05);
-        padding: 15px;
+        background-color: #f8f9fa;
         border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
+        padding: 1.25rem;
+        color: #212529;
     }
     
-    .gpt-analysis-section:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        background-color: rgba(255, 255, 255, 0.08);
+    .analysis-sections {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
     }
     
-    .gpt-analysis-section h5 {
-        font-size: 1.1rem;
-        color: #2E7D32;
-        margin-bottom: 12px;
-        border-bottom: 1px solid rgba(76, 175, 80, 0.2);
-        padding-bottom: 8px;
+    .analysis-section {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 3px solid var(--primary);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .analysis-section h5 {
+        color: var(--primary-dark);
         font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
         display: flex;
         align-items: center;
     }
     
-    .gpt-analysis-section h5 i {
-        margin-right: 8px;
-    }
-    
-    .gpt-analysis-section ul {
-        padding-left: 20px;
+    .analysis-section ul {
+        padding-left: 1.25rem;
         margin-bottom: 0;
     }
     
-    .gpt-analysis-section li {
-        margin-bottom: 8px;
-        line-height: 1.4;
-        position: relative;
-        padding-left: 5px;
+    .analysis-section li {
+        margin-bottom: 0.5rem;
+        color: #343a40;
     }
     
-    .gpt-analysis-section li:last-child {
+    .analysis-section p {
+        color: #343a40;
         margin-bottom: 0;
     }
     
-    .gpt-analysis-section p {
-        margin-bottom: 0;
-        line-height: 1.5;
+    .json-data {
+        background-color: #f8f9fa;
+        color: #343a40;
+        padding: 1rem;
+        border-radius: 6px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        font-size: 0.9rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    #material-composition p, 
+    #disposal-instructions p, 
+    #environmental-impact p, 
+    #recycling-options p {
+        color: #343a40;
+    }
+    
+    /* Better contrast for the points message */
+    #points-container {
+        background-color: rgba(40, 167, 69, 0.15);
+        border: 1px solid rgba(40, 167, 69, 0.3);
+        color: #2c3e50;
+    }
+    
+    #points-message {
+        color: #155724;
+        font-weight: 500;
+    }
+    
+    /* Fix for dictionary display */
+    pre {
+        color: #343a40;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        padding: 10px;
+        white-space: pre-wrap;
     }
     
     /* Badge styles for waste type */
     .badge-recyclable {
         background-color: #4CAF50;
-        color: #11222a;
+        color: #000000;
         font-weight: 700;
         padding: 5px 10px;
         border-radius: 4px;
@@ -817,104 +874,106 @@
 {% endblock %}
 
 {% block content %}
-<div class="scan-container">
+<div class="container py-5">
+    <div class="scan-container mx-auto">
     <div class="page-header">
-        <h1><i class="fas fa-camera"></i> Scan Your Waste</h1>
-        <p>
-            Upload an image of your waste item for AI-powered classification 
-            and get personalized recycling guidance.
-        </p>
+            <h1><i class="fas fa-camera-retro me-2"></i>Scan Your Waste</h1>
+            <p>Upload an image of your waste item for AI-powered classification and get personalized recycling guidance.</p>
     </div>
     
-    <div class="tab-content">
-        <!-- Upload Tab -->
-        <div class="tab-pane fade show active" id="upload" role="tabpanel">
-            <form id="upload-form">
-                <!-- Updated Drop Area -->
+        <!-- Upload Image Section -->
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <!-- Drop Area -->
                 <div id="drop-area">
                     <div class="upload-icon-container">
                         <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                    </div>
-                    <p>Upload a photo of your waste item for AI analysis</p>
-                    <input type="file" id="file-input" accept="image/*">
-                    <button type="button" class="btn btn-primary mt-2 button-animation" id="select-file-btn">
-                        <i class="fas fa-upload"></i> Select Image
+                </div>
+                    <p>Drag & drop your image here, or click to browse</p>
+                    <button type="button" id="select-file-btn" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Select Image
                     </button>
-                    <div class="supported-formats">
-                        Supported: JPG, PNG, WEBP
-                    </div>
-                    <div class="upload-instructions">
-                        Or drag and drop your image file here
-                    </div>
-                </div>
-                
-                <!-- Updated Preview Area -->
-                <div id="preview">
-                    <!-- The preview content will be dynamically inserted here -->
-                </div>
-                
-                <!-- Updated Analyze Button Container -->
-                <div id="analyze-btn-container">
-                    <button type="button" class="btn btn-success button-animation" id="analyze-btn">
-                        <i class="fas fa-search"></i> Analyze Image
-                    </button>
-                </div>
-            </form>
+                    <div class="upload-instructions">For best results, ensure the waste item is clearly visible in the image</div>
+                    <div class="supported-formats">Supported: JPG, PNG</div>
+                    <input type="file" id="file-input" accept="image/*" style="display: none">
         </div>
-    </div>
-    
-    <!-- Loading Spinner -->
-    <div class="loading-container" id="loading">
+        
+                <!-- Image Preview -->
+                <div id="preview" class="mt-4"></div>
+
+                <!-- Analyze Button Container -->
+                <div id="analyze-btn-container" class="text-center mt-4" style="display: none;">
+                    <button id="analyze-btn" class="btn btn-success btn-lg"><i class="fas fa-search me-2"></i>Analyze Image</button>
+                </div>
+                
+                <!-- Error Message (Hidden by default) -->
+                <div id="error-message" class="error-message"></div>
+
+                <!-- Loading State (Hidden by default) -->
+                <div id="loading" class="text-center my-5 d-none">
         <div class="spinner"></div>
-        <p class="mt-3">Analyzing your waste item...</p>
-        <p class="text-muted small">This may take a few moments</p>
+                    <p id="loading-text" class="mt-3">Analyzing your waste item...<br>This may take a few moments</p>
     </div>
     
-    <!-- Error Message -->
-    <div class="error-message" id="error-message"></div>
-    
-    <!-- Results -->
-    <div class="results-container" id="results">
-        <div class="results-header">
-            <i class="fas fa-recycle"></i>
-            <h2>Analysis Results</h2>
+                <!-- Results Section (Hidden by default) -->
+                <div id="results" class="mt-5" style="display: none;">
+                    <div class="results-header mb-4">
+                        <h2><i class="fas fa-check-circle me-2"></i>AI Analysis Results</h2>
         </div>
         
         <div class="results-grid">
             <div class="results-column">
-                <div class="result-image" id="result-image-container">
-                    <!-- Result image will be placed here -->
+                            <!-- Material Composition -->
+                            <div class="guidelines">
+                                <h4><i class="fas fa-info-circle"></i>Material Composition</h4>
+                                <div id="material-composition">
+                                    <!-- Will be populated by JavaScript -->
+                </div>
                 </div>
                 
-                <div class="alert alert-success">
-                    <p class="mb-1">This item is a <span class="waste-type" id="waste-type"></span> 
-                       <span class="confidence" id="confidence"></span></p>
-                    <p class="mb-0" id="item-scanned"></p>
-                </div>
-                
+                            <!-- Disposal Instructions -->
                 <div class="guidelines">
-                    <h4><i class="fas fa-info-circle"></i> Recycling Guidelines</h4>
-                    <div id="guidelines-content"></div>
+                                <h4><i class="fas fa-recycle"></i>Disposal Instructions</h4>
+                                <div id="disposal-instructions">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
                 </div>
             </div>
             
             <div class="results-column">
-                <div id="gpt-analysis-container" class="gpt-analysis">
-                    <h4><i class="fas fa-brain"></i> AI Analysis Results</h4>
-                    <!-- Analysis content will be dynamically inserted here -->
+                            <!-- Environmental Impact -->
+                            <div class="guidelines">
+                                <h4><i class="fas fa-leaf"></i>Environmental Impact</h4>
+                                <div id="environmental-impact">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
                 </div>
                 
+                            <!-- Recycling Centers -->
                 <div class="recycling-centers">
-                    <h4><i class="fas fa-map-marker-alt"></i> Nearby Recycling Centers</h4>
-                    <div id="centers-list"></div>
+                                <h4><i class="fas fa-map-marker-alt"></i>Recycling Options</h4>
+                                <div id="recycling-options">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
                 </div>
             </div>
         </div>
         
-        <div class="btn-next">
-            <button class="btn btn-primary btn-lg button-animation" id="scan-another">
-                <i class="fas fa-redo"></i> Scan Another Item
-            </button>
+                    <!-- GPT Analysis -->
+                    <div class="gpt-analysis mt-4">
+                        <h4><i class="fas fa-robot"></i>AI Detailed Analysis</h4>
+                        <div id="gpt-analysis-content">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <!-- Points Earned (if logged in) -->
+                    <div id="points-container" class="alert alert-success mt-4" style="display: none;">
+                        <i class="fas fa-award me-2"></i>
+                        <span id="points-message">You've earned 5 points for scanning this item!</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -923,31 +982,21 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Variables
+    // Elements for the Upload tab
         const dropArea = document.getElementById('drop-area');
         const fileInput = document.getElementById('file-input');
         const selectFileBtn = document.getElementById('select-file-btn');
         const preview = document.getElementById('preview');
-        const uploadForm = document.getElementById('upload-form');
-        const analyzeBtnContainer = document.getElementById('analyze-btn-container');
-        const analyzeBtn = document.getElementById('analyze-btn');
-        
-        const loading = document.getElementById('loading');
-        const results = document.getElementById('results');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const analyzeBtnContainer = document.getElementById('analyze-btn-container');
         const errorMessage = document.getElementById('error-message');
-        
-        const wasteType = document.getElementById('waste-type');
-        const confidence = document.getElementById('confidence');
-        const guidelinesContent = document.getElementById('guidelines-content');
-        const centersList = document.getElementById('centers-list');
-        
-        const scanAnother = document.getElementById('scan-another');
-        
-        let uploadedFile = null;
-        let uploadedImageWidth = 0;
-        let uploadedImageHeight = 0;
-        
-        // File Drop functionality
+    const results = document.getElementById('results');
+    const loading = document.getElementById('loading');
+    
+    // Variable to store the uploaded file
+    let uploadedFile = null;
+    
+    // Drag and drop events
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, preventDefaults, false);
         });
@@ -957,50 +1006,40 @@
             e.stopPropagation();
         }
         
-        // Enhanced visual feedback during file drop
-        dropArea.addEventListener('dragenter', function(e) {
-            preventDefaults(e);
-            highlight();
-            
-            // Additional visual cue
-            const uploadIcon = dropArea.querySelector('.upload-icon');
-            if (uploadIcon) {
-                uploadIcon.style.color = '#5CDB95';
-                uploadIcon.style.transform = 'scale(1.2)';
-            }
-        });
-
-        dropArea.addEventListener('dragleave', function(e) {
-            preventDefaults(e);
-            unhighlight();
-            
-            // Reset icon
-            const uploadIcon = dropArea.querySelector('.upload-icon');
-            if (uploadIcon) {
-                uploadIcon.style.color = '';
-                uploadIcon.style.transform = '';
-            }
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
         });
         
-        // Enhanced drop area highlight effect
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
         function highlight() {
             dropArea.classList.add('highlight');
-            
-            // Add scale effect
-            dropArea.style.transform = 'scale(1.02)';
-            dropArea.style.borderColor = '#5CDB95';
-            dropArea.style.backgroundColor = 'rgba(92, 219, 149, 0.1)';
-        }
-
-        function unhighlight() {
-            dropArea.classList.remove('highlight');
-            
-            // Remove scale effect
-            dropArea.style.transform = '';
-            dropArea.style.borderColor = '';
-            dropArea.style.backgroundColor = '';
         }
         
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+        
+    // Error display function
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+    }
+    
+    // Loading state functions
+    function showLoading() {
+        loading.classList.remove('d-none');
+        analyzeBtnContainer.style.display = 'none';
+    }
+    
+    function hideLoading() {
+        loading.classList.add('d-none');
+        analyzeBtnContainer.style.display = 'block';
+    }
+    
+    // Handle file drop
         dropArea.addEventListener('drop', handleDrop, false);
         
         function handleDrop(e) {
@@ -1014,6 +1053,7 @@
             }
         }
         
+    // Handle file selection via button
         selectFileBtn.addEventListener('click', () => {
             fileInput.click();
         });
@@ -1024,57 +1064,44 @@
             }
         });
         
-        // Updated handleFiles function for better image preview
+    // Process files function
         function handleFiles(files) {
             const file = files[0];
             if (file.type.match('image.*')) {
-                uploadedFile = file; // Store the file for later analysis
+            uploadedFile = file;
                 const reader = new FileReader();
-                
-                // Format file size for display
-                const fileSize = formatFileSize(file.size);
-                const fileName = file.name;
+            
+            // Format file size for display
+            const fileSize = formatFileSize(file.size);
+            const fileName = file.name;
                 
                 reader.onload = function(e) {
-                    // Create a more sophisticated preview layout
-                    preview.innerHTML = `
-                        <div class="image-preview-wrapper">
-                            <div class="image-preview-container">
-                                <img src="${e.target.result}" alt="Preview">
-                            </div>
-                            <div class="upload-success-indicator">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div class="image-info-bar">
-                                <span class="file-name">${fileName}</span>
-                                <span class="file-size">${fileSize}</span>
-                            </div>
+                // Create image preview
+                preview.innerHTML = `
+                    <div class="image-preview-wrapper">
+                        <img src="${e.target.result}" alt="Waste item image">
+                        <div class="image-info-bar">
+                            <span class="file-name">${fileName}</span>
+                            <span class="file-size">${fileSize}</span>
                         </div>
-                        <div class="image-preview-actions">
-                            <button type="button" class="btn remove-image-btn" id="remove-image-btn">
-                                <i class="fas fa-times"></i> Remove
-                            </button>
-                        </div>`;
-                    
-                    // Show analyze button with animation
-                    analyzeBtnContainer.style.display = 'block';
-                    
-                    // Add event listener for remove button
-                    document.getElementById('remove-image-btn').addEventListener('click', function() {
-                        preview.innerHTML = '';
-                        fileInput.value = '';
-                        uploadedFile = null;
-                        analyzeBtnContainer.style.display = 'none';
-                    });
-                    
-                    // Preload image dimensions for better UI
-                    const img = new Image();
-                    img.onload = function() {
-                        // Store dimensions for potential use later
-                        uploadedImageWidth = this.width;
-                        uploadedImageHeight = this.height;
-                    };
-                    img.src = e.target.result;
+                    </div>
+                    <div class="image-preview-actions">
+                        <button type="button" class="btn remove-image-btn" id="remove-image-btn">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </div>`;
+                
+                // Show analyze button
+                analyzeBtnContainer.style.display = 'block';
+                
+                // Add remove button listener
+                document.getElementById('remove-image-btn').addEventListener('click', function() {
+                    preview.innerHTML = '';
+                    fileInput.value = '';
+                    uploadedFile = null;
+                    analyzeBtnContainer.style.display = 'none';
+                    errorMessage.style.display = 'none';
+                });
                 };
                 
                 reader.readAsDataURL(file);
@@ -1082,571 +1109,526 @@
                 showError('Please select an image file (JPEG, PNG, etc.)');
                 fileInput.value = '';
                 preview.innerHTML = '';
-                analyzeBtnContainer.style.display = 'none';
-                uploadedFile = null;
-            }
+            analyzeBtnContainer.style.display = 'none';
+            uploadedFile = null;
         }
+    }
+    
+    // Format file size helper
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
         
-        // Helper function to format file size
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-        }
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
         
-        // Update the animation for the analyze button
-        analyzeBtn.addEventListener('mouseover', function() {
-            this.innerHTML = '<i class="fas fa-search"></i> Ready to Analyze';
-        });
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+    
+    // Analyze button interactions
+    analyzeBtn.addEventListener('mouseover', function() {
+        this.innerHTML = '<i class="fas fa-search"></i> Ready to Analyze';
+    });
 
-        analyzeBtn.addEventListener('mouseout', function() {
-            this.innerHTML = '<i class="fas fa-search"></i> Analyze Image';
-        });
-        
-        // Analyze button click handler
-        analyzeBtn.addEventListener('click', function() {
-            if (uploadedFile) {
-                analyzeImage(uploadedFile);
-            } else {
-                showError('Please upload an image first');
-            }
-        });
-        
-        // Form submission is now handled by the analyzeImage function
-        function analyzeImage(file) {
+    analyzeBtn.addEventListener('mouseout', function() {
+        this.innerHTML = '<i class="fas fa-search"></i> Analyze Image';
+    });
+    
+    // Analyze button click handler
+    analyzeBtn.addEventListener('click', function() {
+        if (uploadedFile) {
+            analyzeImage(uploadedFile);
+        } else {
+            showError('Please upload an image first');
+        }
+    });
+    
+    // Image analysis function
+    function analyzeImage(file) {
             showLoading();
+        errorMessage.style.display = 'none';
+        results.style.display = 'none';
+        
+        const formData = new FormData();
+        formData.append('file', file);
             
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            // Add a small delay to ensure loading animation is visible
-            setTimeout(() => {
-                fetch('/scan/upload', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    console.log("Upload response status:", response.status);
-                    if (!response.ok) {
-                        return response.json().then(data => {
-                            console.error("API error:", data);
-                            throw new Error(data.error || 'Error analyzing image');
-                        }).catch(err => {
-                            console.error("JSON parse error:", err);
-                            throw new Error('Error analyzing image: Invalid response format');
-                        });
-                    }
-                    return response.json().catch(err => {
-                        console.error("JSON parse error:", err);
+            fetch('/scan/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Error analyzing image');
+                    }).catch(err => {
                         throw new Error('Error analyzing image: Invalid response format');
                     });
-                })
-                .then(data => {
-                    if (data.success) {
-                        // Ensure we have a valid structure for display, create fallback if needed
-                        if (!data.top_prediction) {
-                            data.top_prediction = {
-                                label: 'unknown',
-                                confidence: 0.7
-                            };
-                        }
-                        
-                        // Scroll to results
-                        displayResults(data);
-                        setTimeout(() => {
-                            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 100);
-                    } else {
-                        console.error("API call succeeded but returned error:", data);
-                        showError(data.error || 'Error analyzing image');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showError(error.message || 'Error uploading image. Please try again.');
-                })
-                .finally(() => {
-                    hideLoading();
-                });
-            }, 500); // 500ms delay to show loading animation
+                }
+            return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    displayResults(data);
+                results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                throw new Error(data.error || 'Error analyzing image');
+                }
+            })
+            .catch(error => {
+                showError(error.message || 'Error uploading image. Please try again.');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+    }
+    
+    // Display results function
+    function displayResults(data) {
+        console.log("Scan results data:", data);
+        
+        // Enhanced diagnostic logging
+        console.log("Raw GPT Analysis:", data.gpt_analysis);
+        
+        if (data.gpt_analysis && typeof data.gpt_analysis === 'object') {
+            console.log("GPT Analysis Structure:", {
+                has_material_composition: !!data.gpt_analysis.material_composition,
+                has_disposal_suggestions: !!data.gpt_analysis.disposal_suggestions,
+                has_recyclability: !!data.gpt_analysis.recyclability,
+                has_waste_type: !!data.gpt_analysis.waste_type
+            });
+        } else if (typeof data.gpt_analysis === 'string') {
+            // Try to parse if it's a JSON string
+            try {
+                const parsedAnalysis = JSON.parse(data.gpt_analysis);
+                console.log("Parsed GPT Analysis:", parsedAnalysis);
+                // Store the parsed result back in the data object
+                data.gpt_analysis = parsedAnalysis;
+            } catch (e) {
+                console.log("GPT Analysis is a string but not valid JSON");
+            }
         }
         
-        // Results handling
-        function displayResults(data) {
-            console.log("Scan results data:", data);
+        // Log the full response for debugging
+        try {
+            console.log("Full response data:", JSON.stringify(data, null, 2));
+        } catch (e) {
+            console.log("Couldn't stringify full response:", e);
+        }
+        
+        results.style.display = 'block';
+        
+        try {
+            // Check if data is valid
+            if (!data) {
+                throw new Error("No data received from scan");
+            }
             
-            results.style.display = 'block';
-            errorMessage.style.display = 'none';
-            
+            // Display Material Composition
             try {
-                const prediction = data.top_prediction;
-                console.log("Top prediction:", prediction);
-                
-                if (!prediction) {
-                    console.error("No prediction found in response");
-                    errorMessage.style.display = 'block';
-                    errorMessage.textContent = 'Could not identify the item. Please try again with a clearer image.';
-                    return;
-                }
-                
-                // For uploaded files, don't show the image again - it's already in the preview
-                const resultImageContainer = document.getElementById('result-image-container');
-                if (resultImageContainer) {
-                    resultImageContainer.innerHTML = '';
-                }
-                
-                // Parse the material type from the label
-                const itemLabel = prediction.label.replace(/_/g, ' ');
-                console.log("Item label:", itemLabel);
-                let materialType = 'Unknown';
-                
-                if (itemLabel.includes('plastic')) {
-                    materialType = 'Plastic';
-                } else if (itemLabel.includes('glass')) {
-                    materialType = 'Glass';
-                } else if (itemLabel.includes('paper') || itemLabel.includes('cardboard')) {
-                    materialType = 'Paper/Cardboard';
-                } else if (itemLabel.includes('metal') || itemLabel.includes('aluminum') || itemLabel.includes('steel')) {
-                    materialType = 'Metal';
-                } else if (itemLabel.includes('organic') || itemLabel.includes('food')) {
-                    materialType = 'Organic';
-                } else if (itemLabel.includes('electronic') || itemLabel.includes('e_waste')) {
-                    materialType = 'Electronic';
-                } else if (itemLabel.includes('textile') || itemLabel.includes('clothing')) {
-                    materialType = 'Textile';
-                }
-                
-                console.log("Material type:", materialType);
-                
-                // Display top prediction and material type
-                if (wasteType) wasteType.textContent = itemLabel;
-                if (confidence) confidence.textContent = `${Math.round(prediction.confidence * 100)}% confidence`;
-                
-                // Display what item was scanned
-                const itemScannedEl = document.getElementById('item-scanned');
-                if (itemScannedEl) {
-                    itemScannedEl.innerHTML = `<strong>Item Scanned:</strong> ${data.item_name || itemLabel}`;
-                }
-                
-                // Check for GPT-4o analysis results
-                const gptAnalysisContainer = document.getElementById('gpt-analysis-container');
-                
-                // Log the entire data object to debug
-                console.log("Complete response data:", data);
-                
-                // Always generate analysis content, with or without GPT data
-                if (gptAnalysisContainer) {
-                    if (data.gpt_analysis && 
-                      (data.gpt_analysis.material_composition?.length > 0 || 
-                       data.gpt_analysis.recyclability?.length > 0 || 
-                       data.gpt_analysis.disposal_suggestions?.length > 0)) {
-                        
-                        console.log("GPT analysis data found:", data.gpt_analysis);
-                        
-                        // Determine badge class based on waste type
-                        const wasteTypeBadgeClass = `badge-${data.gpt_analysis.waste_type || 'mixed'}`;
-                        
-                        // Create HTML content for GPT analysis
-                        let gptAnalysisHtml = `
-                            <h4><i class="fas fa-brain"></i> AI Analysis Results</h4>
-                            <div class="mb-3">
-                                <span class="badge ${wasteTypeBadgeClass} p-2" style="color: #11222a; font-weight: 700;">
-                                    ${(data.gpt_analysis.waste_type || 'Unknown').toUpperCase()}
-                                </span>
-                            </div>
-                        `;
-                        
-                        // Material Composition Section
-                        if (data.gpt_analysis.material_composition && data.gpt_analysis.material_composition.length > 0) {
-                            gptAnalysisHtml += `
-                                <div class="gpt-analysis-section">
-                                    <h5><i class="fas fa-atom"></i> Material Composition</h5>
-                                    <ul>
-                                        ${data.gpt_analysis.material_composition.map(item => `<li>${parseMarkdown(item)}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            `;
-                        }
-                        
-                        // Recyclability Section
-                        if (data.gpt_analysis.recyclability && data.gpt_analysis.recyclability.length > 0) {
-                            gptAnalysisHtml += `
-                                <div class="gpt-analysis-section">
-                                    <h5><i class="fas fa-recycle"></i> Recyclability</h5>
-                                    <ul>
-                                        ${data.gpt_analysis.recyclability.map(item => `<li>${parseMarkdown(item)}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            `;
-                        }
-                        
-                        // Disposal Suggestions Section
-                        if (data.gpt_analysis.disposal_suggestions && data.gpt_analysis.disposal_suggestions.length > 0) {
-                            gptAnalysisHtml += `
-                                <div class="gpt-analysis-section">
-                                    <h5><i class="fas fa-trash-alt"></i> Disposal Suggestions</h5>
-                                    <ul>
-                                        ${data.gpt_analysis.disposal_suggestions.map(item => `<li>${parseMarkdown(item)}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            `;
-                        }
-                        
-                        // Set the HTML content
-                        gptAnalysisContainer.innerHTML = gptAnalysisHtml;
-                    } else {
-                        console.log("No GPT analysis data found, generating standard analysis for material type:", materialType);
-                        
-                        // If no GPT analysis, display a standard analysis based on the waste type
-                        let analysisMessage = "";
-                        let recyclingTips = [];
-                        let disposalSuggestions = [];
-                        
-                        // Generate material-specific analysis
-                        if (materialType === 'Plastic') {
-                            analysisMessage = "Plastic items are made from petroleum-based materials that can take hundreds of years to decompose naturally.";
-                            recyclingTips = [
-                                "Plastic items should be clean and dry before recycling",
-                                "Remove any non-plastic components like metal caps",
-                                "Check the recycling number on the bottom - numbers 1 (PET) and 2 (HDPE) are most widely accepted",
-                                "Plastic bags and films often require special recycling programs"
-                            ];
-                            disposalSuggestions = [
-                                "Rinse container to remove food residue",
-                                "Remove and separate caps and lids if different material",
-                                "Place in recycling bin (check local guidelines for specific types)",
-                                "Consider reusing clean containers instead of disposing"
-                            ];
-                        } else if (materialType === 'Glass') {
-                            analysisMessage = "Glass is made from natural materials like sand, soda ash, and limestone, and is 100% recyclable.";
-                            recyclingTips = [
-                                "Glass can be recycled endlessly without loss in quality or purity",
-                                "Different colors of glass (clear, green, brown) may need to be separated",
-                                "Rinse containers to remove food residue",
-                                "Remove caps and lids as they are often made from different materials"
-                            ];
-                            disposalSuggestions = [
-                                "Rinse container thoroughly",
-                                "Remove any non-glass components",
-                                "Place in glass recycling bin (sorted by color if required)",
-                                "Be careful with broken glass - wrap in paper before disposal"
-                            ];
-                        } else if (materialType === 'Paper/Cardboard') {
-                            analysisMessage = "Paper products are made from wood pulp and can be recycled 5-7 times before fibers become too short.";
-                            recyclingTips = [
-                                "Paper products should be clean and free of food residue",
-                                "Remove any plastic windows or non-paper components",
-                                "Flatten cardboard boxes to save space",
-                                "Keep paper dry to maintain recyclability"
-                            ];
-                            disposalSuggestions = [
-                                "Break down cardboard boxes to save space",
-                                "Remove any tape, staples, or non-paper materials",
-                                "Place clean paper in paper recycling bin",
-                                "Compost heavily soiled paper if possible"
-                            ];
-                        } else if (materialType === 'Metal') {
-                            analysisMessage = "Metal items like cans are highly recyclable materials that can be recycled indefinitely without degradation.";
-                            recyclingTips = [
-                                "Metal containers should be empty, clean, and dry",
-                                "Labels can typically stay on metal cans",
-                                "Aluminum cans are among the most valuable recyclable materials",
-                                "Small metal items can be collected together in a larger metal container"
-                            ];
-                            disposalSuggestions = [
-                                "Rinse containers to remove food residue",
-                                "Crush cans to save space (optional)",
-                                "Place in metal recycling bin",
-                                "Consider separating different types of metals if required locally"
-                            ];
-                        } else if (materialType === 'Organic') {
-                            analysisMessage = "Organic waste includes food scraps and yard waste that can be composted to create nutrient-rich soil.";
-                            recyclingTips = [
-                                "Organic waste can be composted at home or through municipal programs",
-                                "Composting reduces methane emissions from landfills",
-                                "Many cities have separate collection for organic waste",
-                                "Both food scraps and yard waste can typically be composted together"
-                            ];
-                            disposalSuggestions = [
-                                "Place in home compost bin or municipal organic waste bin",
-                                "Layer with brown materials (leaves, paper) in home compost",
-                                "Use compostable bags if required by local collection",
-                                "Consider worm composting for apartment living"
-                            ];
-                        } else if (materialType === 'Electronic') {
-                            analysisMessage = "Electronic waste contains valuable recoverable materials as well as potentially hazardous components.";
-                            recyclingTips = [
-                                "Electronics should never be thrown in regular trash",
-                                "Many electronic retailers offer take-back programs",
-                                "Data should be wiped from devices before recycling",
-                                "E-waste recycling recovers valuable metals and prevents toxic materials from entering landfills"
-                            ];
-                            disposalSuggestions = [
-                                "Take to designated e-waste recycling center",
-                                "Use manufacturer or retailer take-back programs",
-                                "Remove batteries before recycling if possible",
-                                "Check for local e-waste collection events"
-                            ];
-                        } else {
-                            analysisMessage = "This item should be disposed of according to local recycling guidelines.";
-                            recyclingTips = [
-                                "Check with your local recycling program for specific guidelines",
-                                "When in doubt, keep it out of the recycling bin",
-                                "Mixed materials are often difficult to recycle",
-                                "Clean items before recycling whenever possible"
-                            ];
-                            disposalSuggestions = [
-                                "Research proper disposal methods for your area",
-                                "Contact local waste management for special items",
-                                "Consider donation if the item is still usable",
-                                "Separate components made of different materials if possible"
-                            ];
-                        }
-                        
-                        // Create detailed fallback analysis
-                        gptAnalysisContainer.innerHTML = `
-                            <h4><i class="fas fa-brain"></i> AI Analysis Results</h4>
-                            <div class="gpt-analysis-section">
-                                <h5><i class="fas fa-atom"></i> Material Composition</h5>
-                                <p>${analysisMessage}</p>
-                            </div>
-                            <div class="gpt-analysis-section">
-                                <h5><i class="fas fa-recycle"></i> Recyclability</h5>
-                                <ul>
-                                    ${recyclingTips.map(tip => `<li>${tip}</li>`).join('')}
-                                </ul>
-                            </div>
-                            <div class="gpt-analysis-section">
-                                <h5><i class="fas fa-trash-alt"></i> Disposal Suggestions</h5>
-                                <ul>
-                                    ${disposalSuggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
-                                </ul>
-                            </div>
-                        `;
+                const materialEl = document.getElementById('material-composition');
+                materialEl.innerHTML = formatMaterialComposition(data);
+            } catch (error) {
+                console.error("Error displaying material composition:", error);
+                document.getElementById('material-composition').innerHTML = '<p class="text-danger">Error displaying material information</p>';
+            }
+            
+            // Display Disposal Instructions
+            try {
+                const disposalEl = document.getElementById('disposal-instructions');
+                disposalEl.innerHTML = formatDisposalInstructions(data);
+            } catch (error) {
+                console.error("Error displaying disposal instructions:", error);
+                document.getElementById('disposal-instructions').innerHTML = '<p class="text-danger">Error displaying disposal instructions</p>';
+            }
+            
+            // Display Environmental Impact
+            try {
+                const impactEl = document.getElementById('environmental-impact');
+                impactEl.innerHTML = formatEnvironmentalImpact(data);
+            } catch (error) {
+                console.error("Error displaying environmental impact:", error);
+                document.getElementById('environmental-impact').innerHTML = '<p class="text-danger">Error displaying environmental impact</p>';
+            }
+            
+            // Display Recycling Options
+            try {
+                const recyclingEl = document.getElementById('recycling-options');
+                recyclingEl.innerHTML = formatRecyclingOptions(data);
+            } catch (error) {
+                console.error("Error displaying recycling options:", error);
+                document.getElementById('recycling-options').innerHTML = '<p class="text-danger">Error displaying recycling options</p>';
+            }
+            
+            // Display GPT Analysis
+            try {
+                const gptEl = document.getElementById('gpt-analysis-content');
+                gptEl.innerHTML = formatGPTAnalysis(data);
+            } catch (error) {
+                console.error("Error displaying GPT analysis:", error);
+                document.getElementById('gpt-analysis-content').innerHTML = '<p class="text-danger">Error displaying AI analysis</p>';
+            }
+            
+            // Display Points Earned (if applicable)
+            try {
+                if (data.points_earned) {
+                    let pointsContainer = document.getElementById('points-container');
+                    let pointsMessage = document.getElementById('points-message');
+                    
+                    // Format points value properly
+                    let pointsValue = data.points_earned;
+                    if (typeof pointsValue === 'object') {
+                        console.warn('Points value is an object:', pointsValue);
+                        pointsValue = 5; // Default fallback value
                     }
-                }
-                
-                // Fetch guidelines from API
-                console.log("Fetching guidelines for waste type:", prediction.label);
-                const guidelinesContentEl = document.getElementById('guidelines-content');
-                
-                if (guidelinesContentEl) {
-                    fetch(`/api/guidelines/${prediction.label}`)
-                        .then(response => {
-                            console.log("Guidelines response status:", response.status);
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log("Guidelines data:", data);
-                            const guidelines = data.guidelines;
-                            
-                            let guidelinesHTML = '';
-                            
-                            if (guidelines) {
-                                guidelinesHTML += `<div class="alert ${guidelines.recyclable ? 'alert-success' : 'alert-warning'}">
-                                    <strong>${guidelines.recyclable ? 'Recyclable ♻️' : 'Not Recyclable ⚠️'}</strong>
-                                </div>`;
-                                
-                                // Add material type information
-                                guidelinesHTML += `<p><strong>Material:</strong> ${materialType}</p>`;
-                                guidelinesHTML += `<p><strong>Preparation:</strong> ${guidelines.preparation}</p>`;
-                                guidelinesHTML += `<p><strong>Bin:</strong> <span class="badge bg-${guidelines.bin_color === 'blue' ? 'primary' : guidelines.bin_color === 'green' ? 'success' : guidelines.bin_color === 'black' ? 'dark' : 'secondary'} p-2">${guidelines.bin_color.toUpperCase()} BIN</span></p>`;
-                                
-                                if (guidelines.facts) {
-                                    guidelinesHTML += `<div class="alert alert-info mt-3">
-                                        <i class="fas fa-info-circle me-2"></i> <strong>Did you know?</strong> ${guidelines.facts}
-                                    </div>`;
-                                }
-                            } else {
-                                guidelinesHTML = '<p>No specific guidelines available for this item.</p>';
-                            }
-                            
-                            guidelinesContentEl.innerHTML = guidelinesHTML;
-                            
-                            // Also fetch nearby recycling centers
-                            fetchRecyclingCenters(prediction.label);
-                        })
-                        .catch(error => {
-                            console.error('Error fetching guidelines:', error);
-                            if (guidelinesContentEl) {
-                                guidelinesContentEl.innerHTML = '<p>Error loading recycling guidelines.</p>';
-                            }
-                        });
+                    
+                    // If the points elements don't exist, create them
+                    if (!pointsContainer) {
+                        console.warn('Points container not found, creating it');
+                        pointsContainer = document.createElement('div');
+                        pointsContainer.id = 'points-container';
+                        pointsContainer.className = 'alert alert-success mt-4';
+                        
+                        // Create icon
+                        const icon = document.createElement('i');
+                        icon.className = 'fas fa-award me-2';
+                        pointsContainer.appendChild(icon);
+                        
+                        // Create or get message span
+                        if (!pointsMessage) {
+                            pointsMessage = document.createElement('span');
+                            pointsMessage.id = 'points-message';
+                            pointsContainer.appendChild(pointsMessage);
+                        }
+                        
+                        // Append to results container
+                        results.appendChild(pointsContainer);
+                    }
+                    
+                    // Set the points message and display the container
+                    if (pointsMessage) {
+                        pointsMessage.textContent = `You've earned ${pointsValue} points for scanning this item!`;
+                        pointsContainer.style.display = 'block';
+                    } else {
+                        // If pointsMessage still doesn't exist, set innerHTML directly
+                        pointsContainer.innerHTML = `<i class="fas fa-award me-2"></i><span id="points-message">You've earned ${pointsValue} points for scanning this item!</span>`;
+                        pointsContainer.style.display = 'block';
+                    }
                 }
             } catch (error) {
-                console.error("Error displaying results:", error);
-                errorMessage.style.display = 'block';
-                errorMessage.textContent = 'Error displaying results. Please try again.';
+                console.error("Error displaying points:", error);
             }
+        } catch (error) {
+            console.error("Error displaying results:", error);
+            showError("Error displaying results. Please try again.");
         }
+    }
+    
+    // Helper formatting functions
+    function formatMaterialComposition(data) {
+        // Extract material data from either the top-level or the detailed analysis
+        let material = data.material || 'Unknown';
+        let wastetype = data.waste_type || 'Unknown';
+        let recyclable = data.recyclable;
         
-        function fetchRecyclingCenters(wasteType) {
-            // Try to get user's location
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    // Success callback
-                    function(position) {
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-                        
-                        console.log("Getting recycling centers near: ", lat, lon);
-                        
-                        fetch(`/api/recycling-centers?lat=${lat}&lon=${lon}&waste_type=${wasteType}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                console.log("Recycling centers data:", data);
-                                displayRecyclingCenters(data.centers || []);
-                            })
-                            .catch(error => {
-                                console.error('Error fetching recycling centers:', error);
-                                displayRecyclingCenters([]);
-                            });
-                    },
-                    // Error callback
-                    function(error) {
-                        console.error("Geolocation error:", error);
-                        displayDefaultRecyclingCenters();
+        // Try to extract more detailed info from gpt_analysis if available
+        if (data.gpt_analysis && typeof data.gpt_analysis === 'object') {
+            // Get material from gpt_analysis if available
+            if (data.gpt_analysis.material_composition) {
+                if (typeof data.gpt_analysis.material_composition === 'string') {
+                    material = data.gpt_analysis.material_composition;
+                } else if (Array.isArray(data.gpt_analysis.material_composition) && 
+                          data.gpt_analysis.material_composition.length > 0) {
+                    material = data.gpt_analysis.material_composition[0];
+                }
+            }
+            
+            // Get waste type from gpt_analysis if available
+            if (data.gpt_analysis.waste_type) {
+                wastetype = data.gpt_analysis.waste_type;
+            }
+            
+            // Get recyclability from gpt_analysis if available
+            if (data.gpt_analysis.recyclability) {
+                if (typeof data.gpt_analysis.recyclability === 'string') {
+                    if (data.gpt_analysis.recyclability.toLowerCase().includes('recyclable')) {
+                        recyclable = true;
+                    } else if (data.gpt_analysis.recyclability.toLowerCase().includes('not')) {
+                        recyclable = false;
+                    } else if (data.gpt_analysis.recyclability.toLowerCase().includes('special')) {
+                        recyclable = 'special';
                     }
-                );
-            } else {
-                console.error("Geolocation not supported");
-                displayDefaultRecyclingCenters();
+                } else if (Array.isArray(data.gpt_analysis.recyclability) && 
+                          data.gpt_analysis.recyclability.length > 0) {
+                    const recyclabilityStr = data.gpt_analysis.recyclability[0].toLowerCase();
+                    if (recyclabilityStr.includes('recyclable')) {
+                        recyclable = true;
+                    } else if (recyclabilityStr.includes('not')) {
+                        recyclable = false;
+                    } else if (recyclabilityStr.includes('special')) {
+                        recyclable = 'special';
+                    }
+                }
             }
         }
         
-        function displayRecyclingCenters(centers) {
-            const centersList = document.getElementById('centers-list');
+        let badgeClass = 'badge-non-recyclable';
+        let badgeText = 'NOT RECYCLABLE';
+        
+        if (recyclable === true) {
+            badgeClass = 'badge-recyclable';
+            badgeText = 'RECYCLABLE';
+        } else if (recyclable === 'special') {
+            badgeClass = 'badge-special';
+            badgeText = 'SPECIAL DISPOSAL';
+        }
+        
+        return `
+                        <div class="mb-3">
+                <span class="badge ${badgeClass} mb-2">${badgeText}</span>
+                <p><strong>Material:</strong> ${parseMarkdown(material)}</p>
+                <p><strong>Waste Type:</strong> ${parseMarkdown(wastetype)}</p>
+                <p><strong>Confidence:</strong> ${data.confidence ? Math.round(data.confidence * 100) + '%' : 'N/A'}</p>
+                            </div>
+                        `;
+                    }
+                    
+    function formatDisposalInstructions(data) {
+        let instructions = data.disposal_instructions || 'No specific disposal instructions available.';
+        
+        // Try to get disposal instructions from gpt_analysis if available
+        if (data.gpt_analysis && typeof data.gpt_analysis === 'object' && 
+            data.gpt_analysis.disposal_suggestions && 
+            Array.isArray(data.gpt_analysis.disposal_suggestions) && 
+            data.gpt_analysis.disposal_suggestions.length > 0) {
             
-            if (!centers || centers.length === 0) {
-                centersList.innerHTML = `
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> Visit the Centers tab to find where to dispose of this item.
-                    </div>
-                `;
-                return;
+            instructions = data.gpt_analysis.disposal_suggestions.join('<br>');
+        }
+        
+        return `
+            <div class="mb-3">
+                ${parseMarkdown(instructions)}
+                            </div>
+                        `;
+                    }
+                    
+    function formatRecyclingOptions(data) {
+        const suggestions = data.recycling_suggestions || [];
+        let centersSuggested = false;
+        
+        // Try to get recycling options from gpt_analysis if available
+        if (data.gpt_analysis && typeof data.gpt_analysis === 'object' && 
+            data.gpt_analysis.disposal_suggestions && 
+            Array.isArray(data.gpt_analysis.disposal_suggestions)) {
+            
+            // Only use suggestions from gpt_analysis if no suggestions exist yet
+            if (!Array.isArray(suggestions) || suggestions.length === 0) {
+                // Filter for recycling-related suggestions
+                const recyclingOptions = data.gpt_analysis.disposal_suggestions.filter(suggestion => 
+                    suggestion.toLowerCase().includes('recycl') || 
+                    suggestion.toLowerCase().includes('bin') ||
+                    suggestion.toLowerCase().includes('center')
+                );
+                
+                if (recyclingOptions.length > 0) {
+                    let html = `<div class="mb-3">`;
+                    recyclingOptions.forEach(option => {
+                        html += `<p>${parseMarkdown(option)}</p>`;
+                    });
+                    
+                    // Add link to centers if mentioned
+                    if (recyclingOptions.some(option => 
+                        option.toLowerCase().includes('center') || 
+                        option.toLowerCase().includes('facility') || 
+                        option.toLowerCase().includes('drop'))) {
+                        
+                        html += `
+                            <div class="mt-3">
+                                <a href="/centers" class="btn btn-sm btn-success">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Find Nearby Centers
+                                </a>
+                            </div>
+                        `;
+                    }
+                    
+                    html += `</div>`;
+                    return html;
+                }
+            }
+        }
+        
+        if (!Array.isArray(suggestions) || suggestions.length === 0) {
+            return `<p>No specific recycling options available for this item.</p>`;
+        }
+        
+        let html = `<div class="mb-3">`;
+        
+        suggestions.forEach(suggestion => {
+            if (typeof suggestion === 'string' && (
+                suggestion.toLowerCase().includes('center') || 
+                suggestion.toLowerCase().includes('facility') || 
+                suggestion.toLowerCase().includes('drop')
+            )) {
+                centersSuggested = true;
             }
             
-            let html = '';
-            
-            // Display up to 3 centers
-            centers.slice(0, 3).forEach(center => {
-                const distance = center.distance ? 
-                    `${center.distance.toFixed(1)} miles away` : 
-                    '';
-                    
-                const address = center.address ? 
-                    `<p class="mb-1"><i class="fas fa-map-marker-alt text-muted me-2"></i>${center.address}</p>` : 
-                    '';
-                    
-                const phone = center.phone ? 
-                    `<p class="mb-1"><i class="fas fa-phone text-muted me-2"></i>${center.phone}</p>` : 
-                    '';
-                    
-                const website = center.website ? 
-                    `<p class="mb-0"><i class="fas fa-globe text-muted me-2"></i><a href="${center.website}" target="_blank" rel="noopener">Website</a></p>` : 
-                    '';
-                    
-                html += `
-                    <div class="center-card">
-                        <h5>${center.name || 'Recycling Center'}</h5>
-                        ${distance ? `<p class="text-muted mb-2">${distance}</p>` : ''}
-                        ${address}
-                        ${phone}
-                        ${website}
-                    </div>
-                `;
-            });
-            
+            html += `<p>${parseMarkdown(suggestion)}</p>`;
+        });
+        
+        if (centersSuggested) {
             html += `
-                <div class="text-center mt-3">
-                    <a href="/centers" class="btn btn-outline-success">
-                        <i class="fas fa-search-location"></i> Find More Centers
+                <div class="mt-3">
+                    <a href="/centers" class="btn btn-sm btn-success">
+                        <i class="fas fa-map-marker-alt me-2"></i>Find Nearby Centers
                     </a>
                 </div>
             `;
-            
-            centersList.innerHTML = html;
         }
         
-        function displayDefaultRecyclingCenters() {
-            const centersList = document.getElementById('centers-list');
-            
-            centersList.innerHTML = `
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Visit the Centers tab to find where to dispose of this item.
-                </div>
-            `;
+        html += `</div>`;
+        return html;
+    }
+    
+    function formatEnvironmentalImpact(data) {
+        let impact = data.environmental_impact || 'Environmental impact information not available.';
+        
+        // Try to extract environmental impact from gpt_analysis if available
+        if (data.gpt_analysis && typeof data.gpt_analysis === 'object') {
+            if (data.gpt_analysis.environmental_impact) {
+                if (typeof data.gpt_analysis.environmental_impact === 'string') {
+                    impact = data.gpt_analysis.environmental_impact;
+                } else if (Array.isArray(data.gpt_analysis.environmental_impact) && 
+                          data.gpt_analysis.environmental_impact.length > 0) {
+                    impact = data.gpt_analysis.environmental_impact.join('<br>');
+                }
+            }
         }
         
-        // Helpers
-        function showLoading() {
-            loading.style.display = 'block';
-            results.style.display = 'none';
-            errorMessage.style.display = 'none';
-            
-            // Add overlay to prevent interaction
-            document.body.style.overflow = 'hidden';
-            
-            // Disable scan buttons to prevent multiple submissions
-            if (analyzeBtn) analyzeBtn.disabled = true;
-        }
+        return `
+            <div class="mb-3">
+                ${parseMarkdown(impact)}
+            </div>
+        `;
+    }
+    
+    function formatGPTAnalysis(data) {
+        let analysis = data.gpt_analysis || 'Detailed analysis not available.';
         
-        function hideLoading() {
-            loading.style.display = 'none';
-            document.body.style.overflow = '';
-            
-            // Re-enable scan buttons
-            if (analyzeBtn) analyzeBtn.disabled = false;
-        }
-        
-        function showError(message) {
-            errorMessage.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-            errorMessage.style.display = 'block';
-            
-            // Automatically hide after 5 seconds
-            setTimeout(() => {
-                hideError();
-            }, 5000);
-            
-            // Scroll to error message
-            errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        
-        function hideError() {
-            errorMessage.style.display = 'none';
-        }
-        
-        // Reset and scan again
-        if (scanAnother) {
-            scanAnother.addEventListener('click', function() {
-                // Hide results and clear preview
-                results.style.display = 'none';
-                preview.innerHTML = '';
-                fileInput.value = '';
-                uploadedFile = null;
-                analyzeBtnContainer.style.display = 'none';
+        // Add extra type check for gpt_analysis
+        if (analysis && typeof analysis === 'object') {
+            try {
+                // If it's an object, format it nicely instead of raw JSON string
+                let formattedHTML = '<div class="analysis-sections">';
                 
-                // Scroll to top
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
+                // Display disposal suggestions
+                if (analysis.disposal_suggestions && Array.isArray(analysis.disposal_suggestions)) {
+                    formattedHTML += `
+                        <div class="analysis-section">
+                            <h5><i class="fas fa-trash-alt me-2"></i>Disposal Suggestions</h5>
+                            <ul>`;
+                    
+                    analysis.disposal_suggestions.forEach(suggestion => {
+                        formattedHTML += `<li>${suggestion}</li>`;
+                    });
+                    
+                    formattedHTML += `</ul></div>`;
+                }
+                
+                // Display material composition
+                if (analysis.material_composition && Array.isArray(analysis.material_composition)) {
+                    formattedHTML += `
+                        <div class="analysis-section">
+                            <h5><i class="fas fa-atom me-2"></i>Material Composition</h5>
+                            <ul>`;
+                    
+                    analysis.material_composition.forEach(material => {
+                        formattedHTML += `<li>${material}</li>`;
+                    });
+                    
+                    formattedHTML += `</ul></div>`;
+                } else if (typeof analysis.material_composition === 'string') {
+                    formattedHTML += `
+                        <div class="analysis-section">
+                            <h5><i class="fas fa-atom me-2"></i>Material Composition</h5>
+                            <p>${analysis.material_composition}</p>
+                </div>`;
+                }
+                
+                // Display recyclability info
+                if (analysis.recyclability && Array.isArray(analysis.recyclability)) {
+                    formattedHTML += `
+                        <div class="analysis-section">
+                            <h5><i class="fas fa-recycle me-2"></i>Recyclability</h5>
+                            <ul>`;
+                    
+                    analysis.recyclability.forEach(item => {
+                        formattedHTML += `<li>${item}</li>`;
+                    });
+                    
+                    formattedHTML += `</ul></div>`;
+                } else if (typeof analysis.recyclability === 'string') {
+                    formattedHTML += `
+                        <div class="analysis-section">
+                            <h5><i class="fas fa-recycle me-2"></i>Recyclability</h5>
+                            <p>${analysis.recyclability}</p>
+                        </div>`;
+                }
+                
+                // Display waste type
+                if (analysis.waste_type) {
+                    formattedHTML += `
+                        <div class="analysis-section">
+                            <h5><i class="fas fa-info-circle me-2"></i>Waste Type</h5>
+                            <p>${analysis.waste_type}</p>
+                        </div>`;
+                }
+                
+                // If none of the specific sections are available, fall back to displaying raw JSON
+                if (formattedHTML === '<div class="analysis-sections">') {
+                    formattedHTML += `<pre class="json-data">${JSON.stringify(analysis, null, 2)}</pre>`;
+                }
+                
+                formattedHTML += '</div>';
+                return formattedHTML;
+            } catch (e) {
+                console.error("Error formatting gpt_analysis:", e);
+                return `<pre class="json-data">${JSON.stringify(analysis, null, 2)}</pre>`;
+            }
         }
         
-        // Parse markdown from the response
-        function parseMarkdown(text) {
-            if (!text) return '';
-            
-            // Replace ** for bold text (properly escaped)
-            let parsedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            
-            // Additional check to replace any remaining ** that weren't caught
-            parsedText = parsedText.replace(/\*\*/g, '');
-            
-            return parsedText;
+        return `
+            <div class="gpt-analysis-section p-3">
+                ${parseMarkdown(analysis)}
+            </div>
+        `;
+    }
+    
+    // Helper function to parse markdown style formatting
+    function parseMarkdown(text) {
+        if (!text) return '';
+        
+        // Make sure text is a string
+        if (typeof text !== 'string') {
+            console.warn('parseMarkdown received non-string input:', text);
+            return String(text) || '';
         }
+        
+        // Clean up the text first by removing stray asterisks
+        text = text.replace(/\*(?!\*)/g, '');
+        
+        // Convert bold text with asterisks
+        let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+        // Convert italics with underscores
+        formatted = formatted.replace(/\_(.*?)\_/g, '<em>$1</em>');
+        
+        // Remove any stray double asterisks that weren't matched in pairs
+        formatted = formatted.replace(/\*\*/g, '');
+        
+        // Convert line breaks
+        formatted = formatted.replace(/\n/g, '<br>');
+        
+        return formatted;
+    }
     });
 </script>
 {% endblock %} 

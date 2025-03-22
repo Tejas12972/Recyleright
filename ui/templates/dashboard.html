@@ -4,12 +4,12 @@
 
 {% block content %}
 <div class="container py-4">
-    <h1 class="mb-4">Welcome, {{ user.username }}!</h1>
+    <h1 class="mb-4 display-5 fw-bold text-primary-dark">Welcome, {{ user.username }}!</h1>
     
     <!-- User Stats Row -->
     <div class="row mb-4">
         <div class="col-md-6 mb-3">
-            <div class="card dashboard-card stats-card h-100 shadow-lg" style="background-color: #6c5ce7 !important; opacity: 1 !important;">
+            <div class="card dashboard-card stats-card h-100 shadow-lg bg-gradient-primary">
                 <div class="card-body">
                     <h5 class="card-title text-white fw-bold"><i class="fas fa-star me-2"></i>Your Stats</h5>
                     <div class="mt-4">
@@ -17,31 +17,32 @@
                             <span class="text-white fw-bold">Level {{ stats.level }}</span>
                             <span class="text-white fw-bold">{{ stats.points }} points</span>
                         </div>
-                        <div class="progress mb-3">
+                        <div class="progress mb-3 bg-white bg-opacity-25">
                             <div class="progress-bar bg-warning" 
                                 role="progressbar" 
                                 aria-valuenow="{{ stats.level_progress|default(0) }}"
                                 aria-valuemin="0" 
                                 aria-valuemax="100"
-                                style="width: {{ stats.level_progress|default(0) }}%;"></div>
+                                style="width: {{ stats.level_progress|default(0) }}%;">
+                            </div>
                         </div>
                         <p class="small text-white">{{ stats.points_to_next_level|default(100) }} points to Level {{ stats.level|int + 1 }}</p>
                         
-                        <hr class="bg-white">
+                        <hr class="bg-white opacity-25">
                         
                         <div class="row text-center mt-4">
                             <div class="col-6">
-                                <h3 class="text-white">{{ stats.items_scanned|default(0) }}</h3>
+                                <h3 class="text-white fw-bold">{{ stats.items_scanned|default(0) }}</h3>
                                 <p class="small text-white fw-bold">Items Scanned</p>
                             </div>
                             <div class="col-6">
-                                <h3 class="text-white">{{ stats.rank|default(0) }}</h3>
+                                <h3 class="text-white fw-bold">{{ stats.rank|default(0) }}</h3>
                                 <p class="small text-white fw-bold">Rank</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer" style="background-color: #5549c0 !important; opacity: 1 !important;">
+                <div class="card-footer bg-primary-dark border-0">
                     <a href="{{ url_for('leaderboard') }}" class="btn btn-warning btn-sm w-100 fw-bold">
                         <i class="fas fa-crown me-1"></i> View Global Leaderboard
                     </a>
@@ -50,26 +51,27 @@
         </div>
         
         <div class="col-md-6 mb-3">
-            <div class="card dashboard-card challenges-card h-100" style="background-color: #5a67d8 !important; color: white !important; opacity: 1 !important;">
+            <div class="card dashboard-card challenges-card h-100 bg-gradient-secondary">
                 <div class="card-body">
                     <h5 class="card-title text-white fw-bold"><i class="fas fa-tasks me-2"></i>Active Challenges</h5>
                     {% if challenges %}
                         <ul class="list-group list-group-flush mt-3">
                             {% for challenge in challenges %}
                                 <li class="list-group-item bg-transparent border-light text-white">
-                                    <h6 class="text-white">{{ challenge.title }}</h6>
+                                    <h6 class="text-white fw-bold">{{ challenge.title }}</h6>
                                     <p class="small mb-1 text-white">{{ challenge.description }}</p>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="small text-white">Progress: {{ challenge.progress }}/{{ challenge.goal }}</span>
                                         <span class="badge bg-warning text-dark">{{ challenge.points }} pts</span>
                                     </div>
-                                    <div class="progress mt-2">
+                                    <div class="progress mt-2 bg-white bg-opacity-25">
                                         <div class="progress-bar bg-warning" 
                                             role="progressbar"
                                             aria-valuenow="{{ (challenge.progress / challenge.goal * 100)|int }}"
                                             aria-valuemin="0" 
                                             aria-valuemax="100"
-                                            style="width: {{ (challenge.progress / challenge.goal * 100)|int }}%;"></div>
+                                            style="width: {{ (challenge.progress / challenge.goal * 100)|int }}%;">
+                                        </div>
                                     </div>
                                 </li>
                             {% endfor %}
@@ -78,7 +80,7 @@
                         <p class="text-center mt-4 text-white">No active challenges.<br>Start scanning items to get challenges!</p>
                     {% endif %}
                 </div>
-                <div class="card-footer" style="background-color: #4c51bf !important; opacity: 1 !important;">
+                <div class="card-footer bg-secondary-dark border-0">
                     <a href="{{ url_for('achievements') }}" class="btn btn-warning btn-sm w-100 fw-bold">
                         <i class="fas fa-trophy me-1"></i> View All Achievements
                     </a>
@@ -90,39 +92,39 @@
     <!-- Quick Actions Row -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow">
+            <div class="card shadow border-0">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0">Quick Actions</h5>
+                    <h5 class="mb-0 fw-bold text-primary-dark">Quick Actions</h5>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ url_for('scan') }}" class="text-decoration-none">
-                                <div class="p-3 rounded bg-primary text-white mb-2">
+                            <a href="{{ url_for('scan') }}" class="text-decoration-none action-card">
+                                <div class="p-3 rounded bg-primary text-white mb-2 action-icon">
                                     <i class="fas fa-camera fa-2x"></i>
                                 </div>
-                                <h6>Scan Item</h6>
+                                <h6 class="fw-bold">Scan Item</h6>
                             </a>
                         </div>
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ url_for('recycling_centers') }}" class="text-decoration-none">
-                                <div class="p-3 rounded bg-success text-white mb-2">
+                            <a href="{{ url_for('recycling_centers') }}" class="text-decoration-none action-card">
+                                <div class="p-3 rounded bg-success text-white mb-2 action-icon">
                                     <i class="fas fa-map-marker-alt fa-2x"></i>
                                 </div>
-                                <h6>Find Centers</h6>
+                                <h6 class="fw-bold">Find Centers</h6>
                             </a>
                         </div>
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ url_for('achievements') }}" class="text-decoration-none">
-                                <div class="p-3 rounded bg-warning text-dark mb-2">
+                            <a href="{{ url_for('achievements') }}" class="text-decoration-none action-card">
+                                <div class="p-3 rounded bg-warning text-dark mb-2 action-icon">
                                     <i class="fas fa-trophy fa-2x"></i>
                                 </div>
-                                <h6>Achievements</h6>
+                                <h6 class="fw-bold">Achievements</h6>
                             </a>
                         </div>
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{{ url_for('leaderboard') }}" class="text-decoration-none">
-                                <div class="p-3 rounded bg-warning text-dark mb-2 quick-action-icon pulse-animation">
+                            <a href="{{ url_for('leaderboard') }}" class="text-decoration-none action-card">
+                                <div class="p-3 rounded bg-warning text-dark mb-2 action-icon pulse-animation">
                                     <i class="fas fa-crown fa-2x"></i>
                                 </div>
                                 <h6 class="fw-bold">Leaderboard</h6>
@@ -137,26 +139,26 @@
     <!-- Recent Activity -->
     <div class="row">
         <div class="col-12">
-            <div class="card shadow">
+            <div class="card shadow border-0">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0">Recent Activity</h5>
+                    <h5 class="mb-0 fw-bold text-primary-dark">Recent Activity</h5>
                 </div>
                 <div class="card-body">
                     {% if recent_activity %}
                         <div class="table-responsive">
-                            <table class="table">
-                                <thead>
+                            <table class="table table-hover">
+                                <thead class="table-light">
                                     <tr>
                                         <th>Date</th>
-                                        <th>Activity</th>
+                                        <th>Details</th>
                                         <th class="text-end">Points</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for activity in recent_activity %}
-                                        <tr>
+                                        <tr class="activity-row">
                                             <td>{{ activity.date }}</td>
-                                            <td>{{ activity.type }}</td>
+                                            <td>{{ activity.details }}</td>
                                             <td class="text-end">
                                                 {% if activity.points > 0 %}
                                                     <span class="badge bg-success">+{{ activity.points }}</span>
@@ -172,7 +174,7 @@
                             </table>
                         </div>
                     {% else %}
-                        <p class="text-center py-3">No recent activity. Start scanning items to track your recycling journey!</p>
+                        <p class="text-center py-3 text-muted">No recent activity. Start scanning items to track your recycling journey!</p>
                     {% endif %}
                 </div>
             </div>

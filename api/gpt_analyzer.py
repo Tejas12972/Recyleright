@@ -89,7 +89,8 @@ Respond in a structured format:
 # Notes
 
 - Always consider local recycling guidelines, as they may vary.
-- Contaminants can affect the recyclability, so items should be clean and dry before recycling."""
+- Contaminants can affect the recyclability, so items should be clean and dry before recycling.
+- Dont give a reply in markdown format, just give a plain text reply."""
             
             # Call OpenAI API
             response = self.client.chat.completions.create(

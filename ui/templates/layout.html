@@ -4,9 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}RecycleRight{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap and other libraries -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
     <style>
         .navbar-brand img {
@@ -19,27 +26,27 @@
     {% block head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
                 <img src="{{ url_for('static', filename='images/recycle.svg') }}" alt="RecycleRight Logo" width="32" height="32" class="d-inline-block me-2">
-                <span class="text-white" style="font-size: 1.4rem; font-weight: 600;">RecycleRight</span>
+                <span class="text-white" style="font-size: 1.4rem; font-weight: 700;">RecycleRight</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav ms-auto">
-                    <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                    <a class="nav-link px-3" href="{{ url_for('home') }}"><i class="fas fa-home me-1"></i> Home</a>
                     {% if session.get('user_id') %}
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
-                        <a class="nav-link" href="{{ url_for('scan') }}">Scan</a>
-                        <a class="nav-link" href="{{ url_for('leaderboard') }}">Leaderboard</a>
-                        <a class="nav-link" href="{{ url_for('centers') }}">Recycling Centers</a>
-                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        <a class="nav-link px-3" href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a>
+                        <a class="nav-link px-3" href="{{ url_for('scan') }}"><i class="fas fa-camera me-1"></i> Scan</a>
+                        <a class="nav-link px-3" href="{{ url_for('leaderboard') }}"><i class="fas fa-crown me-1"></i> Leaderboard</a>
+                        <a class="nav-link px-3" href="{{ url_for('centers') }}"><i class="fas fa-map-marker-alt me-1"></i> Centers</a>
+                        <a class="nav-link px-3" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
                     {% else %}
-                        <a class="nav-link" href="{{ url_for('home') }}">Login</a>
-                        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                        <a class="nav-link px-3" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt me-1"></i> Login</a>
+                        <a class="nav-link px-3" href="{{ url_for('register') }}"><i class="fas fa-user-plus me-1"></i> Register</a>
                     {% endif %}
                 </div>
             </div>
@@ -50,27 +57,26 @@
       {% if messages %}
         <div class="container mt-3">
           {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show">
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
               {{ message }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
           {% endfor %}
         </div>
       {% endif %}
     {% endwith %}
 
-    <main class="container py-4">
+    <main class="py-4">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="footer mt-auto py-3 bg-light">
+    <footer class="footer mt-auto py-3">
         <div class="container text-center">
-            <span class="text-muted">© 2025 RecycleRight. All rights reserved.</span>
+            <p class="mb-0 text-muted">© 2025 RecycleRight. All rights reserved.</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>

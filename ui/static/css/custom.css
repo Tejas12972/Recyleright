@@ -1,3 +1,281 @@
+/* RecycleRight Custom Styles - Enhanced for Professional UI */
+
+:root {
+  --primary: #5CDB95;
+  --primary-dark: #379683;
+  --secondary: #5a67d8;
+  --secondary-dark: #4c51bf;
+  --text-color: #333333;
+  --text-light: #f1f1f1;
+  --dark: #11222a;
+  --accent: #FFD166;
+  --danger: #EF476F;
+  --success: #06D6A0;
+  --warning: #FFD166;
+  --info: #118AB2;
+  --border-radius: 12px;
+  --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --transition: all 0.3s ease;
+}
+
+/* Global Enhancements */
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+  color: var(--text-color);
+  background-color: #f8f9fa;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.text-primary-dark {
+  color: var(--primary-dark) !important;
+}
+
+.container {
+  max-width: 1200px;
+  padding: 0 1.5rem;
+}
+
+/* Card Styling */
+.card {
+  border-radius: var(--border-radius);
+  border: none;
+  overflow: hidden;
+  transition: var(--transition);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--card-shadow);
+}
+
+.card-header {
+  padding: 1.25rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-footer {
+  padding: 1.25rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Dashboard Card Enhancements */
+.dashboard-card {
+  transition: var(--transition);
+  margin-bottom: 1.5rem;
+  height: 100%;
+}
+
+.dashboard-card .card-body {
+  padding: 1.75rem;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #6c5ce7 0%, #5549c0 100%) !important;
+  color: white;
+}
+
+.bg-gradient-secondary {
+  background: linear-gradient(135deg, #5a67d8 0%, #4c51bf 100%) !important;
+  color: white;
+}
+
+.bg-primary-dark {
+  background-color: #5549c0 !important;
+}
+
+.bg-secondary-dark {
+  background-color: #4c51bf !important;
+}
+
+/* Progress Bar Styling */
+.progress {
+  height: 10px;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.2);
+  margin: 1rem 0;
+  overflow: hidden;
+}
+
+.progress-bar {
+  border-radius: 5px;
+  transition: width 0.6s ease;
+}
+
+/* Quick Action Cards */
+.action-card {
+  transition: var(--transition);
+  padding: 0.5rem;
+  border-radius: 12px;
+  display: block;
+}
+
+.action-card:hover {
+  transform: translateY(-5px);
+}
+
+.action-card:hover .action-icon {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transform: scale(1.05);
+}
+
+.action-icon {
+  transition: var(--transition);
+  height: 80px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Recent Activity Table */
+.table {
+  margin-bottom: 0;
+}
+
+.table thead th {
+  border-top: none;
+  border-bottom: 2px solid #e9ecef;
+  font-weight: 600;
+  color: var(--primary-dark);
+  padding: 0.75rem 1.25rem;
+}
+
+.table td {
+  padding: 1rem 1.25rem;
+  vertical-align: middle;
+  border-top: 1px solid #e9ecef;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(92, 219, 149, 0.05);
+}
+
+.activity-row {
+  transition: var(--transition);
+}
+
+.badge {
+  font-weight: 600;
+  padding: 0.5em 0.75em;
+  border-radius: 6px;
+}
+
+/* Animation Utilities */
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.7);
+  }
+  
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(255, 209, 102, 0);
+  }
+  
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 209, 102, 0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.8s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.slide-up {
+  animation: slideUp 0.8s ease-in-out forwards;
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991.98px) {
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .dashboard-card .card-body {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  h1 {
+    font-size: 2rem;
+  }
+  
+  .action-icon {
+    height: 70px;
+  }
+  
+  .card-header, .card-body, .card-footer {
+    padding: 1.25rem;
+  }
+  
+  .table td, .table th {
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+  
+  .action-icon {
+    height: 60px;
+  }
+  
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  .card-header, .card-body, .card-footer {
+    padding: 1rem;
+  }
+  
+  .dashboard-card .card-body {
+    padding: 1.25rem;
+  }
+  
+  .table td, .table th {
+    padding: 0.75rem;
+  }
+}
+
 /* All Cards Global Styling to prevent transparency */
 .card {
     opacity: 1 !important;
@@ -193,4 +471,133 @@
     font-weight: bold !important;
     margin-bottom: 0.2rem;
     color: #ffffff !important;
+}
+
+/* Scan Page Styles */
+.scan-container {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.page-header {
+    background: linear-gradient(135deg, rgba(92, 219, 149, 0.9) 0%, rgba(61, 167, 108, 0.9) 100%), 
+                url('/static/images/recycle.svg') right bottom no-repeat;
+    background-size: cover, 180px;
+    padding: 3rem 2rem;
+    margin-bottom: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.page-header:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/static/images/recycle.svg') right 20px bottom 10px no-repeat;
+    background-size: 240px;
+    opacity: 0.2;
+    transform: rotate(10deg);
+}
+
+/* Recent Activity Styles */
+.activity-item {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+    background-color: #f8fbf9;
+}
+
+.activity-item:hover {
+    background-color: #f2f9f5;
+    transform: translateX(5px);
+}
+
+.activity-item .activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-right: 1rem;
+}
+
+.activity-meta {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+/* Challenge Styles */
+.challenge-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.challenge-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+}
+
+.challenge-card .card-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border-bottom: none;
+    padding: 1.25rem;
+}
+
+.challenge-progress {
+    height: 8px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.challenge-progress .progress-bar {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+}
+
+/* Footer Styles */
+.footer {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    padding: 2rem 0;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .scan-container {
+        border-radius: 0;
+    }
+    
+    .stats-card h3 {
+        font-size: 2rem;
+    }
+    
+    .challenge-card .card-header {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-card {
+        margin-bottom: 1rem;
+    }
+    
+    .dashboard-card {
+        margin-bottom: 1.5rem;
+    }
 } 
