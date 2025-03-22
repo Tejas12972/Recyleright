@@ -414,8 +414,7 @@ def register_routes(app):
                             points_earned = points_system.award_scan_points(
                                 user_id=session['user_id'],
                                 waste_type=top_prediction['label'],
-                                image_path=filepath,
-                                scan_id=scan_id
+                                image_path=filepath
                             )
                     
                     # Prepare response with GPT analysis data
@@ -507,8 +506,7 @@ def register_routes(app):
                         points_earned = points_system.award_scan_points(
                             user_id=session['user_id'],
                             waste_type=top_prediction['label'],
-                            image_path=filepath,
-                            scan_id=scan_id
+                            image_path=filepath
                         )
                 
                 # Prepare response
@@ -696,8 +694,7 @@ def register_routes(app):
                             points_earned = points_system.award_scan_points(
                                 user_id=session['user_id'],
                                 waste_type=top_prediction['label'],
-                                image_path=filepath,
-                                scan_id=scan_id
+                                image_path=filepath
                             )
                     
                     # Prepare response with GPT analysis data
@@ -792,8 +789,7 @@ def register_routes(app):
                         points_earned = points_system.award_scan_points(
                             user_id=session['user_id'],
                             waste_type=top_prediction['label'],
-                            image_path=filepath,
-                            scan_id=scan_id
+                            image_path=filepath
                         )
                 
                 # Prepare response
