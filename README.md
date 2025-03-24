@@ -1,140 +1,133 @@
-# RecycleRight
+# RecycleRight 🌱
 
-RecycleRight is an AI-powered waste management application that helps users properly classify and recycle waste items.
+RecycleRight is an AI-powered waste management application that helps users properly classify and recycle waste items. The application uses machine learning to identify waste items from images and provides guidance on proper disposal methods.
 
-## Features
+![RecycleRight Banner](ui/static/images/logo.png)
 
-- **AI Waste Classification**: Upload images of waste items to get AI-powered classification and recycling guidance
-- **Recycling Centers**: Find nearby recycling centers based on your location
-- **User Dashboard**: Track your recycling activity and progress
+## ✨ Features
+
+- **AI Waste Classification**: Upload photos to get instant AI classification of waste items
+- **Real-time Recycling Guidance**: Receive specific instructions for proper disposal
+- **Interactive Map**: Find nearby recycling centers based on your location
+- **User Dashboard**: Track your recycling statistics and environmental impact
 - **Gamification**: Earn points and achievements for responsible waste disposal
-- **Leaderboard**: Compete with other users to see who's making the biggest environmental impact
+- **Leaderboard**: Compete with others to increase recycling participation
 
-## Prerequisites
+## 🚀 Getting Started
+
+### Prerequisites
 
 - Python 3.8 or higher
-- MongoDB (local or cloud instance)
-- OpenCV for image processing
-- Flask web framework
+- MongoDB (local instance or Atlas cloud account)
+- Google Maps API key (for recycling center locations)
+- OpenAI API key (optional, for enhanced analysis with GPT)
 
-## Installation
+### Installation
 
-1. Clone the repository:
-   ```
+1. **Clone the repository**
+   ```bash
    git clone https://github.com/yourusername/recycleright.git
    cd recycleright
    ```
 
-2. Create and activate a virtual environment:
-   ```
+2. **Set up a virtual environment**
+   ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. Install the dependencies:
-   ```
+3. **Install dependencies**
+   ```bash
    pip install -r requirements.txt
    ```
 
-4. Set up environment variables:
-   Create a `.env` file in the project root with the following variables:
+4. **Configure environment variables**
+   ```bash
+   cp .env.example .env
    ```
-   FLASK_APP=app.py
-   FLASK_DEBUG=1
-   SECRET_KEY=your_secret_key_here
-   MONGODB_URI=mongodb://localhost:27017/recycleright
-   ```
+   Edit the `.env` file and add your API keys and configurations.
 
-## Running the Application
-
-### Using the Run Script
-
-The easiest way to run the application is by using the provided `run.sh` script, which ensures all required directories exist and creates necessary files:
-
-1. Make the script executable:
-   ```
+5. **Run the setup script**
+   ```bash
    chmod +x run.sh
-   ```
-
-2. Run the application:
-   ```
    ./run.sh
    ```
+   This will create necessary directories and initialize required files.
 
-### Manual Setup
+### Running the Application
 
-If you prefer to set up the environment manually:
+**Option 1: Using the run script**
+```bash
+./run.sh
+```
 
-1. Create required directories:
-   ```
-   mkdir -p logs
-   mkdir -p uploads
-   mkdir -p models/labels
-   mkdir -p ui/static/uploads
-   mkdir -p ui/static/images
-   ```
+**Option 2: Manual start**
+```bash
+python app.py
+```
 
-2. Create a labels file for waste classification:
-   ```
-   cat > models/labels/waste_labels.txt << EOL
-   plastic_bottle
-   glass_bottle
-   aluminum_can
-   paper
-   cardboard
-   plastic_bag
-   food_waste
-   styrofoam
-   electronic_waste
-   batteries
-   light_bulb
-   clothing
-   metal
-   plastic_container
-   tetra_pak
-   EOL
-   ```
+The application will be available at http://localhost:5001
 
-3. Start the application:
-   ```
-   python app.py
-   ```
+## 🧩 Project Structure
 
-4. Open your browser and navigate to: 
-   ```
-   http://localhost:5001
-   ```
+```
+recycleright/
+├── api/                 # External API integrations
+├── app/                 # Core application modules
+├── assets/              # Static assets 
+├── data/                # Database models and operations
+├── gamification/        # Points and achievement system
+├── logs/                # Application logs
+├── models/              # ML models for waste classification
+├── ui/                  # User interface
+│   ├── static/          # CSS, JavaScript, images
+│   └── templates/       # HTML templates
+├── uploads/             # User-uploaded images (temporary)
+├── .env.example         # Example environment variables
+├── app.py               # Main application entry point
+├── config.py            # Application configuration
+├── requirements.txt     # Python dependencies
+└── run.sh               # Startup script
+```
 
-## Project Structure
+## 📱 Usage Guide
 
-- `app.py`: Main application entry point
-- `config.py`: Configuration settings
-- `api/`: API modules for external services
-- `data/`: Database and data management
-- `models/`: ML models for waste classification
-- `ui/`: User interface components
-  - `static/`: Static assets (CSS, JS, images)
-  - `templates/`: HTML templates
-- `gamification/`: Points and achievement system
+1. **Create an Account**: Sign up to track your recycling progress
+2. **Upload Waste Images**: Take a photo of an item or upload from your gallery
+3. **Review Classification**: Get AI-powered identification and recycling instructions
+4. **Find Recycling Centers**: View nearby locations for proper waste disposal
+5. **Track Progress**: View your dashboard to see your recycling statistics
+6. **Earn Rewards**: Collect points and badges for your environmental contributions
 
-## Usage
+## 🛠️ Development
 
-1. **Sign Up/Login**: Create an account or login to access all features
-2. **Scan Waste**: Upload an image of a waste item or use your camera to capture one
-3. **View Classification**: Get AI-powered classification and recycling guidance
-4. **Find Centers**: Locate nearby recycling centers for proper disposal
-5. **Track Progress**: Monitor your recycling activity and earned points on your dashboard
-6. **View Leaderboard**: See how you rank against other users
+### Testing
+```bash
+pytest
+```
 
-## Troubleshooting
+### Contributing
 
-If you encounter any issues running the application:
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-- Check the logs in the `logs/recycleright.log` file
-- Ensure MongoDB is running and accessible
-- Verify that all required directories exist
-- Make sure environment variables are properly set
+## 🔐 Security Notes
 
-## License
+- Never commit your `.env` file or any files containing API keys
+- Generate a strong unique secret key for your Flask application
+- Ensure MongoDB access is properly secured
+- Use HTTPS in production environments
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- TensorFlow for machine learning models
+- OpenAI for GPT-4o integration
+- Google Maps API for location services
+- The Sustainable Recycling Alliance for waste classification guidelines

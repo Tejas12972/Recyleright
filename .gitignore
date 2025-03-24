@@ -25,9 +25,12 @@ venv/
 env/
 ENV/
 
-# Environment variables
+# Environment variables and secrets
 .env
 .flaskenv
+*.env
+.env.*
+!.env.example
 
 # IDEs and editors
 .idea/
@@ -86,3 +89,10 @@ tmp/
 # Project specific
 instance/
 *.pem 
+cert/
+
+# API keys and credentials
+credentials.json
+*_key.json
+*_credentials.json
+google_api_key.txt 
